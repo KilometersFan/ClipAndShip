@@ -1,0 +1,96 @@
+﻿{% extends 'nav.html' %}
+{% block title %}TwitchAnalyzer | Videos{% endblock %}
+{% block head_styles %}
+<style>
+    #searchModal .modal-dialog .modal-content, #videoRemoveModal .modal-dialog .modal-content, #videoMessageModal .modal-dialog .modal-content {
+        background-color: #201f22;
+    }
+</style>
+{% endblock %}
+{% block navitems %}
+<li>
+    <a class="nav-link" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
+</li>
+{% endblock %}
+{% block content %}
+<h1 id="channelVideoTitle"></h1>
+<div class="modal fade" tabindex="-1" role="dialog" id="videoMessageModal" aria-labelledby="videoMessageModalLabel" aria-hidden="true" ">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Processing Video...</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>The video is being processed. This may take a while to finish. Stay put!</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="videoRemoveModal" aria-labelledby="videoRemoveModalLabel" aria-hidden="true" ">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Removing Video</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="rmvBody"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search For Video</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="searchBody">
+                <form id="searchVideoForm">
+                    <label for="searchInput">Video IDs</label>
+                    <input type="number" id="searchInput" class="form-control" required />
+                    <small id="searchHelp" class="form-text text-muted">Enter a video ID, ex: 123456789. Video IDs are located in the URL of the video.</small>
+                    <button type="submit" id="searchVideoSubmit" class="btn action-btn mt-2 mb-2">Search</button>
+                    <p style="display:none" class="error text-danger"></p>
+                </form>
+                <p id="searchNotFound" style="display:none" class="mt-2 mb-2"></p>
+                <div class="container-fluid">
+                    <div class="row" id="videoSearchResult"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-2 mb-2">
+    <button id="channelVideoBtn" class="btn toggle-btn mt-1 mb-1">Toggle View</button>
+    <button id="searchVideoBtn" class="btn delete-btn mt-1 mb-1" data-toggle="modal" data-target="#searchModal">Search For Video</button>
+    <div class="text-center loading">
+        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+</div>
+<div class="row" id="notifications"></div>
+<div class="row" id="videoRow">
+</div>
+<h1>Your Clipped Videos</h1>
+<p>Please note that sometimes twitch will say a video doesn't exist, so it won't appear below. If that happens, try again later.</p>
+<button id="userVideosBtn" class="btn toggle-btn mt-1 mb-1">Toggle View</button>
+<div class="row" id="userVideos">
+
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script type="text/javascript" src="../scripts/video.js"></script>
+{% endblock %}
+{% block videoHandler %}
+    setTimeout(updateVideos, 100);
+{% endblock %}

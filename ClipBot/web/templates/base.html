@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript">
+        {% block head_scripts %} {% endblock %}
+    </script>
+    <style>
+        body {
+            background-color: #201f22;
+            color: white;
+        }
+
+        .action-btn {
+            background-color: #5E17EB;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #545454;
+            color: white;
+        }
+
+        .toggle-btn {
+            background-color: #cdcdcd;
+            color: #201f22;
+        }
+
+        .custom-card {
+            background-color: #323134;
+        }
+
+        #notificationModal .modal-dialog .modal-content, .nav-custom {
+            background-color: #323134;
+        }
+    </style>
+    {% block head_styles %}
+    {% endblock %}
+</head>
+<body>
+    {% block nav %}
+    {% endblock %}
+    <div class="container">
+        <div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="notificationModalLabel">Video Processing Complete</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="notificationBody">
+                        <p>A video has finished processing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% block content %} {% endblock %}
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    {% block body_scripts %} {% endblock %}
+    <script>
+        eel.expose(videoHandler);
+        function videoHandler(response) {
+            let notifications = $("#notificationModal");
+            let notificationBody = $("#notificationBody");
+            if (response["status"] == 200) {
+                notificationBody.text(response["msg"] + " ");
+                let link = $("<a>", { "href": "results.html?channel=" + response["channelId"] + "&video=" + response["id"] });
+                link.text("Results");
+                notificationBody.append($("<br />"));
+                notificationBody.append(link);
+                let results = $("#results" + response["id"]);
+                results.show();
+            }
+            else if (response["status"] == 201) {
+                notificationBody.text(response["msg"] + " ");
+            }
+            else {
+                if (response["msg"]) {
+                    notificationBody.text(response["msg"]);
+                }
+                else {
+                    notificationBody.text("An unexpected error occurred while processing your request. Please try again later.");
+                }
+                let results = $("#results" + response["id"]);
+                results.hide();
+            }
+            {% block videoHandler %}
+            {% endblock %}
+            notifications.modal("show");
+        }
+    </script>
+</body>
+</html>

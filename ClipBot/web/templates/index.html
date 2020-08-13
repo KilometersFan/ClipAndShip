@@ -1,0 +1,37 @@
+﻿{% extends 'base.html' %}
+{% block title %}TwitchAnalyzer{% endblock %}
+{% block head_styles %}
+<style>
+    .formInput {
+        width: 100%
+    }
+</style>
+{% endblock %}
+{% block content %}
+<img class="mx-auto d-block" src="../TwitchAnalyzerLogo.png"/>
+<div id="validBlock" class="mx-auto" style="display: none; text-align: center">
+    <p>You're all set!</p>
+    <a href="home.html" class="btn btn-primary">Start Clipping</a>
+</div>
+<div id="invalidBlock" style="display: none">
+    <p>No twitch credentials found, please head over to the <a href="https://dev.twitch.tv/docs/authentication" target="_blank">Twitch Developers Authentication page</a> and follow the instructions to register your application (set the redirect URI to http://localhost and set the category to Chat Bot) and obtain a <i>client id</i> and <i>client secret</i> to continue. Note that the app only needs these two pieces of information to work.</p>
+    <form method="GET" action="home.html" id="credentialForm">
+        <label for="clientId">Client ID</label>
+        <input name="clientId" type="text" id="clientId" class="formInput" required="required" />
+        <label for="clientSecret">Client Secret</label>
+        <input name="clientSecret" id="clientSecret" type="text" class="formInput" required="required" />
+        <hr />
+        <button type="submit" name="btn" class="btn btn-primary">Submit</button>
+        <p id="error" style="display:none" class="text-danger">Please enter all required information</p>
+    </form>
+</div>
+<div id="successBlock" style="display: none">
+    <form method="GET" action="home.html">
+        <p>Success! Added your credentials to the app. Click the button below to continue</p>
+        <button type="submit" name="btn" class="btn btn-primary">Continue</button>
+    </form>
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script type="text/javascript" src="../scripts/index.js"></script>
+{% endblock %}

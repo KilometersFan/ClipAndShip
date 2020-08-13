@@ -1,0 +1,40 @@
+﻿{% extends 'nav.html' %}
+{% block title %}TwitchAnalyzer | Results{% endblock %}
+{% block navitems %}
+    <li>
+        <a class="nav-link" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
+    </li>
+    <li>
+        <a class="nav-link" id="videoBtn">Channel Videos <span class="sr-only">(current)</span></a>
+    </li>
+{% endblock %}
+{% block content %}
+<h1 id="channelVideoTitle"></h1>
+<div class="row" id="notifications"></div>
+<div class="row" id="results">
+    <div class="text-center" id="loading">
+        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <div id="resultsRow" class="col-sm-12">
+        <iframe id="vod"
+                height="700"
+                frameborder="0"
+                scrolling="no"
+                allowfullscreen="true"
+                class="mx-auto d-block">
+        </iframe>
+        <form>
+            <select id="currentCategory" class="form-control"></select>
+            <select id="currentCategoryTime" class="form-control"></select>
+            <button type="button" class="btn delete-btn" id="prev">Previous</button>
+            <button type="button" class="btn action-btn" id="playSelected">Play Selected</button>
+            <button type="button" class="btn delete-btn" id="next">Next</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script type="text/javascript" src="../scripts/results.js"></script>
+{% endblock %}

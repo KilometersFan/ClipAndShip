@@ -1,0 +1,71 @@
+﻿{% extends 'nav.html' %}
+{% block title %}TwitchAnalyzer | Home{% endblock %}
+{% block head_styles %}
+<style>
+    #addChannelModal .modal-dialog .modal-content, #rmvChannelModal .modal-dialog .modal-content {
+        background-color: #201f22;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<h1>Your Channels</h1>
+<button class="btn mt-1 mb-1 action-btn" id="searchChannelBtn" data-toggle="modal" data-target="#addChannelModal">Add Channel</button>
+<button class="btn mt-1 mb-1 delete-btn" id="rmvChannelBtn" data-toggle="modal" data-target="#rmvChannelModal">Remove Channel</button>
+<div class="modal fade" id="addChannelModal" tabindex="-1" role="dialog" aria-labelledby="addChannelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addChannelLabel">Add Channel</h5>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid pt-3 pb-3" id="addChannelContainer">
+                    <form id="searchChannelForm">
+                        <label for="addChannelSubmit">Search for Channel</label>
+                        <input type="search" name="searchInput" id="searchInput" class="form-control" placeholder="sodapoppin" required />
+                        <button type="submit" id="addChannelSubmit" class="btn action-btn mt-2 mb-2">Search</button>
+                        <p style="display:none" class="error text-danger"></p>
+                    </form>
+
+                    <form id="addChannelForm" style="display: none">
+                        <div class="container-fluid">
+                            <div class="row" id="searchChannelResult"></div>
+                        </div>
+                        <button type="submit" id="addChannelSubmit" name="channelToAdd" class="btn action-btn mt-2 mb-2">Add</button>
+                        <button type="button" id="clearChannelSubmit" name="channelToAdd" class="btn delete-btn mt-2 mb-2">Cancel</button>
+                        <p class="errorChannel mt-2 mb-2 text-danger" style="display:none"></p>
+                    </form>
+                    <p id="notFound" style="display:none" class="mt-2 mb-2">Unable to find channel</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rmvChannelModal" tabindex="-1" role="dialog" aria-labelledby="rmvChannelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rmvChannelLabel">Remove Channel</h5>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid" id="rmvCategoryContainer">
+                    <form id="rmvChannelForm">
+                        <button type="submit" id="rmvChannelSubmit" class="btn delete-btn mt-1 mb-1">Remove</button>
+                        <p class="error text-danger" style="display:none"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="text-center" id="loading">
+    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="row" id="channelsContainer">
+
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script type="text/javascript" src="../scripts/home.js"></script>
+{% endblock %}

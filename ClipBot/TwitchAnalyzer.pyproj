@@ -1,0 +1,79 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>a98ba6a7-5891-45b1-b574-85fdb3db0736</ProjectGuid>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>TwitchAnalyzer.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>TwitchAnalyzer</Name>
+    <RootNamespace>ClipBot</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="TwitchAnalyzer.py" />
+    <Compile Include="models\Category.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\Channel.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\CategoryThread.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\ClipBot.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\ClipBotHelper.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="data\channels\" />
+    <Folder Include="models\" />
+    <Folder Include="data\" />
+    <Folder Include="config\" />
+    <Folder Include="web\" />
+    <Folder Include="web\scripts\" />
+    <Folder Include="web\templates\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="web\scripts\channel.js" />
+    <Content Include="web\scripts\home.js" />
+    <Content Include="web\scripts\index.js" />
+    <Content Include="web\scripts\processing.js" />
+    <Content Include="web\scripts\results.js" />
+    <Content Include="web\scripts\video.js" />
+    <Content Include="web\templates\base.html" />
+    <Content Include="web\templates\channel.html" />
+    <Content Include="web\templates\home.html" />
+    <Content Include="web\templates\index.html" />
+    <Content Include="web\templates\nav.html" />
+    <Content Include="web\templates\processing.html" />
+    <Content Include="web\templates\results.html" />
+    <Content Include="web\templates\video.html" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
