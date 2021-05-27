@@ -1,13 +1,14 @@
-import os
+from pprint import pprint
+from multiprocessing import Process, Manager
 import configparser
 import twitch
 import requests
 import json
-import models.Channel as Channel
-import models.Category as Category
-import models.ClipBotHelper as ClipBotHelper
+from Channel import Channel
+from Category import Category
+from ClipBotHelper import ClipBotHelper
 
-class ClipBot(object):
+class ClipBot():
     """Bot that helps find clips in a twitch VOD by analyzing chat messages"""
     def __init__(self):
         self._oauthURL = "https://id.twitch.tv/oauth2/"
@@ -18,6 +19,7 @@ class ClipBot(object):
         self._channelInfo = {}
         self._processing = {}
         self._helpers = {}
+        self._accessToken = None
     
     # return twitch Helix object
     def getHelix(self):
@@ -30,9 +32,9 @@ class ClipBot(object):
         self._channelInfo[channel.getId()] = [channel.getName(), channel.getId(), channel.getDesc(), channel.getImg()]
     
     # set up helix and twitch related stuff
-    def setupConfig(self):
+    def setupConfig(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read("config/config.ini")
+        cfg.read("../../config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -40,8 +42,15 @@ class ClipBot(object):
             print("Unable to find credentials")
         else:
             try:
-                authorizeRequest = requests.post(self._oauthURL + "token", params={"client_id" : client_id, "client_secret" : secret, "grant_type" : "client_credentials"})
-                if(authorizeRequest.status_code == requests.codes.ok):
+                if refresh:
+                    authorizeRequest = requests.post(self._oauthURL + "token",
+                                                     params={"client_id": client_id, "client_secret": secret,
+                                                             "grant_type": "client_credentials"}, timeout=2)
+                else:
+                    authorizeRequest = requests.post(self._oauthURL + "token",
+                                                     params={"client_id": client_id, "client_secret": secret,
+                                                             "grant_type": "client_credentials"})
+                if authorizeRequest.status_code == requests.codes.ok:
                     response = json.loads(authorizeRequest.text)
                     self._accessToken = response["access_token"]
                     self._helix = twitch.Helix(client_id, secret, True, None, True, self._accessToken)
@@ -54,7 +63,7 @@ class ClipBot(object):
     # refresh access token when needed
     def refreshToken(self):
         cfg = configparser.ConfigParser()
-        cfg.read("config/config.ini")
+        cfg.read("../../config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -63,7 +72,7 @@ class ClipBot(object):
         else:
             try:
                 authorizeRequest = requests.post(self._oauthURL + "token", params={"client_id" : client_id, "client_secret" : secret, "grant_type" : "client_credentials"}, timeout=2)
-                if(authorizeRequest.status_code == requests.codes.ok):
+                if authorizeRequest.status_code == requests.codes.ok:
                     response = json.loads(authorizeRequest.text)
                     self._accessToken = response["access_token"]
                     self._helix = twitch.Helix(client_id, secret, True, None, True, self._accessToken)
@@ -75,15 +84,18 @@ class ClipBot(object):
     # read from channls.ini all the info from user's channels
     def setupChannels(self):
         cfg = configparser.ConfigParser()
-        cfg.read("config/channels.ini")
+        cfg.read("../../config/channels.ini")
         for section in cfg.sections():
             validToken = False
             while not validToken:
                 try:
-                    channel = Channel.Channel(int(section), self._helix, self)
+                    print(section)
+                    channel = Channel(int(section), self._helix, self)
                     for option in cfg.options(section):
-                        category = Category.Category(option, section)
+                        print(option)
+                        category = Category(option, section)
                         emoteList = cfg[section][option].split(",")
+                        print(emoteList)
                         for emote in emoteList:
                             category.addEmote(emote)
                         channel.addCategory(category)
@@ -149,7 +161,7 @@ class ClipBot(object):
     def clipVideo(self, channel_id, id):
         if self._helix:
             channel = self._channels[channel_id]
-            helper = ClipBotHelper.ClipBotHelper(channel, self)
+            helper = ClipBotHelper(channel, self)
             if channel_id not in self._processing:
                 self._processing[channel_id] = set()
             self._processing[channel_id].add(id)
@@ -158,7 +170,12 @@ class ClipBot(object):
             else:
                 self._helpers[channel_id][id] = helper
             print("Added", id, "to set of videos owned by", channel_id)
-            return helper.main(id)
+            manager = Manager()
+            response = manager.dict()
+            p = Process(target=helper.main, args=(response, id))
+            p.start()
+            p.join()
+            return response
         else:
             print("Helix creation failed")
             self.setupConfig()

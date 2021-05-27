@@ -5,8 +5,7 @@ import re
 import os
 from datetime import datetime
 from dateutil import tz
-import models.Category as Category
-from pprint import pprint
+from Category import Category
 
 class Channel(object):
     """Twitch channel, stores categories set by channel"""
@@ -55,11 +54,19 @@ class Channel(object):
         twitchEmotes = sorted(list(self._twitchEmotes), key= lambda e: e['name'].lower())
         return { "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes}
 
+    def getEmoteNames(self):
+        emoteTypes = ["ffEmotes", "bttvEmotes", "twitchEmotes"]
+        channelEmoteList = set()
+        for emoteType in emoteTypes:
+            for emote in self.getEmotes()[emoteType]:
+                channelEmoteList.add(emote["name"].lower())
+        return channelEmoteList
+
     # add category to channel
     def addCategory(self, category, isString=False, channelId=None):
         if isString:
             if(category not in self._categories):
-                self._categories[category] = Category.Category(category, channelId)
+                self._categories[category] = Category(category, channelId)
             else:
                 print("Type {} already exists!".format(category))
                 raise Exception("Category type is a duplicate.")
@@ -87,9 +94,9 @@ class Channel(object):
         categories = sorted(list(self._categories.values()), key= lambda c: c.getType())
         return categories
 
-    # return catgeory object based on type
+    # return category object based on type
     def getCategory(self, type):
-        if(type in self._categories):
+        if type in self._categories:
             return self._categories[type]
         return None
 
@@ -98,13 +105,14 @@ class Channel(object):
         category = self._categories[type]
         if category:
             for emote in emotes:
-                category.addEmote(emote)
+                category.addEmote(emote.lower())
         else:
             print("Invalid category specified")
     
     # remove all emotes in param from category specified by type
     def rmvEmotesFromCategory(self, type, emotes):
         category = self.getCategory(type)
+        emotes = set([emote.lower() for emote in emotes])
         if category:
             category.setEmotes(emotes)
         else:
@@ -133,7 +141,7 @@ class Channel(object):
         while not validHelix:
             if not videos:
                 try:
-                    for video in self._helix.user(self._name).videos(first=9):
+                    for video in self._helix.user(self._name).videos():
                         thumbnail = video.thumbnail_url
                         if not thumbnail:
                             thumbnail = "../NotFound.png"

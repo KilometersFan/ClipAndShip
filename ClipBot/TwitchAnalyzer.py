@@ -265,15 +265,15 @@ def cancelVideo(channel_id, video_id):
 		return {"status": 400}
 
 def get_preferred_mode():
-    import eel.chrome
-    import eel.edge
+	import eel.chrome
+	import eel.edge
 
-    if eel.chrome.find_path():
-        return 'chrome'
-    if eel.edge.find_path():
-        return 'edge'
+	if eel.chrome.find_path():
+		return 'chrome'
+	if eel.edge.find_path():
+		return 'edge'
 
-    return 'default'
+	return 'default'
 
 if __name__ == "__main__":
 	eel.init("web")
@@ -281,5 +281,3 @@ if __name__ == "__main__":
 		eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
 	except (SystemExit, MemoryError, KeyboardInterrupt) as e:
 		pass
-
-			 

@@ -344,4 +344,5 @@ data/channels/
 config/
 dist/
 build/
+twitch/
 TwitchAnalyzer.spec
