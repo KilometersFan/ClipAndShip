@@ -1,4 +1,3 @@
-import pprint
 class Category(object):
     """Clip Category based on a set of emotes"""
     def __init__(self, type, channelId):

@@ -34,7 +34,7 @@ class ClipBot():
     # set up helix and twitch related stuff
     def setupConfig(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read("../../config/config.ini")
+        cfg.read("../config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -63,7 +63,7 @@ class ClipBot():
     # refresh access token when needed
     def refreshToken(self):
         cfg = configparser.ConfigParser()
-        cfg.read("../../config/config.ini")
+        cfg.read("../config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -84,7 +84,7 @@ class ClipBot():
     # read from channls.ini all the info from user's channels
     def setupChannels(self):
         cfg = configparser.ConfigParser()
-        cfg.read("../../config/channels.ini")
+        cfg.read("../config/channels.ini")
         for section in cfg.sections():
             validToken = False
             while not validToken:
@@ -161,7 +161,10 @@ class ClipBot():
     def clipVideo(self, channel_id, id):
         if self._helix:
             channel = self._channels[channel_id]
+            print(f"Channel id: {channel_id}")
+            print(f"Starting video processing of video {id} for {channel.getName()}")
             helper = ClipBotHelper(channel, self)
+
             if channel_id not in self._processing:
                 self._processing[channel_id] = set()
             self._processing[channel_id].add(id)
@@ -193,3 +196,9 @@ class ClipBot():
     def cancelVideo(self, channel_id, video_id):
         helper = self._helpers[channel_id][video_id]
         helper.stopProccessingVideo(video_id)
+
+if __name__ == "__main__":
+    bot = ClipBot()
+    bot.setupConfig()
+    bot.setupChannels()
+    bot.clipVideo(32905366, 997107615)

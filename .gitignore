@@ -341,7 +341,10 @@ healthchecksdb
 
 data/
 data/channels/
-config/
+*png
+twitch-app/
+.DS_Store
+ClipBot/config/
 dist/
 build/
 twitch/
