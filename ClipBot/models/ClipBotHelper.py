@@ -34,13 +34,11 @@ class ClipBotHelper(object):
         totalComments = 0
         totalCommentDiff = 0
         channelEmotes = self._channel.getEmoteNames()
-        print(channelEmotes)
         prevCommentCreated = None
         knownBots = ["Nightbot", "Fossabot", "Moobot", "PhantomBot"]
         start = time.time()
         print(f"Beginning preprocessing of comments at {datetime.now()}")
         print("=================================================================")
-        count = 0
         for comment in comments:
             # pprint(comment)
             commentText = comment.message.body.lower()
@@ -150,7 +148,7 @@ class ClipBotHelper(object):
                 avgLengthPerGroup = sum((group["end"] - group["start"]) for group in groups) / totalGroups
                 filteredGroups = list(filter(lambda group:
                                              group["totalFrequency"] > avgEmotesPerGroup
-                                             and (group["end"] - group["start"]) > avgLengthPerGroup,
+                                             and (group["end"] - group["start"]) > 2 * avgLengthPerGroup,
                                              groups))
                 print(f"Total number of groups found after first filter = {len(filteredGroups)}")
                 end = time.time()
@@ -197,6 +195,7 @@ class ClipBotHelper(object):
                     group.pop("graph_y")
                     group["start"] = round(group["start"], 3)
                     group["end"] = round(group["end"], 3)
+                    group["length"] = round(group["end"] - group["start"], 3)
                     groupTimeData = []
                     for category in group["graph_data"].keys():
                         groupTimeData.extend(group["graph_data"][category])
@@ -217,6 +216,7 @@ class ClipBotHelper(object):
                     with open("graph.png", mode="rb") as file:
                         img = file.read()
                         group["img"] = base64.encodebytes(img).decode("utf-8").replace("\n", "")
+                    group.pop("graph_data")
                 end = time.time()
                 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
                 print(f"Finished assigning categories to processed groups at {datetime.now()}. Process took {end - start} seconds")

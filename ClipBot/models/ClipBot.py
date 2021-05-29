@@ -92,10 +92,8 @@ class ClipBot():
                     print(section)
                     channel = Channel(int(section), self._helix, self)
                     for option in cfg.options(section):
-                        print(option)
                         category = Category(option, section)
                         emoteList = cfg[section][option].split(",")
-                        print(emoteList)
                         for emote in emoteList:
                             category.addEmote(emote)
                         channel.addCategory(category)
