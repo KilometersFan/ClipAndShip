@@ -344,6 +344,7 @@ data/channels/
 *png
 twitch-app/
 .DS_Store
+exported/*
 ClipBot/config/
 dist/
 build/

@@ -206,4 +206,4 @@ if __name__ == "__main__":
     bot = ClipBot()
     bot.setupConfig()
     bot.setupChannels()
-    bot.clipVideo(32905366, 997107615)
+    bot.clipVideo(59635827, 1039871181)

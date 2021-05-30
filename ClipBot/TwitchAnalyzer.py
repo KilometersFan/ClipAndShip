@@ -4,6 +4,7 @@ import shutil
 import configparser
 import traceback
 import json
+import requests
 from models.ClipBot import ClipBot
 from models.Channel import Channel
 import threading
@@ -255,6 +256,17 @@ def cancelVideo(channel_id, video_id):
 		print("Unable to cancel video")
 		print(e.args)
 		return {"status": 400}
+
+@eel.expose
+def csvExport(video_id, data):
+	print(data)
+	with open(f"web/exported/{video_id}_groups.csv", "w") as ofile:
+		for group in data:
+			line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
+			print(line)
+			ofile.write(line)
+	return {"status": 200}
+
 
 def get_preferred_mode():
 	import eel.chrome, eel.edge

@@ -108,7 +108,7 @@ class ClipBotHelper(object):
                         self._endTime = prevCommentEnd
                         # print(f"End - start time = {(self._endTime - self._startTime).total_seconds()}")
                         if (self._endTime - self._startTime) > 0:
-                            group["start"] = self._startTime - (self._endTime - self._startTime)
+                            group["start"] = self._startTime - (self._endTime - self._startTime)/2
                             group["end"] = self._endTime - (self._endTime - self._startTime)/2
                             group["emoteRate"] = group["totalFrequency"]/(group["end"] - group["start"])
                             groups.append(group.copy())
@@ -131,17 +131,19 @@ class ClipBotHelper(object):
                         group["totalComments"] = 0
                         group["comments"] = [comment["emoteFrequency"]]
                     else:
-                        group["emoteSet"] = group["emoteSet"].union(comment["emoteSet"])
-                        for emote in comment["emoteSet"]:
-                            if emote in group["emoteFrequency"]:
-                                group["emoteFrequency"][emote] += comment["emoteFrequency"][emote]
-                            else:
-                                group["emoteFrequency"][emote] = comment["emoteFrequency"][emote]
-                            group["totalFrequency"] += comment["emoteFrequency"][emote]
-                        group["totalComments"] += 1
-                        group["comments"].append(comment["emoteFrequency"])
-                        group["graph_x"].append(round(comment["created"] - self._startTime, 3))
-                        prevCommentEnd = comment["created"]
+                        if comment["created"] - self._startTime not in group["graph_x"]:
+                            group["emoteSet"] = group["emoteSet"].union(comment["emoteSet"])
+                            for emote in comment["emoteSet"]:
+                                if emote in group["emoteFrequency"]:
+                                    group["emoteFrequency"][emote] += comment["emoteFrequency"][emote]
+                                else:
+                                    group["emoteFrequency"][emote] = comment["emoteFrequency"][emote]
+                                group["totalFrequency"] += comment["emoteFrequency"][emote]
+                            group["totalComments"] += 1
+
+                            group["comments"].append(comment["emoteFrequency"])
+                            group["graph_x"].append(comment["created"] - self._startTime)
+                            prevCommentEnd = comment["created"]
                 totalGroups = len(groups)
                 print(f"Total number of groups found before filter = {totalGroups}")
                 avgEmotesPerGroup = sum(group["totalFrequency"] for group in groups)/totalGroups
@@ -181,7 +183,9 @@ class ClipBotHelper(object):
                                 group["graph_y"][category].append(sum(comment[emote] for emote in emotesInCategory.intersection(comment.keys())))
                             else:
                                 group["graph_y"][category] = [sum(comment[emote] for emote in emotesInCategory.intersection(comment.keys()))]
-                            group["graph_data"][category].append([category, group["graph_x"][i], sum(comment[emote] for emote in emotesInCategory.intersection(comment.keys()))])
+                            totalEmotesInCategory = sum(comment[emote] for emote in emotesInCategory.intersection(comment.keys()))
+                            if totalEmotesInCategory > 0:
+                                group["graph_data"][category].append([category, group["graph_x"][i], totalEmotesInCategory])
                     for category in categories:
                         if sum(group["graph_y"][category]) == 0:
                             group["graph_y"].pop(category)
@@ -209,13 +213,23 @@ class ClipBotHelper(object):
                                              len(group["similarities"]) > 0,
                                              filteredGroups))
                 print(f"Total number of groups found after second filter = {len(filteredGroups)}")
-                plt.rcParams['figure.figsize'] = [4, 3]
-                plt.ylim(bottom=0)
                 for group in filteredGroups:
                     df = pd.DataFrame(group["graph_data"], columns=["category", "time", "instances"])
-                    df = df.pivot(index='time', columns='category', values='instances')
-                    df.plot()
-                    plt.savefig("graph.png", bbox_inches="tight")
+                    dfGroups = df.groupby(['category'])
+                    fig, ax = plt.subplots()
+                    fig.set_figwidth(4)
+                    fig.set_figheight(3)
+                    ax.set_ylabel("emote instances per category")
+                    ax.set_xlabel('time')
+                    max = 1
+                    for name, dfGroup in dfGroups:
+                        if dfGroup.instances.max() > max:
+                            max = dfGroup.instances.max()
+                            ax.set_ylim([0, max + 1])
+
+                        ax.plot(dfGroup.time, dfGroup.instances, marker='o', linestyle='', ms=7, label=name)
+                    ax.legend()
+                    fig.savefig("graph.png", bbox_inches="tight")
                     with open("graph.png", mode="rb") as file:
                         img = file.read()
                         group["img"] = base64.encodebytes(img).decode("utf-8").replace("\n", "")

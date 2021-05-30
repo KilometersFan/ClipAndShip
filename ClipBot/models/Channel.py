@@ -54,7 +54,7 @@ class Channel(object):
         ffEmotes = sorted(list(self._ffEmotes), key=lambda e: e['name'].lower())
         bttvEmotes = sorted(list(self._bttvEmotes), key=lambda e: e['name'].lower())
         twitchEmotes = sorted(list(self._twitchEmotes), key= lambda e: e['name'].lower())
-        pprint({ "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes})
+        # pprint({ "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes})
         return { "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes}
 
     def getEmoteNames(self):

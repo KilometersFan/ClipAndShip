@@ -1,10 +1,16 @@
 let channelId;
+let videoId;
 let videoResults;
 let categories;
 let selectedCategories;
 let selectedRow;
 let filteredResults;
 let currentTimeStamp;
+let dirChoice = 1;
+let sortChoice = "id";
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
 $(document).ready(function () {
     selectedCategories = new Set();
     eel.validBot()(function (valid) {
@@ -16,6 +22,7 @@ $(document).ready(function () {
                 if (searchParams.has("channel") && searchParams.get("channel") && searchParams.has("video") && searchParams.get("video")) {
                     let channel = parseInt(searchParams.get("channel"));
                     let video = searchParams.get("video");
+                    videoId = video;
                     channelId = channel;
                     $("#channelBtn").prop("href", `channel.html?id=${channelId}`);
                     $("#videoBtn").prop("href", `video.html?id=${channelId}`);
@@ -60,6 +67,66 @@ $(document).ready(function () {
         }
     });
 });
+$("#asc").click(function() {
+    $("#dirChoice").text("ASC");
+    dirChoice = 1;
+    $(`#${sortChoice}`).trigger("click");
+});
+$("#desc").click(function() {
+    $("#dirChoice").text("DESC");
+    dirChoice = 0;
+    $(`#${sortChoice}`).trigger("click");
+});
+$("#length").click(function() {
+    $("#sortChoice").text("Length");
+    sortChoice = "length"
+    if (dirChoice == 1) {
+        filteredResults = filteredResults.sort((groupA, groupB) => groupA["length"] - groupB["length"]);
+    }
+    else {
+        filteredResults = filteredResults.sort((groupA, groupB) => groupB["length"] - groupA["length"]);
+    }
+    populateTable(filteredResults);
+});
+$("#start").click(function() {
+    $("#sortChoice").text("Start");
+    sortChoice = "start";
+    if (dirChoice == 1) {
+        filteredResults = filteredResults.sort((groupA, groupB) => groupA["start"] - groupB["start"]);
+    }
+    else {
+        filteredResults = filteredResults.sort((groupA, groupB) => groupB["start"] - groupA["start"]);
+    }
+    populateTable(filteredResults);
+});
+$("#similarity").click(function() {
+    $("#sortChoice").text("Similarity");
+    sortChoice = "similarity";
+    if (dirChoice == 1) {
+        filteredResults = filteredResults.sort((groupA, groupB) => Math.max.apply(Math, Object.values(groupA["similarities"])) - Math.max.apply(Math, Object.values(groupB["similarities"])));
+    }
+    else {
+        filteredResults = filteredResults.sort((groupA, groupB) => Math.max.apply(Math, Object.values(groupB["similarities"])) - Math.max.apply(Math, Object.values(groupA["similarities"])));
+    }
+    populateTable(filteredResults);
+});
+$("#csvExport").click(function() {
+    let csvData = $.map(filteredResults, (obj) => $.extend(true, {}, obj));
+    csvData.forEach((group) => {
+        group["start"] = createTimestamp(group["start"]);
+        group["end"] = createTimestamp(group["end"]);
+        let groupSimilarities = []
+        Object.keys(group["similarities"]).forEach((key) => {
+            groupSimilarities.push(`${key}:${group["similarities"][key]}`);
+        });
+        group["similarities"] = groupSimilarities.join(" ");
+        delete group.img;
+        delete group.emoteFrequency;
+    });
+
+    eel.csvExport(videoId, csvData);
+});
+
 $("#next").click(function () {
     if (!selectedRow) {
         return
@@ -118,10 +185,13 @@ function clearSelectedRowColor() {
     });
 }
 
-function populateTable () {
+function populateTable (defaultFilteredResults) {
     $("#resultBody").empty();
     let i = 1;
-    if (selectedCategories.size > 0) {
+    if (defaultFilteredResults) {
+        filteredResults = defaultFilteredResults;
+    }
+    else if (selectedCategories.size > 0) {
         filteredResults = videoResults["groups"].filter(resultsFilter);
     }
     else {

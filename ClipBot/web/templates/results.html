@@ -51,12 +51,46 @@
 
             </div>
         </div>
+        <div class="d-flex align-items-center">
+            <div class="p-2">
+                <div class="dropdown">
+                    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Sort By
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" id="length" href="#">Length</a>
+                        <a class="dropdown-item" id="start" href="#">Start Time</a>
+                        <a class="dropdown-item" id="similarity" href="#">Similarity</a>
+                    </div>
+                </div>
+            </div>
+            <div class="p-2" id="sortChoice">
+                Start
+            </div>
+            <div class="p-2">
+                <div class="dropdown">
+                    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dir
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" id="asc" href="#">ASC</a>
+                        <a class="dropdown-item" id="desc" href="#">DESC</a>
+                    </div>
+                </div>
+            </div>
+            <div class="p-2" id="dirChoice">
+                ASC
+            </div>
+            <div class="ml-auto p-2" id="dirChoice">
+                <button type="button" id="csvExport" class="btn btn-primary" data-toggle="tooltip" data-placement="top" data-html="true" title="All files located under <em>{path/to/app}/web/exported</em>">Export to CSV</button>
 
+            </div>
+        </div>
         <table class="mb-2 mt-2 table table-hover table-dark">
             <thead>
                 <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Length</th>
+                    <th scope="col">Length (s)</th>
                     <th scope="col">Start Time</th>
                     <th scope="col">End Time</th>
                     <th scope="col">Categories/Similarity</th>
