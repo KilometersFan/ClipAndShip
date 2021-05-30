@@ -4,9 +4,9 @@ import configparser
 import twitch
 import requests
 import json
-from Channel import Channel
-from Category import Category
-from ClipBotHelper import ClipBotHelper
+from .Channel import Channel
+from .Category import Category
+from .ClipBotHelper import ClipBotHelper
 
 class ClipBot():
     """Bot that helps find clips in a twitch VOD by analyzing chat messages"""
@@ -29,12 +29,19 @@ class ClipBot():
     def addChannel(self, channel):
         channel.populateEmotes()
         self._channels[channel.getId()] = channel
-        self._channelInfo[channel.getId()] = [channel.getName(), channel.getId(), channel.getDesc(), channel.getImg()]
+        self._channelInfo[channel.getId()] = {
+            "name": channel.getName(),
+            "id": channel.getId(),
+            "desc": channel.getDesc(),
+            "imgUrl": channel.getImg(),
+            "emoteMap": channel.getEmotesMap(),
+            "categories": [category.getType() for category in channel.getCategories()],
+        }
     
     # set up helix and twitch related stuff
     def setupConfig(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read("../config/config.ini")
+        cfg.read("config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -63,7 +70,7 @@ class ClipBot():
     # refresh access token when needed
     def refreshToken(self):
         cfg = configparser.ConfigParser()
-        cfg.read("../config/config.ini")
+        cfg.read("config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -84,7 +91,7 @@ class ClipBot():
     # read from channls.ini all the info from user's channels
     def setupChannels(self):
         cfg = configparser.ConfigParser()
-        cfg.read("../config/channels.ini")
+        cfg.read("config/channels.ini")
         for section in cfg.sections():
             validToken = False
             while not validToken:
@@ -115,7 +122,7 @@ class ClipBot():
 
     # return a specific channl, either obejct or just dictionary with info
     def getChannel(self, id, info=True):
-        if(info):
+        if info:
             return self._channelInfo.get(id, None)
         else:
             return self._channels.get(id, None)
@@ -149,7 +156,7 @@ class ClipBot():
         else:
             print("Channel doesn't exist.")
             raise Exception("Channel doesn't exist.")
-        if self._channelInfo.get(channel_id, None):
+        if channel_id in self._channelInfo:
              del self._channelInfo[channel_id]
         else:
             print("Channel doesn't exist.")

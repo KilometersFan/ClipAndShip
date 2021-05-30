@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from pprint import pprint
 from json import dump
 from datetime import datetime
-from Channel import Channel
+from .Channel import Channel
 
 class ClipBotHelper(object):
     """ClipBotHelper that handles individual channels and their videos"""
@@ -108,7 +108,7 @@ class ClipBotHelper(object):
                         self._endTime = prevCommentEnd
                         # print(f"End - start time = {(self._endTime - self._startTime).total_seconds()}")
                         if (self._endTime - self._startTime) > 0:
-                            group["start"] = self._startTime - (self._endTime - self._startTime)/2
+                            group["start"] = self._startTime - (self._endTime - self._startTime)
                             group["end"] = self._endTime - (self._endTime - self._startTime)/2
                             group["emoteRate"] = group["totalFrequency"]/(group["end"] - group["start"])
                             groups.append(group.copy())
@@ -190,39 +190,42 @@ class ClipBotHelper(object):
                             group["similarities"].pop(category)
                             group["graph_y"].pop(category)
                             group["graph_data"].pop(category)
+                    # clean up data
                     group.pop("comments")
                     group.pop("graph_x")
                     group.pop("graph_y")
-                    group["start"] = round(group["start"], 3)
-                    group["end"] = round(group["end"], 3)
-                    group["length"] = round(group["end"] - group["start"], 3)
+                    group.pop("emoteRate")
+                    group.pop("totalFrequency")
+                    group.pop("totalComments")
+                    group.pop("emoteSet")
+                    group["start"] = round(group["start"])
+                    group["end"] = round(group["end"])
+                    group["length"] = round(group["end"] - group["start"])
                     groupTimeData = []
                     for category in group["graph_data"].keys():
                         groupTimeData.extend(group["graph_data"][category])
                     group["graph_data"] = groupTimeData
-                    group["emoteSet"] = list(group["emoteSet"])
                 filteredGroups = list(filter(lambda group:
                                              len(group["similarities"]) > 0,
                                              filteredGroups))
                 print(f"Total number of groups found after second filter = {len(filteredGroups)}")
-
+                plt.rcParams['figure.figsize'] = [4, 3]
+                plt.ylim(bottom=0)
                 for group in filteredGroups:
                     df = pd.DataFrame(group["graph_data"], columns=["category", "time", "instances"])
                     df = df.pivot(index='time', columns='category', values='instances')
                     df.plot()
-                    plt.ylim(bottom=0)
                     plt.savefig("graph.png", bbox_inches="tight")
-                    plt.close()
                     with open("graph.png", mode="rb") as file:
                         img = file.read()
                         group["img"] = base64.encodebytes(img).decode("utf-8").replace("\n", "")
                     group.pop("graph_data")
+                    plt.close()
                 end = time.time()
                 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
                 print(f"Finished assigning categories to processed groups at {datetime.now()}. Process took {end - start} seconds")
                 # https://static-cdn.jtvnw.net/emoticons/v1/1570548/3.0
                 self._stopVideo[videoId] = False
-                # parse total duration of video
                 try:
                     decimalIndex = video.created_at.index(".")
                 except ValueError as e:

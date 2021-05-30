@@ -150,11 +150,11 @@ $(document).ready(function () {
                     let id = parseInt(searchParams.get("id"));
                     channelId = id;
                     $("#channelBtn").prop("href", "channel.html?id=" + channelId);
-                    eel.getChannel(id)(function (info) {
-                        $("#channelVideoTitle").text(info[0] + "'s Videos");
-                        channel_name = info[0];
+                    eel.getChannel(id)(function (data) {
+                        $("#channelVideoTitle").text(data["name"] + "'s Videos");
+                        channel_name = data["name"];
                         populateVideos();
-                        populateUserVideos(info[0]);
+                        populateUserVideos(data["name"]);
                     });
                 }
                 else {

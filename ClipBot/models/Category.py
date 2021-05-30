@@ -20,7 +20,7 @@ class Category(object):
 
     # add emote to category
     def addEmote(self, emote):
-        self._emotes.add(emote)
+        self._emotes.add(emote.lower())
     
     # reset emotes and add the ones in emotes param
     def setEmotes(self, emotes):

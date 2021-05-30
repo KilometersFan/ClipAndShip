@@ -2,10 +2,10 @@ import eel
 import os
 import shutil
 import configparser
-from requests.exceptions import HTTPError
 import traceback
-import models.ClipBot as ClipBot
-import models.Channel as Channel
+import json
+from models.ClipBot import ClipBot
+from models.Channel import Channel
 import threading
 
 bot = None
@@ -14,7 +14,7 @@ videoThreads = {}
 @eel.expose
 def initClipBot():
 	global bot
-	bot = ClipBot.ClipBot()
+	bot = ClipBot()
 	bot.setupConfig()
 	bot.setupChannels()
 
@@ -58,7 +58,7 @@ def addChannel(id):
 		if bot.getChannel(int(id)):
 			print("Channel already exists.")
 			raise Exception("Channel already exists.")
-		newChannel = Channel.Channel(int(id), bot.getHelix(), bot)
+		newChannel = Channel(int(id), bot.getHelix(), bot)
 		bot.addChannel(newChannel)
 		cfg.add_section(id)
 		with open("config/channels.ini", "w") as configFile:
@@ -161,13 +161,11 @@ def deleteCategory(id, types):
 		return e.args
 
 @eel.expose
-def getCategories(channel):
+def getCategories(channel_id):
 	global bot
-	channel = bot.getChannel(channel, False)
+	channel = bot.getChannel(channel_id, False)
 	categories = channel.getCategories()
-	result = []
-	for category in categories:
-		result.append({"type" :category.getType(), "emotes" : category.getEmotes(True)})
+	result = [{"type": category.getType(), "emotes": category.getEmotes(True)} for category in categories]
 	return result
 
 @eel.expose
@@ -211,7 +209,7 @@ def removeVideo(channel_name, video_id):
 
 @eel.expose
 def clipVideo(channel_id, id=None):
-	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id,id,), daemon=True)
+	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id,id), daemon=True)
 	videoThreads[id] = videoThread
 	videoThread.start()
 
@@ -230,22 +228,16 @@ def getVideoResults(channel_id, video_id):
 		return {"error" : "Video was not processed"}
 	results = {}
 	for category in channel.getCategories():
-		entries = []
 		try:
-			if(os.path.exists(channel._pathName + "/" + video_id + "/" + category.getType() + "/timestamps.txt")):
-				with open(channel._pathName + "/" + video_id + "/" + category.getType() + "/timestamps.txt") as ifile:
-					timestamps = ifile.readlines()
-					for timestamp in timestamps:
-						start,end = timestamp.strip().split("-")
-						entry = {"start": start, "end": end}
-						entries.append(entry)
-					results[category.getType()] = entries
+			if(os.path.exists(channel._pathName + "/" + video_id + "/" + "/data.json")):
+				with open(channel._pathName + "/" + video_id + "/" + "/data.json") as ifile:
+					results = json.load(ifile)
 			else:
 				results[category.getType()] = {}
 		except Exception as e:
 			print(e.args)
 			print("Exception!")
-			return {"error" : "Unable to read file"}
+			return {"error": "Unable to read file"}
 	return results
 
 @eel.expose
@@ -265,8 +257,7 @@ def cancelVideo(channel_id, video_id):
 		return {"status": 400}
 
 def get_preferred_mode():
-	import eel.chrome
-	import eel.edge
+	import eel.chrome, eel.edge
 
 	if eel.chrome.find_path():
 		return 'chrome'

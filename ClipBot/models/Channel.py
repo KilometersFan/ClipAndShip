@@ -3,9 +3,10 @@ import requests
 import json
 import re
 import os
+from pprint import pprint
 from datetime import datetime
 from dateutil import tz
-from Category import Category
+from .Category import Category
 
 class Channel(object):
     """Twitch channel, stores categories set by channel"""
@@ -16,6 +17,7 @@ class Channel(object):
         self._ffEmotes = []
         self._bttvEmotes = []
         self._twitchEmotes = []
+        self._nameToEmotesMap = {}
         self._bttvURL = "https://api.betterttv.net/3/cached/users/twitch/"
         self._bttvImgURL = "https://cdn.betterttv.net/emote/"
         self._twitchSubURL = "https://api.twitchemotes.com/api/v4/channels/"
@@ -45,13 +47,14 @@ class Channel(object):
 
     # add emote to channel
     def addEmote(self, emote):
-        self._emotes.add(emote)
+        self._emotes.add(emote.lower())
 
     # return all emotes in channel
     def getEmotes(self):
         ffEmotes = sorted(list(self._ffEmotes), key=lambda e: e['name'].lower())
         bttvEmotes = sorted(list(self._bttvEmotes), key=lambda e: e['name'].lower())
         twitchEmotes = sorted(list(self._twitchEmotes), key= lambda e: e['name'].lower())
+        pprint({ "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes})
         return { "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes}
 
     def getEmoteNames(self):
@@ -215,6 +218,7 @@ class Channel(object):
                     bttvEmotes = json.loads(getBTTVEmotesRequest.text)
                     for bttvEmote in bttvEmotes["sharedEmotes"]:
                         self._bttvEmotes.append({"name" : bttvEmote["code"], "imageUrl" : self._bttvImgURL + bttvEmote["id"] + "/1x"})
+                        self._nameToEmotesMap[bttvEmote["code"].lower()] = bttvEmote["code"]
                 else:
                     print("Unable to complete get request for BTTV Emotes")
                     print("Error code:", getBTTVEmotesRequest.status_code)
@@ -228,7 +232,8 @@ class Channel(object):
                 if(getTwitchSubEmotes.status_code == requests.codes.ok):
                     twitchSubEmotes = json.loads(getTwitchSubEmotes.text)
                     for twitchSubEmote in twitchSubEmotes["emotes"]:
-                        self._twitchEmotes.append({"name" : twitchSubEmote["code"], "imageUrl" : ""})
+                        self._twitchEmotes.append({"name" : twitchSubEmote["code"], "imageUrl" : "../error-placeholder.png"})
+                        self._nameToEmotesMap[twitchSubEmote["code"].lower()] = twitchSubEmote["code"]
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
                     print("Error code:", getTwitchSubEmotes.status_code)
@@ -244,6 +249,7 @@ class Channel(object):
                     set = frankerFaceZEmotes["room"]["set"] 
                     for frankerFaceZEmote in frankerFaceZEmotes["sets"][str(set)]["emoticons"]:
                         self._ffEmotes.append({"name" : frankerFaceZEmote["name"], "imageUrl" : frankerFaceZEmote["urls"]["1"]})
+                        self._nameToEmotesMap[frankerFaceZEmote["name"].lower()] = frankerFaceZEmote["name"]
                 else:
                     print("Unable to complete get request for FrankerFaceZ Emotes")
                     print("Error code:", getFrankerFaceZEmotes.status_code)
@@ -252,5 +258,6 @@ class Channel(object):
                 print("FFZ Emotes Request timed out")
                 print(e.args)
 
-
+    def getEmotesMap(self):
+        return self._nameToEmotesMap
 

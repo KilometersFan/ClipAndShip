@@ -1,5 +1,10 @@
 ﻿{% extends 'nav.html' %}
 {% block title %}TwitchAnalyzer | Results{% endblock %}
+<style>
+   td, th {
+        white-space: pre
+    }
+</style>
 {% block navitems %}
     <li>
         <a class="nav-link" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
@@ -17,21 +22,50 @@
             <span class="sr-only">Loading...</span>
         </div>
     </div>
-    <div id="resultsRow" class="col-sm-12">
+    <div id="resultsRow" class="col-sm-12 ">
         <iframe id="vod"
                 height="700"
                 frameborder="0"
                 scrolling="no"
                 allowfullscreen="true"
-                class="mx-auto d-block">
+                class="mx-auto d-block"
+                style="width: 100%"
+        >
         </iframe>
-        <form>
-            <select id="currentCategory" class="form-control"></select>
-            <select id="currentCategoryTime" class="form-control"></select>
-            <button type="button" class="btn delete-btn" id="prev">Previous</button>
-            <button type="button" class="btn action-btn" id="playSelected">Play Selected</button>
-            <button type="button" class="btn delete-btn" id="next">Next</button>
-        </form>
+        <div class="d-flex flex-row justify-content-center">
+            <form class="mx-auto">
+                <div class="btn-group" role="group" aria-label="Video Control">
+                    <button type="button" class="btn delete-btn" id="prev"><i class="fa fa-backward"></i></button>
+                    <button type="button" class="btn btn-primary" id="playSelected">Play Selected</button>
+                    <button type="button" class="btn delete-btn" id="next"><i class="fa fa-forward"></i></button>
+                </div>
+            </form>
+        </div>
+        <div class="mb-2 d-flex flex-row justify-content-center">
+            <div>
+                <img id="groupChart">
+            </div>
+        </div>
+        <div class="mb-2 mt-2 d-flex flex-row justify-content-center">
+            <div class="btn-group" role="group" aria-label="Categories" id="categoryBtns">
+
+            </div>
+        </div>
+
+        <table class="mb-2 mt-2 table table-hover table-dark">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Length</th>
+                    <th scope="col">Start Time</th>
+                    <th scope="col">End Time</th>
+                    <th scope="col">Categories/Similarity</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody">
+
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
