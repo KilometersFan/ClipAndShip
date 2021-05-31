@@ -7,7 +7,7 @@ let selectedRow;
 let filteredResults;
 let currentTimeStamp;
 let dirChoice = 1;
-let sortChoice = "id";
+let sortChoice = "start";
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })
@@ -185,7 +185,7 @@ function clearSelectedRowColor() {
     });
 }
 
-function populateTable (defaultFilteredResults) {
+function populateTable (defaultFilteredResults=null) {
     $("#resultBody").empty();
     let i = 1;
     if (defaultFilteredResults) {

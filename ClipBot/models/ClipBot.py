@@ -1,9 +1,11 @@
 from pprint import pprint
-from multiprocessing import Process, Manager
+import os
+import threading
 import configparser
 import twitch
 import requests
 import json
+from multiprocessing import Process, Manager
 from .Channel import Channel
 from .Category import Category
 from .ClipBotHelper import ClipBotHelper
@@ -18,6 +20,7 @@ class ClipBot():
         self.hasChannels = False
         self._channelInfo = {}
         self._processing = {}
+        self._videoThreads = {}
         self._helpers = {}
         self._accessToken = None
     
@@ -96,7 +99,6 @@ class ClipBot():
             validToken = False
             while not validToken:
                 try:
-                    print(section)
                     channel = Channel(int(section), self._helix, self)
                     for option in cfg.options(section):
                         category = Category(option, section)
@@ -178,15 +180,22 @@ class ClipBot():
             else:
                 self._helpers[channel_id][id] = helper
             print("Added", id, "to set of videos owned by", channel_id)
-            manager = Manager()
-            response = manager.dict()
-            p = Process(target=helper.main, args=(response, id))
-            p.start()
-            p.join()
-            return response
+            videoThread = threading.Thread(target=self.clipVideoHelper, args=(id, helper), daemon=True)
+            self._videoThreads[id] = videoThread
+            videoThread.start()
+            # response = helper.main(id)
+            # return response
         else:
             print("Helix creation failed")
             self.setupConfig()
+
+    def clipVideoHelper(self, id, helper):
+        manager = Manager()
+        response = manager.dict()
+        p = Process(target=helper.main, args=(response, id))
+        p.start()
+        p.join()
+        self._videoThreads.pop(id)
     
     # return all videos that are currently processing
     def getProcessingVideos(self):

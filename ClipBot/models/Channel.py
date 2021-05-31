@@ -28,7 +28,7 @@ class Channel(object):
             try:
                 if helix is not None:
                     self._name = helix.user(id).display_name
-                    self._pathName = 'data/channels/' + self._name
+                    self._pathName = f"data/channels/{self._id}"
                     self._desc = helix.user(id).description
                     self._img = helix.user(id).profile_image_url
                     self._frankerfacezURL = "https://api.frankerfacez.com/v1/room/" + self._name.lower()

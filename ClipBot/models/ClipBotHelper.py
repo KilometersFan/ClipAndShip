@@ -19,7 +19,7 @@ class ClipBotHelper(object):
             clipBot.setUpConfig()
         self._channel = channel
         self._helix = clipBot.getHelix()
-        self._pathName = 'data/channels/' + self._channel.getName()
+        self._pathName = f"data/channels/{self._channel.getId()}"
         self._stopVideo = {}
         self._startTime = None
         self._endTime = None
@@ -53,7 +53,7 @@ class ClipBotHelper(object):
                     "emoteSet": emotesInComment,
                     "emoteFrequency":
                         {
-                            emote: commentEmotesOnly.count(emote) for emote in emotesInComment # commentEmotesOnly.count(emote)
+                            emote: 1 for emote in emotesInComment # commentEmotesOnly.count(emote)
                         }
                     ,
                     "created": createdAtTime,
@@ -150,7 +150,7 @@ class ClipBotHelper(object):
                 avgLengthPerGroup = sum((group["end"] - group["start"]) for group in groups) / totalGroups
                 filteredGroups = list(filter(lambda group:
                                              group["totalFrequency"] > avgEmotesPerGroup
-                                             and (group["end"] - group["start"]) > 2 * avgLengthPerGroup,
+                                             and (group["end"] - group["start"]) > avgLengthPerGroup,
                                              groups))
                 print(f"Total number of groups found after first filter = {len(filteredGroups)}")
                 end = time.time()
@@ -177,7 +177,7 @@ class ClipBotHelper(object):
                         # print(f"Similarity: {similarity}, Weight: {weight}, Weighted Similarity: {similarity * weight}")
                         # print("*****************************************")
                         if similarity * weight > 0:
-                            group["similarities"][category] = round(similarity * weight, 3)
+                            group["similarities"][category] = round(similarity, 3)
                         for i,comment in enumerate(group["comments"]):
                             if category in group["graph_y"]:
                                 group["graph_y"][category].append(sum(comment[emote] for emote in emotesInCategory.intersection(comment.keys())))
@@ -190,7 +190,7 @@ class ClipBotHelper(object):
                         if sum(group["graph_y"][category]) == 0:
                             group["graph_y"].pop(category)
                             group["graph_data"].pop(category)
-                        elif sum(group["graph_y"][category])/group["totalFrequency"] < .33:
+                        elif sum(group["graph_y"][category])/group["totalFrequency"] < .25:
                             group["similarities"].pop(category)
                             group["graph_y"].pop(category)
                             group["graph_data"].pop(category)
@@ -266,7 +266,11 @@ class ClipBotHelper(object):
                 response["id"] = video.id
                 response["channelId"] = self._channel.getId()
                 response["data"] = data
-                # response["data"] = processedComments
+                # response = {"status": 200,
+                #  "msg": f"Successfully clipped the video: {video.title} recorded on {video.created_at[:10]}",
+                #  "id": video.id, "channelId": self._channel.getId(), "data": data}
+                response["data"] = processedComments
+                # return response
             except requests.exceptions.HTTPError as http_err:
                 statusCode = http_err.response.status_code
                 if statusCode == 401:
@@ -279,6 +283,7 @@ class ClipBotHelper(object):
                     self._clipBot._processing[self._channel.getId()].remove(videoId)
                     response["status"] = statusCode
                     response["msg"] = "Error when processing the video, please try again."
+                    # return {"status": statusCode, "msg": "Error when processing the video, please try again."}
             except requests.exceptions.ConnectionError as http_err:
                 print("Connection error:", http_err.args)
                 print("Trying again")
@@ -290,4 +295,5 @@ class ClipBotHelper(object):
                 self._clipBot._processing[self._channel.getId()].remove(videoId)
                 response["status"] = 400
                 response["msg"] = "Unable to process video, please try again."
+                # return {"status": statusCode, "msg": "Unable to process video, please try again."}
             time.sleep(1)

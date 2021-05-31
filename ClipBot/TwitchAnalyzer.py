@@ -7,7 +7,6 @@ import json
 import requests
 from models.ClipBot import ClipBot
 from models.Channel import Channel
-import threading
 
 bot = None
 videoThreads = {}
@@ -181,25 +180,41 @@ def getVideos(channel_id, videos = None):
 	return channel.getVideos(videos)
 
 @eel.expose
-def getUserVideos(channel_name):
-	channel_name.strip()
-	try:
-		if os.path.exists("data/channels/" + channel_name):
-			video_ids =[ int(f.name) for f in os.scandir("data/channels/" + channel_name) if f.is_dir() ]
-			return video_ids
-		else:
-			print("Channel folder not found")
+def getUserVideos(channel_id=None):
+	if channel_id:
+		try:
+			print(f"data/channels/{channel_id}")
+			if os.path.exists(f"data/channels/{channel_id}"):
+				video_ids =[ int(f.name) for f in os.scandir(f"data/channels/{channel_id}") if f.is_dir() ]
+				print(video_ids)
+				return video_ids
+			else:
+				print("Channel folder not found")
+				return []
+		except Exception as e:
+			print(e.args)
 			return []
-	except Exception as e:
-		print(e.args)
-		return []
+	else:
+		try:
+			if os.path.exists("data/channels/"):
+				channel_ids =[ f.name for f in os.scandir("data/channels/") if f.is_dir() ]
+				response = {}
+				for channel_id in channel_ids:
+					response[channel_id] = [ int(f.name) for f in os.scandir(f"data/channels/{channel_id}") if f.is_dir() ]
+				return response
+			else:
+				print("Channel folder not found")
+				return []
+		except Exception as e:
+			print(e.args)
+			return []
 		
 @eel.expose
-def removeVideo(channel_name, video_id):
+def removeVideo(channel_id, video_id):
 	video_id.strip()
 	try:
-		if os.path.exists("data/channels/" + channel_name + "/" + video_id):
-			shutil.rmtree("data/channels/" + channel_name + "/" + video_id)
+		if os.path.exists(f"data/channels/{channel_id}/{video_id}"):
+			shutil.rmtree(f"data/channels/{channel_id}/{video_id}")
 			return {"success" : "Video was successfully deleted"}
 		else:
 			print("Video file not found")
@@ -210,13 +225,15 @@ def removeVideo(channel_name, video_id):
 
 @eel.expose
 def clipVideo(channel_id, id=None):
-	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id,id), daemon=True)
-	videoThreads[id] = videoThread
-	videoThread.start()
+	# videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id,id), daemon=True)
+	# videoThreads[id] = videoThread
+	# videoThread.start()
+	clipVideoHelper(channel_id,id)
 
 def clipVideoHelper(channel_id, id=None):
-	global bot
 	response = bot.clipVideo(channel_id, id)
+	# videoThreads.pop(id)
+	print("###########################")
 	eel.videoHandler(response)
 
 @eel.expose
@@ -225,13 +242,13 @@ def getVideoResults(channel_id, video_id):
 		return {"error" : "Unable to process request"}
 	global bot
 	channel = bot.getChannel(channel_id, False)
-	if not os.path.exists(channel._pathName + "/" + video_id):
+	if not os.path.exists(f"{channel._pathName}/{video_id}"):
 		return {"error" : "Video was not processed"}
 	results = {}
 	for category in channel.getCategories():
 		try:
-			if(os.path.exists(channel._pathName + "/" + video_id + "/" + "/data.json")):
-				with open(channel._pathName + "/" + video_id + "/" + "/data.json") as ifile:
+			if(os.path.exists(f"{channel._pathName}/{video_id}/data.json")):
+				with open(f"{channel._pathName}/{video_id}/data.json") as ifile:
 					results = json.load(ifile)
 			else:
 				results[category.getType()] = {}
@@ -267,7 +284,6 @@ def csvExport(video_id, data):
 			ofile.write(line)
 	return {"status": 200}
 
-
 def get_preferred_mode():
 	import eel.chrome, eel.edge
 
@@ -279,8 +295,15 @@ def get_preferred_mode():
 	return 'default'
 
 if __name__ == "__main__":
-	eel.init("web")
+	eel.init("web", allowed_extensions=[".js", ".html"])
 	try:
 		eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
-	except (SystemExit, MemoryError, KeyboardInterrupt) as e:
+	except SystemExit as e:
+		print(e.message())
+		pass
+	except MemoryError as e:
+		print(e.message())
+		pass
+	except KeyboardInterrupt as e:
+		print(e.message())
 		pass

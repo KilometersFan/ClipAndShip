@@ -11,9 +11,9 @@ function populateVideos() {
         $(".loading").hide();
     });
 }
-function populateUserVideos(channel_name) {
+function populateUserVideos() {
     $("#userVideos").empty();
-    eel.getUserVideos(channel_name)(function (videos) {
+    eel.getUserVideos(channelId.toString())(function (videos) {
         if (!videos.length) {
             let noVideos = $("<p>", { "style": "padding-left: 15px" });
             noVideos.text("No clipped videos found.");
@@ -33,7 +33,7 @@ function populateUserVideos(channel_name) {
 }
 function updateVideos() {
     populateVideos();
-    populateUserVideos(channel_name);
+    populateUserVideos();
 }
 function createVideoCard(data, search = false, remove = false, results = false) {
     let col = $("<div>", { "class": "mb-2 mt-2", "id": data["id"] + "Div" });
@@ -83,7 +83,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
         event.preventDefault();
         let id = data["id"];
         if (processing) {
-            eel.cancelVideo(data["channelId"], data["id"])(function (response) {
+            eel.cancelVideo(parseInt(data["channelId"]), parseInt(data["id"]))(function (response) {
                 if (response["status"] == 201) {
                     $("#cancelResponse").text(response["msg"]);
                 }
@@ -106,7 +106,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
         removeBtn.text("Remove Video");
         removeBtn.click(function () {
             let videoToRmv = removeBtn.val();
-            eel.removeVideo(channel_name, videoToRmv)(function (response) {
+            eel.removeVideo(channelId, videoToRmv)(function (response) {
                 if (response.success) {
                     $("#rmvBody").text("Successfully removed video from your list.")
                 }
@@ -114,7 +114,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
                     $("#rmvBody").text("Unable to remove video from your list.")
                 }
                 populateVideos();
-                populateUserVideos(channel_name);
+                populateUserVideos();
             });
         });
         form.append(removeBtn);
@@ -148,13 +148,14 @@ $(document).ready(function () {
                 let searchParams = new URLSearchParams(window.location.search);
                 if (searchParams.has("id") && searchParams.get("id")) {
                     let id = parseInt(searchParams.get("id"));
+                    console.log(id);
                     channelId = id;
                     $("#channelBtn").prop("href", "channel.html?id=" + channelId);
                     eel.getChannel(id)(function (data) {
                         $("#channelVideoTitle").text(data["name"] + "'s Videos");
                         channel_name = data["name"];
                         populateVideos();
-                        populateUserVideos(data["name"]);
+                        populateUserVideos();
                     });
                 }
                 else {

@@ -31,13 +31,15 @@
         </div>
     </div>
 </div>
-<div class="row" id="videoRow"></div>
+<div class="row" id="processingVideoRow"></div>
+<h1>Your Videos</h1>
+<div class="row" id="yourVideoRow"></div>
 {% endblock %}
 {% block body_scripts %}
-<script type="text/javascript" src="../scripts/processing.js"></script>
+<script type="text/javascript" src="../scripts/your_videos.js"></script>
 {% endblock %}
 {% block videoHandler %}
 eel.getProcessingVideos()(function (data) {
-    populateVideos(data);
+    populateProcessingVideos(data);
 });
 {% endblock %}
