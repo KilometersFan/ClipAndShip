@@ -20,14 +20,9 @@ class ClipBotHelper(object):
         self._channel = channel
         self._helix = clipBot.getHelix()
         self._pathName = f"data/channels/{self._channel.getId()}"
-        self._stopVideo = {}
         self._startTime = None
         self._endTime = None
         self._processingGroup = False
-
-    # cancel processing
-    def stopProccessingVideo(self, videoId):
-        self._stopVideo[videoId] = True
 
     def preprocessComments(self, comments):
         processedComments = []
@@ -238,8 +233,6 @@ class ClipBotHelper(object):
                 end = time.time()
                 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
                 print(f"Finished assigning categories to processed groups at {datetime.now()}. Process took {end - start} seconds")
-                # https://static-cdn.jtvnw.net/emoticons/v1/1570548/3.0
-                self._stopVideo[videoId] = False
                 try:
                     decimalIndex = video.created_at.index(".")
                 except ValueError as e:
@@ -258,19 +251,12 @@ class ClipBotHelper(object):
                 with open(f"{self._pathName}/{videoId}/data.json", "w+") as ofile:
                     dump(data, ofile, separators=(",", ":"), indent=4)
 
-                # remove from processing list
-                print("Removing", videoId, "from set of videos owned by", self._channel.getId())
-                self._clipBot._processing[self._channel.getId()].remove(videoId)
                 response["status"] = 200
                 response["msg"] = "Successfully clipped the video: " + video.title + " recorded on " + video.created_at[:10]
                 response["id"] = video.id
                 response["channelId"] = self._channel.getId()
                 response["data"] = data
-                # response = {"status": 200,
-                #  "msg": f"Successfully clipped the video: {video.title} recorded on {video.created_at[:10]}",
-                #  "id": video.id, "channelId": self._channel.getId(), "data": data}
                 response["data"] = processedComments
-                # return response
             except requests.exceptions.HTTPError as http_err:
                 statusCode = http_err.response.status_code
                 if statusCode == 401:
@@ -283,7 +269,6 @@ class ClipBotHelper(object):
                     self._clipBot._processing[self._channel.getId()].remove(videoId)
                     response["status"] = statusCode
                     response["msg"] = "Error when processing the video, please try again."
-                    # return {"status": statusCode, "msg": "Error when processing the video, please try again."}
             except requests.exceptions.ConnectionError as http_err:
                 print("Connection error:", http_err.args)
                 print("Trying again")
@@ -295,5 +280,4 @@ class ClipBotHelper(object):
                 self._clipBot._processing[self._channel.getId()].remove(videoId)
                 response["status"] = 400
                 response["msg"] = "Unable to process video, please try again."
-                # return {"status": statusCode, "msg": "Unable to process video, please try again."}
             time.sleep(1)

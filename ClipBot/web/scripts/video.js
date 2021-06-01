@@ -55,69 +55,42 @@ function createVideoCard(data, search = false, remove = false, results = false) 
     date.text(data["date"]);
     let video = $("<a>", { "class": "card-link", "href": data["url"], "target": "_blank" });
     video.text("Link");
-    let form = $("<form>", { "id": data["id"] + "Form" })
+    let container = $("<div>", { "style": "width: 100%" });
     let processing = data["processing"];
-    let clipBtn;
-    if (processing) {
-        clipBtn = $("<button>", {
-            "class": "btn action-btn", "type": "submit", "value": data["id"], "data-toggle": "modal", "data-target": "#videoCancelModal"
-        });
-    }
-    else {
-        clipBtn = $("<button>", {
+    if (!processing) {
+        let clipBtn = $("<button>", {
             "class": "btn action-btn", "type": "submit", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
-    }
-    if (processing) {
-        clipBtn.text("Cancel Processing");
-    }
-    else {
         clipBtn.text("Clip Video");
-    }
-    if (search) {
+        if (search) {
+            clipBtn.click(function () {
+                $("#searchModal").modal('hide');
+            });
+        }
         clipBtn.click(function () {
-            $("#searchModal").modal('hide');
-        });
-    }
-    form.submit(function (event) {
-        event.preventDefault();
-        let id = data["id"];
-        if (processing) {
-            eel.cancelVideo(parseInt(data["channelId"]), parseInt(data["id"]))(function (response) {
-                if (response["status"] == 201) {
-                    $("#cancelResponse").text(response["msg"]);
-                }
-                else {
-                    $("#cancelResponse").text("An error occurred when cancelling the video.");
-                }
-            });
+            eel.clipVideo(channelId, data["id"]);
             setTimeout(updateVideos, 100);
-        }
-        else {
-            eel.clipVideo(channelId, id);
-            setTimeout(updateVideos, 100);
-        }
-    });
-    form.append(clipBtn);
-    if (remove) {
-        let removeBtn = $("<button>", {
-            "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
         });
-        removeBtn.text("Remove Video");
-        removeBtn.click(function () {
-            let videoToRmv = removeBtn.val();
-            eel.removeVideo(channelId, videoToRmv)(function (response) {
-                if (response.success) {
-                    $("#rmvBody").text("Successfully removed video from your list.")
-                }
-                else {
-                    $("#rmvBody").text("Unable to remove video from your list.")
-                }
-                populateVideos();
-                populateUserVideos();
+        container.append(clipBtn);
+        if (remove) {
+            let removeBtn = $("<button>", {
+                "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
             });
-        });
-        form.append(removeBtn);
+            removeBtn.text("Remove Video");
+            removeBtn.click(function () {
+                let videoToRmv = removeBtn.val();
+                eel.removeVideo(channelId, videoToRmv)(function (response) {
+                    if (response.success) {
+                        $("#rmvBody").text("Successfully removed video from your list.")
+                    }
+                    else {
+                        $("#rmvBody").text("Unable to remove video from your list.")
+                    }
+                    setTimeout(updateVideos, 100);
+                });
+            });
+            container.append(removeBtn);
+        }
     }
     cardBody.append(h5);
     cardBody.append(p);
@@ -134,7 +107,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
             results.hide();
         }
     }
-    cardBody.append(form);
+    cardBody.append(container);
     card.append(cardBody);
     col.append(card);
     return col;

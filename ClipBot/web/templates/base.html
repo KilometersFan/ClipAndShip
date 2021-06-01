@@ -71,34 +71,36 @@
     <script type="text/javascript">
         eel.expose(videoHandler);
         function videoHandler(response) {
-            console.log(response);
-<!--            let notifications = $("#notificationModal");-->
-<!--            let notificationBody = $("#notificationBody");-->
-<!--            if (response["status"] == 200) {-->
-<!--                notificationBody.text(response["msg"] + " ");-->
-<!--                let link = $("<a>", { "href": "results.html?channel=" + response["channelId"] + "&video=" + response["id"] });-->
-<!--                link.text("Results");-->
-<!--                notificationBody.append($("<br />"));-->
-<!--                notificationBody.append(link);-->
-<!--                let results = $("#results" + response["id"]);-->
-<!--                results.show();-->
-<!--            }-->
-<!--            else if (response["status"] == 201) {-->
-<!--                notificationBody.text(response["msg"] + " ");-->
-<!--            }-->
-<!--            else {-->
-<!--                if (response["msg"]) {-->
-<!--                    notificationBody.text(response["msg"]);-->
-<!--                }-->
-<!--                else {-->
-<!--                    notificationBody.text("An unexpected error occurred while processing your request. Please try again later.");-->
-<!--                }-->
-<!--                let results = $("#results" + response["id"]);-->
-<!--                results.hide();-->
-<!--            }-->
-<!--            {% block videoHandler %}-->
-<!--            {% endblock %}-->
-<!--            notifications.modal("show");-->
+            let notifications = $("#notificationModal");
+            let notificationBody = $("#notificationBody");
+            if (response["status"] == 200) {
+                notificationBody.text(response["msg"] + " ");
+                let link = $("<a>", { "href": "results.html?channel=" + response["channelId"] + "&video=" + response["id"] });
+                link.text("Results");
+                notificationBody.append($("<br />"));
+                notificationBody.append(link);
+                let results = $("#results" + response["id"]);
+                results.show();
+            }
+            else if (response["status"] == 201) {
+                notificationBody.text(response["msg"] + " ");
+            }
+            else {
+                if (response["msg"]) {
+                    notificationBody.text(response["msg"]);
+                }
+                else {
+                    notificationBody.text("An unexpected error occurred while processing your request. Please try again later.");
+                }
+                let results = $("#results" + response["id"]);
+                results.hide();
+            }
+            {% block videoHandler %}
+            if (updateVideos) {
+                setTimeout(updateVideos, 100);
+            }
+            {% endblock %}
+            notifications.modal("show");
         }
     </script>
 </body>

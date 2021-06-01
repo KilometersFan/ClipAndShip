@@ -4,7 +4,7 @@ import shutil
 import configparser
 import traceback
 import json
-import requests
+import threading
 from models.ClipBot import ClipBot
 from models.Channel import Channel
 
@@ -225,16 +225,14 @@ def removeVideo(channel_id, video_id):
 
 @eel.expose
 def clipVideo(channel_id, id=None):
-	# videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id,id), daemon=True)
-	# videoThreads[id] = videoThread
-	# videoThread.start()
-	clipVideoHelper(channel_id,id)
+	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id, id), daemon=True)
+	videoThread.start()
+	# videoThread.join()
+	# clipVideoHelper(channel_id, id)
 
 def clipVideoHelper(channel_id, id=None):
-	response = bot.clipVideo(channel_id, id)
-	# videoThreads.pop(id)
+	bot.clipVideo(channel_id, id)
 	print("###########################")
-	eel.videoHandler(response)
 
 @eel.expose
 def getVideoResults(channel_id, video_id):
@@ -264,17 +262,6 @@ def getProcessingVideos():
 	return bot.getProcessingVideos()
 
 @eel.expose
-def cancelVideo(channel_id, video_id):
-	global bot
-	try:
-		bot.cancelVideo(channel_id, video_id)
-		return {"status": 200}
-	except Exception as e:
-		print("Unable to cancel video")
-		print(e.args)
-		return {"status": 400}
-
-@eel.expose
 def csvExport(video_id, data):
 	print(data)
 	with open(f"web/exported/{video_id}_groups.csv", "w") as ofile:
@@ -299,7 +286,7 @@ if __name__ == "__main__":
 	try:
 		eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
 	except SystemExit as e:
-		print(e.message())
+		print(e.code, e.args())
 		pass
 	except MemoryError as e:
 		print(e.message())

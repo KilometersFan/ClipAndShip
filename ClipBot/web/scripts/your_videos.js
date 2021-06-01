@@ -14,54 +14,36 @@ function createVideoCard(data, processing=true, channelId=null) {
     video.text("Link");
     let container = $("<div>", {"style": "display: block; width: 100%"});
     let btn;
-    if (processing) {
-        btn = $("<button>", {
-            "class": "btn action-btn", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
-        });
-        btn.text("Cancel Processing");
-        btn.click(function() {
-            eel.cancelVideo(parseInt(data["channelId"]), parseInt(data["id"]))(function (response) {
-                if (response["status"] == 200) {
-                    col.remove();
-                }
-                if ($("#processingVideoRow").children().length == 0) {
-                    let noVideos = $("<p>", { "style": "padding-left: 15px" })
-                    $("#processingVideoRow").append(noVideos);
-                }
-                setTimeout(updateVideos, 100);
-            });
-        });
-    }
-    else {
+    if (!processing) {
         btn = $("<button>", {
             "class": "btn action-btn", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
         btn.text("Clip Video");
         btn.click(async function () {
             eel.clipVideo(parseInt(channelId), parseInt(data["id"]));
+            setTimeout(updateVideos, 100);
         });
-    }
-    let removeBtn = $("<button>", {
-        "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
-    });
-    removeBtn.text("Remove Video");
-    removeBtn.click(function () {
-        let videoToRmv = removeBtn.val();
-        eel.removeVideo(channelId, videoToRmv)(function (response) {
-            if (response.success) {
-                $("#rmvBody").text("Successfully removed video from your list.")
-            }
-            else {
-                $("#rmvBody").text("Unable to remove video from your list.")
-            }
-            eel.getUserVideos()(function (data) {
-                populateUserVideos(data);
+        let removeBtn = $("<button>", {
+            "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
+        });
+        removeBtn.text("Remove Video");
+        removeBtn.click(function () {
+            let videoToRmv = removeBtn.val();
+            eel.removeVideo(channelId, videoToRmv)(function (response) {
+                if (response.success) {
+                    $("#rmvBody").text("Successfully removed video from your list.")
+                }
+                else {
+                    $("#rmvBody").text("Unable to remove video from your list.")
+                }
+                eel.getUserVideos()(function (data) {
+                    populateUserVideos(data);
+                });
             });
         });
-    });
-    container.append(removeBtn);
-    container.append(btn);
-
+        container.append(removeBtn);
+        container.append(btn);
+    }
     cardBody.append(h5);
     cardBody.append(p);
     cardBody.append(date);
@@ -117,6 +99,7 @@ function populateUserVideos(data) {
 
 function updateVideos() {
     eel.getProcessingVideos()(function (data) {
+        console.log(data);
         populateProcessingVideos(data);
     });
     eel.getUserVideos()(function (data) {
@@ -131,6 +114,7 @@ $(document).ready(function () {
             if (valid == true) {
                 invalid = false;
                 eel.getProcessingVideos()(function (data) {
+                    console.log(data);
                     populateProcessingVideos(data);
                 });
                 eel.getUserVideos()(function (data) {

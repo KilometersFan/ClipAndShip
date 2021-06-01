@@ -1,5 +1,5 @@
 from pprint import pprint
-import os
+import eel
 import threading
 import configparser
 import twitch
@@ -10,7 +10,7 @@ from .Channel import Channel
 from .Category import Category
 from .ClipBotHelper import ClipBotHelper
 
-class ClipBot():
+class ClipBot ():
     """Bot that helps find clips in a twitch VOD by analyzing chat messages"""
     def __init__(self):
         self._oauthURL = "https://id.twitch.tv/oauth2/"
@@ -20,7 +20,6 @@ class ClipBot():
         self.hasChannels = False
         self._channelInfo = {}
         self._processing = {}
-        self._videoThreads = {}
         self._helpers = {}
         self._accessToken = None
     
@@ -180,23 +179,25 @@ class ClipBot():
             else:
                 self._helpers[channel_id][id] = helper
             print("Added", id, "to set of videos owned by", channel_id)
-            videoThread = threading.Thread(target=self.clipVideoHelper, args=(id, helper), daemon=True)
-            self._videoThreads[id] = videoThread
-            videoThread.start()
-            # response = helper.main(id)
-            # return response
+            # videoThread = threading.Thread(target=self.clipVideoHelper, args=(channel_id, id, helper))
+            # videoThread.start()
+            # videoThread.join()
+            self.clipVideoHelper(channel_id, id, helper)
         else:
             print("Helix creation failed")
             self.setupConfig()
 
-    def clipVideoHelper(self, id, helper):
+    def clipVideoHelper(self, channel_id, id, helper):
         manager = Manager()
         response = manager.dict()
         p = Process(target=helper.main, args=(response, id))
         p.start()
         p.join()
-        self._videoThreads.pop(id)
-    
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&")
+        eel.videoHandler(dict(response))
+        self._processing[channel_id].remove(id)
+        print("sent to front end")
+
     # return all videos that are currently processing
     def getProcessingVideos(self):
         results = []
@@ -205,11 +206,6 @@ class ClipBot():
             if len(list(value)) > 0:
                 results += channel.getVideos(list(value))
         return results
-
-    # cancel a video that is processing
-    def cancelVideo(self, channel_id, video_id):
-        helper = self._helpers[channel_id][video_id]
-        helper.stopProccessingVideo(video_id)
 
 if __name__ == "__main__":
     bot = ClipBot()
