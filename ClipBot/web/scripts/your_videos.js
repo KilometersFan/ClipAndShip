@@ -1,5 +1,5 @@
 function createVideoCard(data, processing=true, channelId=null) {
-    let col = $("<div>", { "class": "mb-2 mt-2 col-sm-8 col-md-6 col-lg-4", "id": data["id"] + "Div" });
+    let col = $("<div>", { "class": "mb-2 mt-2 col-sm-8 col-md-6 col-lg-4 d-flex align-self-stretch", "id": data["id"] + "Div" });
     let card = $("<div>", { "class": "card custom-card", "id": data["id"] + "Card" });
     let img = $("<img>", { "src": data["thumbnail"], "alt": data["title"] });
     card.append(img)
@@ -10,23 +10,21 @@ function createVideoCard(data, processing=true, channelId=null) {
     p.text(data["desc"]);
     let date = $("<p>", { "class": "card-text" });
     date.text(data["date"]);
-    let video = $("<a>", { "class": "card-link", "href": data["url"], "target": "_blank" });
-    video.text("Link");
-    let container = $("<div>", {"style": "display: block; width: 100%"});
+    let container = $("<div>", { "class": "d-flex justify-content-between", "style": "display: block; width: 100%" });
     let btn;
     if (!processing) {
         btn = $("<button>", {
             "class": "btn action-btn mx-0", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
-        btn.text("Process Video");
+        btn.text("Process");
         btn.click(async function () {
             eel.clipVideo(parseInt(channelId), parseInt(data["id"]));
             setTimeout(updateVideos, 200);
         });
         let removeBtn = $("<button>", {
-            "class": "btn delete-btn mr-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
+            "class": "btn delete-btn mr-1", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
         });
-        removeBtn.text("Remove Video");
+        removeBtn.text("Remove");
         removeBtn.click(function () {
             let videoToRmv = removeBtn.val();
             eel.removeVideo(channelId, videoToRmv)(function (response) {
@@ -47,11 +45,10 @@ function createVideoCard(data, processing=true, channelId=null) {
     cardBody.append(h5);
     cardBody.append(p);
     cardBody.append(date);
-    cardBody.append(video);
     if (!processing) {
-        let results = $("<a>", { "class": "card-link", "href": "results.html?channel=" + channelId + "&video=" + parseInt(data["id"]), "id": "results" + data["id"] });
+        let results = $("<a>", { "class": "btn btn-primary ml-1", "href": "results.html?channel=" + channelId + "&video=" + parseInt(data["id"]), "id": "results" + data["id"] });
         results.text("View Results");
-        cardBody.append(results);
+        container.append(results);
     }
     card.append(cardBody);
     cardBody.append(container);
@@ -84,14 +81,23 @@ function populateUserVideos(data) {
     else {
         Object.keys(data).forEach((channelId) => {
             let videos = data[channelId];
-            if (videos.length > 0) {
-                eel.getVideos(parseInt(channelId), videos)(function (response) {
-                    for (let i = 0; i < response.length; i++) {
-                        let videoCard = createVideoCard(response[i], false, channelId);
-                        row.append(videoCard);
-                    }
-                });
-            }
+            eel.getChannel(parseInt(channelId))(function (data) {
+                let channelCol = $("<div>", {"class": "col-sm-12"});
+                let channelRow = $("<div>", {"class": "row"});
+                let channelName = $("<h3>");
+                channelName.text(data["name"]);
+                channelCol.append(channelName);
+                if (videos.length > 0) {
+                    eel.getVideos(parseInt(channelId), videos)(function (response) {
+                        for (let i = 0; i < response.length; i++) {
+                            let videoCard = createVideoCard(response[i], false, channelId);
+                            channelRow.append(videoCard);
+                        }
+                        channelCol.append(channelRow);
+                        row.append(channelCol);
+                    });
+                }
+            });
         });
     }
     $(".loading").hide();
@@ -99,7 +105,6 @@ function populateUserVideos(data) {
 
 function updateVideos() {
     eel.getProcessingVideos()(function (data) {
-        console.log(data);
         populateProcessingVideos(data);
     });
     eel.getUserVideos()(function (data) {

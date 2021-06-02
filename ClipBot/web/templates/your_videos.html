@@ -37,6 +37,11 @@
 {% endblock %}
 {% block body_scripts %}
 <script type="text/javascript" src="../scripts/your_videos.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        eel.resetNotificationCount();
+    });
+</script>
 {% endblock %}
 {% block videoHandler %}
 eel.getProcessingVideos()(function (data) {

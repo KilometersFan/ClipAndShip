@@ -15,6 +15,7 @@ from models.Channel import Channel
 
 bot = None
 videoThreads = {}
+notification = False
 
 @eel.expose
 def initClipBot():
@@ -236,6 +237,10 @@ def clipVideo(channel_id, id=None):
 def clipVideoHelper(channel_id, id=None):
 	bot.clipVideo(channel_id, id)
 	print("###########################")
+	global notification
+	notification = True
+	eel.videoHandler(notification)
+
 
 @eel.expose
 def getVideoResults(channel_id, video_id):
@@ -286,6 +291,11 @@ def getGraph(graph_data):
 	img_bytes = fig.to_image(format="png")
 	return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
 
+@eel.expose
+def resetNotificationCount():
+	global notification
+	notification = False
+	eel.videoHandler(notification)
 
 def get_preferred_mode():
 	if eel.chrome.find_path():

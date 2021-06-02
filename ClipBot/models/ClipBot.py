@@ -185,9 +185,7 @@ class ClipBot ():
             p.start()
             p.join()
             print("&&&&&&&&&&&&&&&&&&&&&&&&&")
-            eel.videoHandler(dict(response))
             self._processing[channel_id].remove(id)
-            print("Sent video notification to front end")
         else:
             print("Helix creation failed")
             self.setupConfig()

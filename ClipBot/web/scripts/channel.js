@@ -133,6 +133,7 @@ function populateCategoryEmotes(data) {
         let editBtn = $("<button>", {
             "type": "button", "id": type + "EditBtn", "class": "btn action-btn mt-1 mb-1 ml-2 mr-2", "data-toggle": "modal", "data-target": "#" + type + "EditModal"
         });
+        editBtn.text("Edit ");
         editBtn.append($("<i>", {"class": "fa fa-edit"}));
         editBtn.click(function () {
             editForm.trigger("reset");

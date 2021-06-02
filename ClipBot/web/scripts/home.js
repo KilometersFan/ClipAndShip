@@ -1,8 +1,8 @@
 let channels;
 function createChannelCard(channelName, channelId, channelDesc, channelImg, search=false) {
-    let col = $("<div>", { "class": "mb-2 mt-2", "id": channelId + "Div" });
+    let col = $("<div>", { "class": "mb-2 mt-2 d-flex align-self-stretch", "id": channelId + "Div" });
     if (search) {
-        col.addClass("col-sm-12 pl-0 pr-0");
+        col.addClass("col-sm-12 pl-0 pr-0 d-flex align-self-stretch");
     }
     else {
         col.addClass("col-sm-8 col-md-6 col-lg-4");
@@ -21,7 +21,7 @@ function createChannelCard(channelName, channelId, channelDesc, channelImg, sear
         settings = $("<a>", { "class": "card-link", "href": "channel.html?id=" + channelId });
         settings.text("Edit Settings");
         video = $("<a>", { "class": "card-link", "href": "video.html?id=" + channelId });
-        video.text("Clip Video");
+        video.text("Process Video");
     }
     cardBody.append(h5);
     cardBody.append(p);

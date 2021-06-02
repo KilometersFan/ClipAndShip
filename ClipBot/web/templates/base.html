@@ -48,94 +48,27 @@
     {% block nav %}
     {% endblock %}
     <div class="container">
-        <div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="notificationModalLabel">Video Processing Complete</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" id="notificationBody">
-                        <p>A video has finished processing.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
         {% block content %} {% endblock %}
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
-    {% block body_scripts %} {% endblock %}
     <script type="text/javascript">
         eel.expose(videoHandler);
         function videoHandler(response) {
-            let notifications = $("#notificationModal");
-            let notificationBody = $("#notificationBody");
-            if (response["status"] == 200) {
-                notificationBody.text(response["msg"] + " ");
-                let link = $("<a>", { "href": "results.html?channel=" + response["channelId"] + "&video=" + response["id"] });
-                link.text("Results");
-                notificationBody.append($("<br />"));
-                notificationBody.append(link);
-                let results = $("#results" + response["id"]);
-                results.show();
-            }
-            else if (response["status"] == 201) {
-                notificationBody.text(response["msg"] + " ");
+            if (response) {
+                $("#notificationCount").text("New");
             }
             else {
-                if (response["msg"]) {
-                    notificationBody.text(response["msg"]);
-                }
-                else {
-                    notificationBody.text("An unexpected error occurred while processing your request. Please try again later.");
-                }
-                let results = $("#results" + response["id"]);
-                results.hide();
+                $("#notificationCount").text();
             }
             {% block videoHandler %}
             if (updateVideos) {
                 setTimeout(updateVideos, 100);
             }
             {% endblock %}
-            notifications.modal("show");
-        }
-        eel.expose(commentHandler);
-        function commentHandler(response) {
-            let notifications = $("#notificationModal");
-            let notificationBody = $("#notificationBody");
-            if (response["status"] == 200) {
-                notificationBody.text(response["msg"] + " ");
-                let link = $("<a>", { "href": "results.html?channel=" + response["channelId"] + "&video=" + response["id"] });
-                link.text("Results");
-                notificationBody.append($("<br />"));
-                notificationBody.append(link);
-                let results = $("#results" + response["id"]);
-                results.show();
-            }
-            else if (response["status"] == 201) {
-                notificationBody.text(response["msg"] + " ");
-            }
-            else {
-                if (response["msg"]) {
-                    notificationBody.text(response["msg"]);
-                }
-                else {
-                    notificationBody.text("An unexpected error occurred while processing your request. Please try again later.");
-                }
-                let results = $("#results" + response["id"]);
-                results.hide();
-            }
-            {% block commentHandler %}
-            if (updateVideos) {
-                setTimeout(updateVideos, 100);
-            }
-            {% endblock %}
-            notifications.modal("show");
         }
     </script>
+    {% block body_scripts %} {% endblock %}
 </body>
 </html>
