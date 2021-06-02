@@ -341,6 +341,7 @@ healthchecksdb
 
 data/
 data/channels/
+exported/
 *png
 twitch-app/
 .DS_Store
