@@ -3,10 +3,10 @@ import requests
 import json
 import re
 import os
+from pprint import pprint
 from datetime import datetime
 from dateutil import tz
-import models.Category as Category
-from pprint import pprint
+from .Category import Category
 
 class Channel(object):
     """Twitch channel, stores categories set by channel"""
@@ -17,6 +17,7 @@ class Channel(object):
         self._ffEmotes = []
         self._bttvEmotes = []
         self._twitchEmotes = []
+        self._nameToEmotesMap = {}
         self._bttvURL = "https://api.betterttv.net/3/cached/users/twitch/"
         self._bttvImgURL = "https://cdn.betterttv.net/emote/"
         self._twitchSubURL = "https://api.twitchemotes.com/api/v4/channels/"
@@ -27,7 +28,7 @@ class Channel(object):
             try:
                 if helix is not None:
                     self._name = helix.user(id).display_name
-                    self._pathName = 'data/channels/' + self._name
+                    self._pathName = f"data/channels/{self._id}"
                     self._desc = helix.user(id).description
                     self._img = helix.user(id).profile_image_url
                     self._frankerfacezURL = "https://api.frankerfacez.com/v1/room/" + self._name.lower()
@@ -46,20 +47,29 @@ class Channel(object):
 
     # add emote to channel
     def addEmote(self, emote):
-        self._emotes.add(emote)
+        self._emotes.add(emote.lower())
 
     # return all emotes in channel
     def getEmotes(self):
         ffEmotes = sorted(list(self._ffEmotes), key=lambda e: e['name'].lower())
         bttvEmotes = sorted(list(self._bttvEmotes), key=lambda e: e['name'].lower())
         twitchEmotes = sorted(list(self._twitchEmotes), key= lambda e: e['name'].lower())
+        # pprint({ "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes})
         return { "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes}
+
+    def getEmoteNames(self):
+        emoteTypes = ["ffEmotes", "bttvEmotes", "twitchEmotes"]
+        channelEmoteList = set()
+        for emoteType in emoteTypes:
+            for emote in self.getEmotes()[emoteType]:
+                channelEmoteList.add(emote["name"].lower())
+        return channelEmoteList
 
     # add category to channel
     def addCategory(self, category, isString=False, channelId=None):
         if isString:
             if(category not in self._categories):
-                self._categories[category] = Category.Category(category, channelId)
+                self._categories[category] = Category(category, channelId)
             else:
                 print("Type {} already exists!".format(category))
                 raise Exception("Category type is a duplicate.")
@@ -87,9 +97,9 @@ class Channel(object):
         categories = sorted(list(self._categories.values()), key= lambda c: c.getType())
         return categories
 
-    # return catgeory object based on type
+    # return category object based on type
     def getCategory(self, type):
-        if(type in self._categories):
+        if type in self._categories:
             return self._categories[type]
         return None
 
@@ -98,13 +108,14 @@ class Channel(object):
         category = self._categories[type]
         if category:
             for emote in emotes:
-                category.addEmote(emote)
+                category.addEmote(emote.lower())
         else:
             print("Invalid category specified")
     
     # remove all emotes in param from category specified by type
     def rmvEmotesFromCategory(self, type, emotes):
         category = self.getCategory(type)
+        emotes = set([emote.lower() for emote in emotes])
         if category:
             category.setEmotes(emotes)
         else:
@@ -133,7 +144,7 @@ class Channel(object):
         while not validHelix:
             if not videos:
                 try:
-                    for video in self._helix.user(self._name).videos(first=9):
+                    for video in self._helix.user(self._name).videos():
                         thumbnail = video.thumbnail_url
                         if not thumbnail:
                             thumbnail = "../NotFound.png"
@@ -207,6 +218,7 @@ class Channel(object):
                     bttvEmotes = json.loads(getBTTVEmotesRequest.text)
                     for bttvEmote in bttvEmotes["sharedEmotes"]:
                         self._bttvEmotes.append({"name" : bttvEmote["code"], "imageUrl" : self._bttvImgURL + bttvEmote["id"] + "/1x"})
+                        self._nameToEmotesMap[bttvEmote["code"].lower()] = bttvEmote["code"]
                 else:
                     print("Unable to complete get request for BTTV Emotes")
                     print("Error code:", getBTTVEmotesRequest.status_code)
@@ -220,7 +232,8 @@ class Channel(object):
                 if(getTwitchSubEmotes.status_code == requests.codes.ok):
                     twitchSubEmotes = json.loads(getTwitchSubEmotes.text)
                     for twitchSubEmote in twitchSubEmotes["emotes"]:
-                        self._twitchEmotes.append({"name" : twitchSubEmote["code"], "imageUrl" : ""})
+                        self._twitchEmotes.append({"name" : twitchSubEmote["code"], "imageUrl" : "../error-placeholder.png"})
+                        self._nameToEmotesMap[twitchSubEmote["code"].lower()] = twitchSubEmote["code"]
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
                     print("Error code:", getTwitchSubEmotes.status_code)
@@ -236,6 +249,7 @@ class Channel(object):
                     set = frankerFaceZEmotes["room"]["set"] 
                     for frankerFaceZEmote in frankerFaceZEmotes["sets"][str(set)]["emoticons"]:
                         self._ffEmotes.append({"name" : frankerFaceZEmote["name"], "imageUrl" : frankerFaceZEmote["urls"]["1"]})
+                        self._nameToEmotesMap[frankerFaceZEmote["name"].lower()] = frankerFaceZEmote["name"]
                 else:
                     print("Unable to complete get request for FrankerFaceZ Emotes")
                     print("Error code:", getFrankerFaceZEmotes.status_code)
@@ -244,5 +258,6 @@ class Channel(object):
                 print("FFZ Emotes Request timed out")
                 print(e.args)
 
-
+    def getEmotesMap(self):
+        return self._nameToEmotesMap
 

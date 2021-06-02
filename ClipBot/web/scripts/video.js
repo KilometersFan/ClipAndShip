@@ -11,29 +11,8 @@ function populateVideos() {
         $(".loading").hide();
     });
 }
-function populateUserVideos(channel_name) {
-    $("#userVideos").empty();
-    eel.getUserVideos(channel_name)(function (videos) {
-        if (!videos.length) {
-            let noVideos = $("<p>", { "style": "padding-left: 15px" });
-            noVideos.text("No clipped videos found.");
-            $("#userVideos").append(noVideos);
-        }
-        else {
-            eel.getVideos(channelId, videos)(function (data) {
-                let row = $("#userVideos");
-                for (let i = 0; i < data.length; i++) {
-                    let videoCard = createVideoCard(data[i], false, true, true);
-                    row.append(videoCard);
-                }
-                $(".loading").hide();
-            });
-        }
-    });
-}
 function updateVideos() {
     populateVideos();
-    populateUserVideos(channel_name);
 }
 function createVideoCard(data, search = false, remove = false, results = false) {
     let col = $("<div>", { "class": "mb-2 mt-2", "id": data["id"] + "Div" });
@@ -41,7 +20,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
         col.addClass("col-sm-12");
     }
     else {
-        col.addClass("col-sm-8 col-md-6 col-lg-4");
+        col.addClass("col-sm-8 col-md-6 col-lg-4 d-flex align-self-stretch");
     }
     let card = $("<div>", { "class": "card custom-card", "id": data["id"] + "Card" });
     let img = $("<img>", { "src": data["thumbnail"], "alt": data["title"] });
@@ -53,80 +32,51 @@ function createVideoCard(data, search = false, remove = false, results = false) 
     p.text(data["desc"]);
     let date = $("<p>", { "class": "card-text" });
     date.text(data["date"]);
-    let video = $("<a>", { "class": "card-link", "href": data["url"], "target": "_blank" });
-    video.text("Link");
-    let form = $("<form>", { "id": data["id"] + "Form" })
+
+    let container = $("<div>", { "class": "d-flex justify-content-start", "style": "width: 100%" });
     let processing = data["processing"];
-    let clipBtn;
-    if (processing) {
-        clipBtn = $("<button>", {
-            "class": "btn action-btn", "type": "submit", "value": data["id"], "data-toggle": "modal", "data-target": "#videoCancelModal"
-        });
-    }
-    else {
-        clipBtn = $("<button>", {
+    if (!processing) {
+        let clipBtn = $("<button>", {
             "class": "btn action-btn", "type": "submit", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
-    }
-    if (processing) {
-        clipBtn.text("Cancel Processing");
-    }
-    else {
-        clipBtn.text("Clip Video");
-    }
-    if (search) {
+        clipBtn.text("Process");
+        if (search) {
+            clipBtn.click(function () {
+                $("#searchModal").modal('hide');
+            });
+        }
         clipBtn.click(function () {
-            $("#searchModal").modal('hide');
-        });
-    }
-    form.submit(function (event) {
-        event.preventDefault();
-        let id = data["id"];
-        if (processing) {
-            eel.cancelVideo(data["channelId"], data["id"])(function (response) {
-                if (response["status"] == 201) {
-                    $("#cancelResponse").text(response["msg"]);
-                }
-                else {
-                    $("#cancelResponse").text("An error occurred when cancelling the video.");
-                }
-            });
+            eel.clipVideo(channelId, data["id"]);
             setTimeout(updateVideos, 100);
-        }
-        else {
-            eel.clipVideo(channelId, id);
-            setTimeout(updateVideos, 100);
-        }
-    });
-    form.append(clipBtn);
-    if (remove) {
-        let removeBtn = $("<button>", {
-            "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
         });
-        removeBtn.text("Remove Video");
-        removeBtn.click(function () {
-            let videoToRmv = removeBtn.val();
-            eel.removeVideo(channel_name, videoToRmv)(function (response) {
-                if (response.success) {
-                    $("#rmvBody").text("Successfully removed video from your list.")
-                }
-                else {
-                    $("#rmvBody").text("Unable to remove video from your list.")
-                }
-                populateVideos();
-                populateUserVideos(channel_name);
+        container.append(clipBtn);
+        if (remove) {
+            let removeBtn = $("<button>", {
+                "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
             });
-        });
-        form.append(removeBtn);
+            removeBtn.text("Remove");
+            removeBtn.click(function () {
+                let videoToRmv = removeBtn.val();
+                eel.removeVideo(channelId, videoToRmv)(function (response) {
+                    if (response.success) {
+                        $("#rmvBody").text("Successfully removed video from your list.")
+                    }
+                    else {
+                        $("#rmvBody").text("Unable to remove video from your list.")
+                    }
+                    setTimeout(updateVideos, 100);
+                });
+            });
+            container.append(removeBtn);
+        }
     }
     cardBody.append(h5);
     cardBody.append(p);
     cardBody.append(date);
-    cardBody.append(video);
     if (results) {
-        let results = $("<a>", { "class": "card-link", "href": "results.html?channel=" + channelId + "&video=" + data["id"], "id": "results" + data["id"] });
-        results.text("View Recent Clip");
-        cardBody.append(results);
+        let results = $("<a>", { "class": "btn btn-primary ml-2", "href": "results.html?channel=" + channelId + "&video=" + data["id"], "id": "results" + data["id"] });
+        results.text("View Results");
+        container.append(results);
         if (data["clipped"] === true) {
             results.show();
         }
@@ -134,7 +84,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
             results.hide();
         }
     }
-    cardBody.append(form);
+    cardBody.append(container);
     card.append(cardBody);
     col.append(card);
     return col;
@@ -150,11 +100,10 @@ $(document).ready(function () {
                     let id = parseInt(searchParams.get("id"));
                     channelId = id;
                     $("#channelBtn").prop("href", "channel.html?id=" + channelId);
-                    eel.getChannel(id)(function (info) {
-                        $("#channelVideoTitle").text(info[0] + "'s Videos");
-                        channel_name = info[0];
+                    eel.getChannel(id)(function (data) {
+                        $("#channelVideoTitle").text(data["name"] + "'s Videos");
+                        channel_name = data["name"];
                         populateVideos();
-                        populateUserVideos(info[0]);
                     });
                 }
                 else {
@@ -169,9 +118,6 @@ $(document).ready(function () {
     });
     $("#channelVideoBtn").click(function () {
         $("#videoRow").slideToggle();
-    });
-    $("#userVideosBtn").click(function () {
-        $("#userVideos").slideToggle();
     });
     $("#searchVideoBtn").click(function () {
         $("#searchVideoForm").trigger("reset");

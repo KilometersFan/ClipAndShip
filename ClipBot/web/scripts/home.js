@@ -1,8 +1,8 @@
 let channels;
 function createChannelCard(channelName, channelId, channelDesc, channelImg, search=false) {
-    let col = $("<div>", { "class": "mb-2 mt-2", "id": channelId + "Div" });
+    let col = $("<div>", { "class": "mb-2 mt-2 d-flex align-self-stretch", "id": channelId + "Div" });
     if (search) {
-        col.addClass("col-sm-12 pl-0 pr-0");
+        col.addClass("col-sm-12 pl-0 pr-0 d-flex align-self-stretch");
     }
     else {
         col.addClass("col-sm-8 col-md-6 col-lg-4");
@@ -21,7 +21,7 @@ function createChannelCard(channelName, channelId, channelDesc, channelImg, sear
         settings = $("<a>", { "class": "card-link", "href": "channel.html?id=" + channelId });
         settings.text("Edit Settings");
         video = $("<a>", { "class": "card-link", "href": "video.html?id=" + channelId });
-        video.text("Clip Video");
+        video.text("Process Video");
     }
     cardBody.append(h5);
     cardBody.append(p);
@@ -39,14 +39,14 @@ function setChannels(c) {
     $("#channelsContainer").empty();
     for (let i = 0; i < channels.length; i++) {
         // Add channel cards
-        let cardCol = createChannelCard(channels[i][0], channels[i][1], channels[i][2], channels[i][3]);
+        let cardCol = createChannelCard(channels[i]["name"], channels[i]["id"], channels[i]["desc"], channels[i]["imgUrl"]);
         $("#channelsContainer").append(cardCol);
 
         // Add channels to remove form
         let formGroup = $("<div>", { "class": "form-check", "id": channels[i][1] + "RmvDiv" });
-        let rmvInput = $("<input>", { "type": "checkbox", "class": "form-check-input", "value": channels[i][1], "id": channels[i][0] + "Rmv", "name": "channelsToRmv" });
-        let rmvLabel = $("<label>", { "class": "form-check-label", "for": channels[i][0] + "Rmv" });
-        rmvLabel.text(channels[i][0]);
+        let rmvInput = $("<input>", { "type": "checkbox", "class": "form-check-input", "value": channels[i]["id"], "id": channels[i]["id"] + "Rmv", "name": "channelsToRmv" });
+        let rmvLabel = $("<label>", { "class": "form-check-label", "for": channels[i]["name"] + "Rmv" });
+        rmvLabel.text(channels[i]["name"]);
         formGroup.append(rmvInput);
         formGroup.append(rmvLabel);
         $("#rmvChannelSubmit").before(formGroup);
@@ -158,7 +158,7 @@ $(document).ready(function () {
         else {
             $(".error").hide();
             let cachedChannels = JSON.parse(sessionStorage.getItem("channels"));
-            cachedChannels.filter((channelInfo) => { return !channelsRmv.includes(channelInfo[1]) });
+            cachedChannels.filter((channelInfo) => { return !channelsRmv.includes(channelInfo["id"]) });
             sessionStorage.setItem("channels", JSON.stringify(cachedChannels));
             eel.removeChannels(channelsRmv)(function (response) {
                 if (!response) {

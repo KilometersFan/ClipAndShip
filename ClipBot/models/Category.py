@@ -1,4 +1,3 @@
-import pprint
 class Category(object):
     """Clip Category based on a set of emotes"""
     def __init__(self, type, channelId):
@@ -21,7 +20,7 @@ class Category(object):
 
     # add emote to category
     def addEmote(self, emote):
-        self._emotes.add(emote)
+        self._emotes.add(emote.lower())
     
     # reset emotes and add the ones in emotes param
     def setEmotes(self, emotes):

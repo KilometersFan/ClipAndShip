@@ -1,4 +1,5 @@
 let channelId;
+let emoteMap;
 let twitchEmotes;
 let bttvEmotes;
 let ffEmotes;
@@ -6,12 +7,13 @@ let userCategories = [];
 function hasWhiteSpace(s) {
     return /\s/g.test(s);
 }
-function populateChannelInfo(info) {
-    $("#channelImg").attr("src", info[3]);
-    $("#channelName").text(info[0]);
-    $("#channelDesc").text(info[2]);
-    channelId = info[1];
-    $("#videoBtn").prop("href", "video.html?id=" + channelId);
+function populateChannelInfo(data) {
+    $("#channelImg").attr("src", data["imgUrl"]);
+    $("#channelName").text(data["name"]);
+    $("#channelDesc").text(data["desc"]);
+    channelId = data["id"];
+    emoteMap = data["emoteMap"];
+    $("#videoBtn").attr("href", "video.html?id=" + channelId);
 }
 function createEmoteBox(imageUrl, name) {
     let div = $("<div>", { "class": "col-xs-12 col-sm-auto pt-1 pb-1 pr-1 pl-1 emoteBox" })
@@ -42,15 +44,24 @@ function createEmoteBoxInput(imageUrl, name, styleClass, otherStyleClass, idEnd,
             modalDiv.removeClass(otherStyleClass);
             modalDiv.addClass(styleClass);
         }
-        else {
+        else if (checked) {
             modalDiv.addClass(otherStyleClass);
             modalDiv.removeClass(styleClass);
         }
+        else if (!checked && !initChecked) {
+            modalDiv.removeClass(styleClass);
+            modalDiv.addClass(otherStyleClass);
+        }
+        else if (!checked) {
+            modalDiv.removeClass(otherStyleClass);
+            modalDiv.addClass(styleClass);
+        }
+        console.log(`checked: ${checked}, initChecked: ${initChecked}, class: ${modalDiv.attr("class")}`);
         input.prop("checked", !checked);
     });
     return modalDiv;
 }
-function populateEmotes(type, info) {
+function populateEmotes(type, data) {
     let row = $("#" + type);
     row.empty();
     let formContainer = $("#" + type + "Modal");
@@ -73,28 +84,30 @@ function populateEmotes(type, info) {
         //Create Emote Box from emotes
         let emoteBox = createEmoteBox(emotes[i]["imageUrl"], emotes[i]["name"]);
         row.append(emoteBox);
-        let emoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"], "emoteBox", "emoteBoxChecked", "Emote", "emotesToAdd");
+        let emoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"].toLowerCase(), "emoteBox", "emoteBoxChecked", "Emote", "emotesToAdd");
         formContainer.append(emoteBoxInput);
         for (let j = 0; j < userCategories.length; j++) {
-            if (!info[j].emotes.includes(emotes[i]["name"])) {
+            if (!data[j].emotes.includes(emotes[i]["name"])) {
                 let editModalRow = $("#" + userCategories[j] + typeUpper + "EmotesEditModal");
-                let editEmoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"], "emoteInput", "emoteBoxChecked", "EmoteEdit", "editEmotesToAdd");
+                let editEmoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"].toLowerCase(), "emoteInput", "emoteBoxChecked", "EmoteEdit", "editEmotesToAdd");
                 editModalRow.append(editEmoteBoxInput);
             }
         }
     }
     $(".loading").hide();
 }
-function populateCatgeoryEmotes(info) {
+function populateCategoryEmotes(data) {
     userCategories = [];
     let rmvSubmit = $("#rmvSubmit");
     $('#rmvCategoryForm div').remove();
-    for (let i = 0; i < info.length; i++) {
-        let type = info[i]["type"].trim().toLowerCase();
+    for (let i = 0; i < data.length; i++) {
+        let type = data[i]["type"].trim().toLowerCase();
         let div = $("<div>", { "class": "row ml-0 mr-0", "id": type + "Row" });
         div.empty();
-        let header = $("<h5>", { "id": type + "Title" });
+        let headerDiv = $("<div>", {"class": "d-flex justify-content-between align-items-center"})
+        let header = $("<h5>", { "id": type + "Title", "style": "inline-block" });
         header.text(type);
+        headerDiv.append(header);
         userCategories.push(type);
 
         let rmvDiv = $("<div>", { "class": "form-check", "id": type + "Div" });
@@ -120,22 +133,23 @@ function populateCatgeoryEmotes(info) {
         let editBtn = $("<button>", {
             "type": "button", "id": type + "EditBtn", "class": "btn action-btn mt-1 mb-1 ml-2 mr-2", "data-toggle": "modal", "data-target": "#" + type + "EditModal"
         });
-        editBtn.text("Edit");
+        editBtn.text("Edit ");
+        editBtn.append($("<i>", {"class": "fa fa-edit"}));
         editBtn.click(function () {
             editForm.trigger("reset");
         });
-        header.append(editBtn);
+        headerDiv.append(editBtn);
 
         let currentTitle = $("<h2>");
         currentTitle.text("Current Emotes");
         editFormGroup.append(currentTitle);
-        for (let j = 0; j < info[i]["emotes"].length; j++) {
+        for (let j = 0; j < data[i]["emotes"].length; j++) {
             // for normal category display
-            let name = info[i]["emotes"][j];
+            let name = data[i]["emotes"][j];
             let result;
-            let bttvRes = bttvEmotes.find(x => x.name === name);
-            let twitchRes = twitchEmotes.find(x => x.name === name);
-            let ffRes = ffEmotes.find(x => x.name === name);
+            let bttvRes = bttvEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
+            let twitchRes = twitchEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
+            let ffRes = ffEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             if (bttvRes) {
                 result = bttvRes;
             }
@@ -148,10 +162,10 @@ function populateCatgeoryEmotes(info) {
             else {
                 result = { imageUrl: "../error-placeholder.png" };
             }
-            let emoteBox = createEmoteBox(result["imageUrl"], name)
+            let emoteBox = createEmoteBox(result["imageUrl"], emoteMap[name] || name )
             div.append(emoteBox);
             // for modal category display
-            let editEmoteBox = createEmoteBoxInput(result["imageUrl"], name, "emoteBoxChecked", "emoteBoxRemove", "EditInput", type + "EmotesToRmv", true);
+            let editEmoteBox = createEmoteBoxInput(result["imageUrl"], emoteMap[name] || name, "emoteBoxChecked", "emoteBoxRemove", "EditInput", type + "EmotesToRmv", true);
             editCategoryRow.append(editEmoteBox);
         }
         editFormGroup.append(editCategoryRow);
@@ -197,30 +211,33 @@ function populateCatgeoryEmotes(info) {
         let editSubmit = $("<button>", { "type": "submit", "id": type + "EditSubmit", "class": "btn action-btn mt-1 mb-1" });
         editSubmit.text("Save Changes");
         editForm.append(editSubmit);
-
-        $("#categoriesRow").append(header);
+        $("#categoriesRow").append($("<hr>", {"style": "background-color: white; margin-top: .5rem; margin-bottom: .5rem"}));
+        $("#categoriesRow").append(headerDiv);
+        $("#categoriesRow").append($("<hr>", {"style": "background-color: white; margin-top: .5rem; margin-bottom: .5rem"}));
         $("#categoriesRow").append(div);
-        $("#categoriesRow").append($("<hr />"))
 
         editForm.submit(function (event) {
             event.preventDefault();
             emotes_remove = [];
             emotes_add = [];
             emotes_left = [];
+            let newValues = [];
             
             [...document.querySelectorAll('input[name="editEmotesToAdd"]:checked')]
                 .forEach((cb) => emotes_add.push(cb));
             [...document.querySelectorAll('input[name="' + type + 'EmotesToRmv"]:checked')]
-                .forEach((cb) => emotes_left.push(cb.value));
+                .forEach((cb) => emotes_left.push(cb.value.toLowerCase()));
             [...document.querySelectorAll('input[name="' + type + 'EmotesToRmv"]:not(:checked)')]
-                .forEach((cb) => emotes_remove.push(cb.value));
-            let otherEmotes = $("#" + type + "OtherEmotesInput").val();
-            otherEmotes = otherEmotes.split(",");
-            for (let m = 0; m < otherEmotes.length; m++) {
-                otherEmotes[m] = otherEmotes[m].trim();
+                .forEach((cb) => emotes_remove.push(cb.value.toLowerCase()));
+
+            let otherEmotes = $("#" + type + "OtherEmotesInput").val().trim();
+            if (otherEmotes) {
+                otherEmotes = otherEmotes.split(",");
+                for (let m = 0; m < otherEmotes.length; m++) {
+                    otherEmotes[m] = otherEmotes[m].trim().toLowerCase();
+                }
             }
-            let newValues = []
-            emotes_add.forEach((cb) => newValues.push(cb.value));
+            emotes_add.forEach((cb) => newValues.push(cb.value.toLowerCase()));
             for (let m = 0; m < otherEmotes.length; m++) {
                 if (!hasWhiteSpace(otherEmotes[m])) {
                     newValues.push(otherEmotes[m]);
@@ -241,9 +258,9 @@ function populateCatgeoryEmotes(info) {
         });
     }
     $("#categoryLoading").hide();
-    populateEmotes("twitchEmotes", info);
-    populateEmotes("ffEmotes", info);
-    populateEmotes("bttvEmotes", info);
+    populateEmotes("twitchEmotes", data);
+    populateEmotes("ffEmotes", data);
+    populateEmotes("bttvEmotes", data);
 
 }
 function setEmotes(emotes) {
@@ -268,7 +285,7 @@ function setEmotes(emotes) {
     else {
         $("#TwitchEmpty").hide()
     }
-    eel.getCategories(channelId)(populateCatgeoryEmotes);
+    eel.getCategories(channelId)(populateCategoryEmotes);
 }
 function populateCategories(id) {
     eel.getChannelEmotes(id)(setEmotes);
@@ -309,18 +326,25 @@ $(document).ready(function () {
             $(".error").hide();
             let emotes = [];
             let type = $("#newCategory").val();
+            console.log(document.querySelectorAll('input[name="emotesToAdd"]:checked'));
             [...document.querySelectorAll('input[name="emotesToAdd"]:checked')]
                 .forEach((cb) => emotes.push(cb.value));
             let otherEmotes = $("#addOtherEmotes").val();
-            otherEmotes = otherEmotes.split(",");
-            for (let m = 0; m < otherEmotes.length; m++) {
-                otherEmotes[m] = otherEmotes[m].trim();
-            }
-            for (let m = 0; m < otherEmotes.length; m++) {
-                if (!hasWhiteSpace(otherEmotes[m])) {
-                    emotes.push(otherEmotes[m]);
+            if (otherEmotes) {
+                otherEmotes = otherEmotes.split(",");
+                console.log(otherEmotes);
+                for (let m = 0; m < otherEmotes.length; m++) {
+                    otherEmotes[m] = otherEmotes[m].trim();
+                }
+                for (let m = 0; m < otherEmotes.length; m++) {
+                    if (!hasWhiteSpace(otherEmotes[m])) {
+                        emotes.push(otherEmotes[m]);
+                    }
                 }
             }
+            console.log(otherEmotes);
+            console.log(`{type}: `);
+            console.log(emotes);
             eel.addCategory(channelId, type, emotes)(function (response) {
                 if (!response) {
                     $('#addCategoryModal').modal('hide');
@@ -371,23 +395,80 @@ $(document).ready(function () {
     });
     $("#categoriesBtn").click(function () {
         $("#categories").slideToggle();
+        console.log($(this).children('i').eq(0));
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#twitchEmotesBtn").click(function () {
         $("#twitchEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#ffEmotesBtn").click(function () {
         $("#ffEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#bttvEmotesBtn").click(function () {
         $("#bttvEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#twitchEmotesModalBtn").click(function () {
         $("#twitchEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#ffEmotesModalBtn").click(function () {
         $("#ffEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#bttvEmotesModalBtn").click(function () {
         $("#bttvEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
 });

@@ -7,6 +7,7 @@
         border: 1px solid #201f22;
         color: white;
         font-weight: bold;
+        flex-grow: 1;
     }
 
     .emoteBoxChecked {
@@ -32,19 +33,19 @@
     }
 </style>
 {% endblock %}
-{% block navitems %}
-<li>
-    <a class="nav-link" id="videoBtn">Channel Videos <span class="sr-only">(current)</span></a>
-</li>
-{% endblock %}
 {% block content %}
 <img id="channelImg" class="rounded mx-auto d-block" alt="Channel Picture">
-<h1 id="channelName"></h1>
+<div class="d-flex justify-content-between align-items-center">
+    <h1 id="channelName" class="mr-2" style="display: inline-block"></h1>
+    <a class="btn btn-primary" id="videoBtn">Channel Videos</a>
+</div>
 <p id="channelDesc" class="mb-3 mt-3"></p>
-<h3>Your Categories</h3>
-<button id="categoriesBtn" class="btn toggle-btn mt-1 mb-1">Toggle View</button>
-<button id="addCategoryBtn" class="btn action-btn mt-1 mb-1" data-toggle="modal" data-target="#addCategoryModal">Add</button>
-<button id="rmvCategoryBtn" class="btn delete-btn mt-1 mb-1" data-toggle="modal" data-target="#rmvCategoryModal">Remove</button>
+<div class="d-flex justify-content-start align-items-center">
+    <h2 style="display: inline-block" class="p-2 mr-auto">Your Categories</h2>
+    <button id="categoriesBtn" class="btn toggle-btn mt-1 mb-1 mr-2 p-2">Show <i class="fa fa-toggle-on"></i></button>
+    <button id="addCategoryBtn" class="btn action-btn mt-1 mb-1 mr-2 p-2" data-toggle="modal" data-target="#addCategoryModal">New <i class="fa fa-plus"></i></button>
+    <button id="rmvCategoryBtn" class="btn delete-btn mt-1 mb-1 mr-2 p-2" data-toggle="modal" data-target="#rmvCategoryModal">Delete <i class="fa fa-trash"></i></button>
+</div>
 <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -63,15 +64,15 @@
                             <p>Add global twitch emotes, or other 1 word phrases, in a comma separated list. Text with spaces will not be added.</p>
                             <input type="text" id="addOtherEmotes" name="addOtherEmotes" placeholder="Kappa, LUL, PogChamp", class="form-control"/>
                             <h3 class="mt-2 mb-2">Twitch Emotes</h3>
-                            <button type="button" id="twitchEmotesModalBtn" class="btn btn-info mt-1 mb-1">Toggle View</button>
+                            <button type="button" id="twitchEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
                             <div class="row" id="twitchEmotesModal">
                             </div>
                             <h3 class="mt-2 mb-2">FrankerFaceZ Emotes</h3>
-                            <button type="button" id="ffEmotesModalBtn" class="btn btn-info mt-1 mb-1">Toggle View</button>
+                            <button type="button" id="ffEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
                             <div class="row" id="ffEmotesModal">
                             </div>
                             <h3 class="mt-2 mb-2">Better TTV Emotes</h3>
-                            <button type="button" id="bttvEmotesModalBtn" class="btn btn-info mt-1 mb-1">Toggle View</button>
+                            <button type="button" id="bttvEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
                             <div class="row" id="bttvEmotesModal">
                             </div>
                         </div>
@@ -111,9 +112,13 @@
 
     </div>
 </div>
-<h3>Channel Emotes</h3>
-<h5>Twitch Emotes</h5>
-<button type="button" id="twitchEmotesBtn" class="btn toggle-btn mt-1 mb-1">Toggle View</button>
+<h3 class="mt-4">Channel Emotes</h3>
+<hr style="background-color: white"/>
+<div class="d-flex justify-content-between align-items-center">
+    <h5 style="display: inline-block">Twitch Emotes</h5>
+    <button type="button" id="twitchEmotesBtn" class="btn toggle-btn mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+</div>
+<hr style="background-color: white"/>
 <div class="text-center loading col-12">
     <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
         <span class="sr-only">Loading...</span>
@@ -122,8 +127,12 @@
 <div class="row ml-0 mr-0" id="twitchEmotes">
     <p id="TwitchEmpty" style="display:none">Unable to find Twitch Emotes</p>
 </div>
-<h5>FrankerFaceZ Emotes</h5>
-<button type="button" id="ffEmotesBtn" class="btn toggle-btn mt-1 mb-1">Toggle View</button>
+<hr style="background-color: white"/>
+<div class="d-flex justify-content-between align-items-center">
+    <h5 style="display: inline-block">FrankerFaceZ Emotes</h5>
+    <button type="button" id="ffEmotesBtn" class="btn toggle-btn mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+</div>
+<hr style="background-color: white"/>
 <div class="text-center loading col-12">
     <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
         <span class="sr-only">Loading...</span>
@@ -132,8 +141,12 @@
 <div class="row ml-0 mr-0" id="ffEmotes">
     <p id="FFEmpty" style="display:none">Unable to find FFZ Emotes</p>
 </div>
-<h5>Better TTV Emotes</h5>
-<button type="button" id="bttvEmotesBtn" class="btn toggle-btn mt-1 mb-1">Toggle View</button>
+<hr style="background-color: white"/>
+<div class="d-flex justify-content-between align-items-center">
+    <h5 style="display: inline-block">Better TTV Emotes</h5>
+    <button type="button" id="bttvEmotesBtn" class="btn toggle-btn mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+</div>
+<hr style="background-color: white"/>
 <div class="text-center loading col-12">
     <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
         <span class="sr-only">Loading...</span>

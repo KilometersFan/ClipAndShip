@@ -2,19 +2,25 @@ import eel
 import os
 import shutil
 import configparser
-from requests.exceptions import HTTPError
 import traceback
-import models.ClipBot as ClipBot
-import models.Channel as Channel
+import json
 import threading
+import multiprocessing
+import base64
+import pandas as pd
+import plotly.express as px
+import eel.chrome, eel.edge
+from models.ClipBot import ClipBot
+from models.Channel import Channel
 
 bot = None
 videoThreads = {}
+notification = False
 
 @eel.expose
 def initClipBot():
 	global bot
-	bot = ClipBot.ClipBot()
+	bot = ClipBot()
 	bot.setupConfig()
 	bot.setupChannels()
 
@@ -58,7 +64,7 @@ def addChannel(id):
 		if bot.getChannel(int(id)):
 			print("Channel already exists.")
 			raise Exception("Channel already exists.")
-		newChannel = Channel.Channel(int(id), bot.getHelix(), bot)
+		newChannel = Channel(int(id), bot.getHelix(), bot)
 		bot.addChannel(newChannel)
 		cfg.add_section(id)
 		with open("config/channels.ini", "w") as configFile:
@@ -161,13 +167,11 @@ def deleteCategory(id, types):
 		return e.args
 
 @eel.expose
-def getCategories(channel):
+def getCategories(channel_id):
 	global bot
-	channel = bot.getChannel(channel, False)
+	channel = bot.getChannel(channel_id, False)
 	categories = channel.getCategories()
-	result = []
-	for category in categories:
-		result.append({"type" :category.getType(), "emotes" : category.getEmotes(True)})
+	result = [{"type": category.getType(), "emotes": category.getEmotes(True)} for category in categories]
 	return result
 
 @eel.expose
@@ -182,25 +186,41 @@ def getVideos(channel_id, videos = None):
 	return channel.getVideos(videos)
 
 @eel.expose
-def getUserVideos(channel_name):
-	channel_name.strip()
-	try:
-		if os.path.exists("data/channels/" + channel_name):
-			video_ids =[ int(f.name) for f in os.scandir("data/channels/" + channel_name) if f.is_dir() ]
-			return video_ids
-		else:
-			print("Channel folder not found")
+def getUserVideos(channel_id=None):
+	if channel_id:
+		try:
+			print(f"data/channels/{channel_id}")
+			if os.path.exists(f"data/channels/{channel_id}"):
+				video_ids =[ int(f.name) for f in os.scandir(f"data/channels/{channel_id}") if f.is_dir() ]
+				print(video_ids)
+				return video_ids
+			else:
+				print("Channel folder not found")
+				return []
+		except Exception as e:
+			print(e.args)
 			return []
-	except Exception as e:
-		print(e.args)
-		return []
+	else:
+		try:
+			if os.path.exists("data/channels/"):
+				channel_ids =[ f.name for f in os.scandir("data/channels/") if f.is_dir() ]
+				response = {}
+				for channel_id in channel_ids:
+					response[channel_id] = [ int(f.name) for f in os.scandir(f"data/channels/{channel_id}") if f.is_dir() ]
+				return response
+			else:
+				print("Channel folder not found")
+				return []
+		except Exception as e:
+			print(e.args)
+			return []
 		
 @eel.expose
-def removeVideo(channel_name, video_id):
+def removeVideo(channel_id, video_id):
 	video_id.strip()
 	try:
-		if os.path.exists("data/channels/" + channel_name + "/" + video_id):
-			shutil.rmtree("data/channels/" + channel_name + "/" + video_id)
+		if os.path.exists(f"data/channels/{channel_id}/{video_id}"):
+			shutil.rmtree(f"data/channels/{channel_id}/{video_id}")
 			return {"success" : "Video was successfully deleted"}
 		else:
 			print("Video file not found")
@@ -211,14 +231,16 @@ def removeVideo(channel_name, video_id):
 
 @eel.expose
 def clipVideo(channel_id, id=None):
-	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id,id,), daemon=True)
-	videoThreads[id] = videoThread
+	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id, id), daemon=True)
 	videoThread.start()
 
 def clipVideoHelper(channel_id, id=None):
-	global bot
-	response = bot.clipVideo(channel_id, id)
-	eel.videoHandler(response)
+	bot.clipVideo(channel_id, id)
+	print("###########################")
+	global notification
+	notification = True
+	eel.videoHandler(notification)
+
 
 @eel.expose
 def getVideoResults(channel_id, video_id):
@@ -226,26 +248,20 @@ def getVideoResults(channel_id, video_id):
 		return {"error" : "Unable to process request"}
 	global bot
 	channel = bot.getChannel(channel_id, False)
-	if not os.path.exists(channel._pathName + "/" + video_id):
+	if not os.path.exists(f"{channel._pathName}/{video_id}"):
 		return {"error" : "Video was not processed"}
 	results = {}
 	for category in channel.getCategories():
-		entries = []
 		try:
-			if(os.path.exists(channel._pathName + "/" + video_id + "/" + category.getType() + "/timestamps.txt")):
-				with open(channel._pathName + "/" + video_id + "/" + category.getType() + "/timestamps.txt") as ifile:
-					timestamps = ifile.readlines()
-					for timestamp in timestamps:
-						start,end = timestamp.strip().split("-")
-						entry = {"start": start, "end": end}
-						entries.append(entry)
-					results[category.getType()] = entries
+			if(os.path.exists(f"{channel._pathName}/{video_id}/data.json")):
+				with open(f"{channel._pathName}/{video_id}/data.json") as ifile:
+					results = json.load(ifile)
 			else:
 				results[category.getType()] = {}
 		except Exception as e:
 			print(e.args)
 			print("Exception!")
-			return {"error" : "Unable to read file"}
+			return {"error": "Unable to read file"}
 	return results
 
 @eel.expose
@@ -254,32 +270,52 @@ def getProcessingVideos():
 	return bot.getProcessingVideos()
 
 @eel.expose
-def cancelVideo(channel_id, video_id):
-	global bot
-	try:
-		bot.cancelVideo(channel_id, video_id)
-		return {"status": 200}
-	except Exception as e:
-		print("Unable to cancel video")
-		print(e.args)
-		return {"status": 400}
+def csvExport(video_id, data):
+	print(data)
+	with open(f"web/exported/{video_id}_groups.csv", "w") as ofile:
+		for group in data:
+			line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
+			print(line)
+			ofile.write(line)
+	return {"status": 200}
+
+@eel.expose
+def getGraph(graph_data):
+	df = pd.DataFrame(graph_data, columns=["category", "time", "instances"])
+	fig = px.scatter(df, x="time", y="instances", color="category",
+					 labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
+					 width=450, height=350)
+	fig.update_layout(
+		margin=dict(l=0,r=0,t=0,b=0)
+	)
+	img_bytes = fig.to_image(format="png")
+	return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
+
+@eel.expose
+def resetNotificationCount():
+	global notification
+	notification = False
+	eel.videoHandler(notification)
 
 def get_preferred_mode():
-    import eel.chrome
-    import eel.edge
+	if eel.chrome.find_path():
+		return 'chrome'
+	if eel.edge.find_path():
+		return 'edge'
 
-    if eel.chrome.find_path():
-        return 'chrome'
-    if eel.edge.find_path():
-        return 'edge'
-
-    return 'default'
+	return 'default'
 
 if __name__ == "__main__":
-	eel.init("web")
+	multiprocessing.freeze_support()
+	eel.init("web", allowed_extensions=[".js", ".html"])
 	try:
 		eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
-	except (SystemExit, MemoryError, KeyboardInterrupt) as e:
+	except SystemExit as e:
+		print(e.code, e.args)
 		pass
-
-			 
+	except MemoryError as e:
+		print(e.args)
+		pass
+	except KeyboardInterrupt as e:
+		print(e.args)
+		pass

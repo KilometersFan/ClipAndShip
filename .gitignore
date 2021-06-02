@@ -341,7 +341,13 @@ healthchecksdb
 
 data/
 data/channels/
-config/
+web/exported/
+*png
+twitch-app/
+.DS_Store
+web/exported/*
+ClipBot/config/
 dist/
 build/
+twitch/
 TwitchAnalyzer.spec
