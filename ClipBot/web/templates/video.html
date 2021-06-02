@@ -7,13 +7,11 @@
     }
 </style>
 {% endblock %}
-{% block navitems %}
-<li>
-    <a class="nav-link" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
-</li>
-{% endblock %}
 {% block content %}
-<h1 id="channelVideoTitle"></h1>
+<div class="d-flex justify-content-between align-items-center">
+    <h1 id="channelVideoTitle" class="mr-2" style="display: inline-block"></h1>
+    <a class="btn btn-primary" id="channelBtn">Channel Settings</a>
+</div>
 <div class="modal fade" tabindex="-1" role="dialog" id="videoMessageModal" aria-labelledby="videoMessageModalLabel" aria-hidden="true" ">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

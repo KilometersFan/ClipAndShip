@@ -5,14 +5,6 @@
         white-space: pre
     }
 </style>
-{% block navitems %}
-    <li>
-        <a class="nav-link" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
-    </li>
-    <li>
-        <a class="nav-link" id="videoBtn">Channel Videos <span class="sr-only">(current)</span></a>
-    </li>
-{% endblock %}
 {% block content %}
 <h1 id="channelVideoTitle"></h1>
 <div class="row" id="notifications"></div>
@@ -22,7 +14,11 @@
             <span class="sr-only">Loading...</span>
         </div>
     </div>
-    <div id="resultsRow" class="col-sm-12 ">
+    <div id="resultsRow" class="col-sm-12">
+        <div class="d-flex flex-row justify-content-start">
+            <a class="btn btn-primary mr-2" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
+            <a class="btn btn-primary" id="videoBtn">Channel Videos</a>
+        </div>
         <iframe id="vod"
                 height="700"
                 frameborder="0"

@@ -13,7 +13,7 @@ function populateChannelInfo(data) {
     $("#channelDesc").text(data["desc"]);
     channelId = data["id"];
     emoteMap = data["emoteMap"];
-    $("#videoBtn").prop("href", "video.html?id=" + channelId);
+    $("#videoBtn").attr("href", "video.html?id=" + channelId);
 }
 function createEmoteBox(imageUrl, name) {
     let div = $("<div>", { "class": "col-xs-12 col-sm-auto pt-1 pb-1 pr-1 pl-1 emoteBox" })
@@ -79,7 +79,6 @@ function populateEmotes(type, data) {
     else if (type === "twitchEmotes") {
         emotes = twitchEmotes;
         typeUpper = "Twitch";
-        console.log(twitchEmotes);
     }
     for (let i = 0; i < emotes.length; i++) {
         //Create Emote Box from emotes
@@ -98,7 +97,6 @@ function populateEmotes(type, data) {
     $(".loading").hide();
 }
 function populateCategoryEmotes(data) {
-    console.log(data);
     userCategories = [];
     let rmvSubmit = $("#rmvSubmit");
     $('#rmvCategoryForm div').remove();
@@ -106,8 +104,10 @@ function populateCategoryEmotes(data) {
         let type = data[i]["type"].trim().toLowerCase();
         let div = $("<div>", { "class": "row ml-0 mr-0", "id": type + "Row" });
         div.empty();
-        let header = $("<h5>", { "id": type + "Title" });
+        let headerDiv = $("<div>", {"class": "d-flex justify-content-between align-items-center"})
+        let header = $("<h5>", { "id": type + "Title", "style": "inline-block" });
         header.text(type);
+        headerDiv.append(header);
         userCategories.push(type);
 
         let rmvDiv = $("<div>", { "class": "form-check", "id": type + "Div" });
@@ -133,11 +133,11 @@ function populateCategoryEmotes(data) {
         let editBtn = $("<button>", {
             "type": "button", "id": type + "EditBtn", "class": "btn action-btn mt-1 mb-1 ml-2 mr-2", "data-toggle": "modal", "data-target": "#" + type + "EditModal"
         });
-        editBtn.text("Edit");
+        editBtn.append($("<i>", {"class": "fa fa-edit"}));
         editBtn.click(function () {
             editForm.trigger("reset");
         });
-        header.append(editBtn);
+        headerDiv.append(editBtn);
 
         let currentTitle = $("<h2>");
         currentTitle.text("Current Emotes");
@@ -210,10 +210,10 @@ function populateCategoryEmotes(data) {
         let editSubmit = $("<button>", { "type": "submit", "id": type + "EditSubmit", "class": "btn action-btn mt-1 mb-1" });
         editSubmit.text("Save Changes");
         editForm.append(editSubmit);
-
-        $("#categoriesRow").append(header);
+        $("#categoriesRow").append($("<hr>", {"style": "background-color: white; margin-top: .5rem; margin-bottom: .5rem"}));
+        $("#categoriesRow").append(headerDiv);
+        $("#categoriesRow").append($("<hr>", {"style": "background-color: white; margin-top: .5rem; margin-bottom: .5rem"}));
         $("#categoriesRow").append(div);
-        $("#categoriesRow").append($("<hr />"))
 
         editForm.submit(function (event) {
             event.preventDefault();
@@ -394,23 +394,80 @@ $(document).ready(function () {
     });
     $("#categoriesBtn").click(function () {
         $("#categories").slideToggle();
+        console.log($(this).children('i').eq(0));
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#twitchEmotesBtn").click(function () {
         $("#twitchEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#ffEmotesBtn").click(function () {
         $("#ffEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#bttvEmotesBtn").click(function () {
         $("#bttvEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#twitchEmotesModalBtn").click(function () {
         $("#twitchEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#ffEmotesModalBtn").click(function () {
         $("#ffEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
     $("#bttvEmotesModalBtn").click(function () {
         $("#bttvEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
     });
 });
