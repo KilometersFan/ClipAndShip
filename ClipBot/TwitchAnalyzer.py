@@ -5,6 +5,11 @@ import configparser
 import traceback
 import json
 import threading
+import multiprocessing
+import base64
+import pandas as pd
+import plotly.express as px
+import eel.chrome, eel.edge
 from models.ClipBot import ClipBot
 from models.Channel import Channel
 
@@ -227,8 +232,6 @@ def removeVideo(channel_id, video_id):
 def clipVideo(channel_id, id=None):
 	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id, id), daemon=True)
 	videoThread.start()
-	# videoThread.join()
-	# clipVideoHelper(channel_id, id)
 
 def clipVideoHelper(channel_id, id=None):
 	bot.clipVideo(channel_id, id)
@@ -271,9 +274,20 @@ def csvExport(video_id, data):
 			ofile.write(line)
 	return {"status": 200}
 
-def get_preferred_mode():
-	import eel.chrome, eel.edge
+@eel.expose
+def getGraph(graph_data):
+	df = pd.DataFrame(graph_data, columns=["category", "time", "instances"])
+	fig = px.scatter(df, x="time", y="instances", color="category",
+					 labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
+					 width=450, height=350)
+	fig.update_layout(
+		margin=dict(l=0,r=0,t=0,b=0)
+	)
+	img_bytes = fig.to_image(format="png")
+	return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
 
+
+def get_preferred_mode():
 	if eel.chrome.find_path():
 		return 'chrome'
 	if eel.edge.find_path():
@@ -282,15 +296,16 @@ def get_preferred_mode():
 	return 'default'
 
 if __name__ == "__main__":
+	multiprocessing.freeze_support()
 	eel.init("web", allowed_extensions=[".js", ".html"])
 	try:
 		eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
 	except SystemExit as e:
-		print(e.code, e.args())
+		print(e.code, e.args)
 		pass
 	except MemoryError as e:
-		print(e.message())
+		print(e.args)
 		pass
 	except KeyboardInterrupt as e:
-		print(e.message())
+		print(e.args)
 		pass

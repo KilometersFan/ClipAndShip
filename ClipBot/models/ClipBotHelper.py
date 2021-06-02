@@ -2,10 +2,7 @@ import os
 import re
 import sys
 import time
-import base64
-import pandas as pd
 import requests.exceptions
-import matplotlib.pyplot as plt
 from pprint import pprint
 from json import dump
 from datetime import datetime
@@ -24,7 +21,7 @@ class ClipBotHelper(object):
         self._endTime = None
         self._processingGroup = False
 
-    def preprocessComments(self, comments):
+    def processComments(self, comments):
         processedComments = []
         totalComments = 0
         totalCommentDiff = 0
@@ -35,7 +32,6 @@ class ClipBotHelper(object):
         print(f"Beginning preprocessing of comments at {datetime.now()}")
         print("=================================================================")
         for comment in comments:
-            # pprint(comment)
             commentText = comment.message.body.lower()
             splitComment = commentText.split()
             emotesInComment = channelEmotes.intersection(set(splitComment))
@@ -65,8 +61,9 @@ class ClipBotHelper(object):
         print(f"Finished preprocessing of comments at {datetime.now()}. Took {end - start} seconds")
         return processedComments, rate
 
+
     # go through video and broadcast messages to each category thread
-    def main(self, response, videoId=None):
+    def processVideo(self, response, videoId=None):
         oauthWorks = False
         categories = [category.getType() for category in self._channel.getCategories()]
         while not oauthWorks:
@@ -85,9 +82,8 @@ class ClipBotHelper(object):
                         video = v
                         comments = c
                 print("Grabbed video and comments")
-                # Get processed comments
-                processedComments, rate = self.preprocessComments(comments)
-                print(f"Rate = {rate}")
+                # pprint(data)
+                processedComments, rate = self.processComments(comments)
                 groups = []
                 group = {}
                 prevCommentEnd = None
@@ -95,16 +91,14 @@ class ClipBotHelper(object):
                 print(f"Starting clip process for video {videoId} at {datetime.now()}")
                 start = time.time()
                 print(f"Total processed comments {len(processedComments)}")
-                # Get groups from processed comments
+                # # Get groups from processed comments
                 for comment in processedComments:
-                    # if self._processingGroup and prevCommentEnd:
-                    #     print(f"Diff between comments = {(comment['created'] - prevCommentEnd).total_seconds()} vs rate={rate}")
                     if self._processingGroup and prevCommentEnd and ((comment["created"] - prevCommentEnd) > 2 * rate):
                         self._endTime = prevCommentEnd
                         # print(f"End - start time = {(self._endTime - self._startTime).total_seconds()}")
                         if (self._endTime - self._startTime) > 0:
-                            group["start"] = self._startTime - (self._endTime - self._startTime)/2
-                            group["end"] = self._endTime - (self._endTime - self._startTime)/2
+                            group["start"] = self._startTime - (self._endTime/self._startTime)/2
+                            group["end"] = self._endTime - (self._endTime/self._startTime)/4
                             group["emoteRate"] = group["totalFrequency"]/(group["end"] - group["start"])
                             groups.append(group.copy())
                         # print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
@@ -114,7 +108,7 @@ class ClipBotHelper(object):
                         self._startTime = comment["created"]
                         self._processingGroup = True
                         prevCommentEnd = self._startTime
-                        group["emoteSet"] = comment["emoteSet"]
+                        group["emoteSet"] = set(comment["emoteSet"])
                         group["emoteFrequency"] = {}
                         group["totalFrequency"] = 0
                         for emote in comment["emoteSet"]:
@@ -126,8 +120,8 @@ class ClipBotHelper(object):
                         group["totalComments"] = 0
                         group["comments"] = [comment["emoteFrequency"]]
                     else:
-                        if comment["created"] - self._startTime not in group["graph_x"]:
-                            group["emoteSet"] = group["emoteSet"].union(comment["emoteSet"])
+                        if (comment["created"] - self._startTime) not in group["graph_x"]:
+                            group["emoteSet"] = group["emoteSet"].union(set(comment["emoteSet"]))
                             for emote in comment["emoteSet"]:
                                 if emote in group["emoteFrequency"]:
                                     group["emoteFrequency"][emote] += comment["emoteFrequency"][emote]
@@ -144,8 +138,9 @@ class ClipBotHelper(object):
                 avgEmotesPerGroup = sum(group["totalFrequency"] for group in groups)/totalGroups
                 avgLengthPerGroup = sum((group["end"] - group["start"]) for group in groups) / totalGroups
                 filteredGroups = list(filter(lambda group:
-                                             group["totalFrequency"] > avgEmotesPerGroup
-                                             and (group["end"] - group["start"]) > avgLengthPerGroup,
+                                             group["totalFrequency"] > 1.5 * avgEmotesPerGroup
+                                             and (group["end"] - group["start"]) > 1.5 * avgLengthPerGroup
+                                             and group["emoteRate"] > 1.5 * avgEmotesPerGroup/avgLengthPerGroup,
                                              groups))
                 print(f"Total number of groups found after first filter = {len(filteredGroups)}")
                 end = time.time()
@@ -185,7 +180,7 @@ class ClipBotHelper(object):
                         if sum(group["graph_y"][category]) == 0:
                             group["graph_y"].pop(category)
                             group["graph_data"].pop(category)
-                        elif sum(group["graph_y"][category])/group["totalFrequency"] < .25:
+                        elif sum(group["graph_y"][category])/group["totalFrequency"] < .33:
                             group["similarities"].pop(category)
                             group["graph_y"].pop(category)
                             group["graph_data"].pop(category)
@@ -208,28 +203,6 @@ class ClipBotHelper(object):
                                              len(group["similarities"]) > 0,
                                              filteredGroups))
                 print(f"Total number of groups found after second filter = {len(filteredGroups)}")
-                for group in filteredGroups:
-                    df = pd.DataFrame(group["graph_data"], columns=["category", "time", "instances"])
-                    dfGroups = df.groupby(['category'])
-                    fig, ax = plt.subplots()
-                    fig.set_figwidth(4)
-                    fig.set_figheight(3)
-                    ax.set_ylabel("emote instances per category")
-                    ax.set_xlabel('time')
-                    max = 1
-                    for name, dfGroup in dfGroups:
-                        if dfGroup.instances.max() > max:
-                            max = dfGroup.instances.max()
-                            ax.set_ylim([0, max + 1])
-
-                        ax.plot(dfGroup.time, dfGroup.instances, marker='o', linestyle='', ms=7, label=name)
-                    ax.legend()
-                    fig.savefig("graph.png", bbox_inches="tight")
-                    with open("graph.png", mode="rb") as file:
-                        img = file.read()
-                        group["img"] = base64.encodebytes(img).decode("utf-8").replace("\n", "")
-                    group.pop("graph_data")
-                    plt.close()
                 end = time.time()
                 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
                 print(f"Finished assigning categories to processed groups at {datetime.now()}. Process took {end - start} seconds")
@@ -250,13 +223,11 @@ class ClipBotHelper(object):
                     os.makedirs(f"{self._pathName}/{videoId}")
                 with open(f"{self._pathName}/{videoId}/data.json", "w+") as ofile:
                     dump(data, ofile, separators=(",", ":"), indent=4)
-
                 response["status"] = 200
                 response["msg"] = "Successfully clipped the video: " + video.title + " recorded on " + video.created_at[:10]
                 response["id"] = video.id
                 response["channelId"] = self._channel.getId()
                 response["data"] = data
-                response["data"] = processedComments
             except requests.exceptions.HTTPError as http_err:
                 statusCode = http_err.response.status_code
                 if statusCode == 401:

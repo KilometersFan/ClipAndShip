@@ -206,7 +206,9 @@ function populateTable (defaultFilteredResults=null) {
             $(this).css("background-color", "#33b1ff");
             selectedRow = $(this);
             clearSelectedRowColor();
-            $("#groupChart").attr("src", `data:image/png;base64, ${group["img"]}`)
+            eel.getGraph(group["graph_data"])(function (graph) {
+                $("#groupChart").attr("src", `data:image/png;base64, ${graph}`)
+            });
         })
         let groupId = $("<th>", {"scope": "row"});
         groupId.text(i);

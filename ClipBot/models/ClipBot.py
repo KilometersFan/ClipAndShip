@@ -1,6 +1,5 @@
 from pprint import pprint
 import eel
-import threading
 import configparser
 import twitch
 import requests
@@ -20,6 +19,7 @@ class ClipBot ():
         self.hasChannels = False
         self._channelInfo = {}
         self._processing = {}
+        self._commentProcessing = {}
         self._helpers = {}
         self._accessToken = None
     
@@ -179,24 +179,18 @@ class ClipBot ():
             else:
                 self._helpers[channel_id][id] = helper
             print("Added", id, "to set of videos owned by", channel_id)
-            # videoThread = threading.Thread(target=self.clipVideoHelper, args=(channel_id, id, helper))
-            # videoThread.start()
-            # videoThread.join()
-            self.clipVideoHelper(channel_id, id, helper)
+            manager = Manager()
+            response = manager.dict()
+            p = Process(target=helper.processVideo, args=(response, id))
+            p.start()
+            p.join()
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&")
+            eel.videoHandler(dict(response))
+            self._processing[channel_id].remove(id)
+            print("Sent video notification to front end")
         else:
             print("Helix creation failed")
             self.setupConfig()
-
-    def clipVideoHelper(self, channel_id, id, helper):
-        manager = Manager()
-        response = manager.dict()
-        p = Process(target=helper.main, args=(response, id))
-        p.start()
-        p.join()
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&")
-        eel.videoHandler(dict(response))
-        self._processing[channel_id].remove(id)
-        print("sent to front end")
 
     # return all videos that are currently processing
     def getProcessingVideos(self):

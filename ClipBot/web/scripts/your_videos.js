@@ -16,15 +16,15 @@ function createVideoCard(data, processing=true, channelId=null) {
     let btn;
     if (!processing) {
         btn = $("<button>", {
-            "class": "btn action-btn", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
+            "class": "btn action-btn mx-0", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
-        btn.text("Clip Video");
+        btn.text("Process Video");
         btn.click(async function () {
             eel.clipVideo(parseInt(channelId), parseInt(data["id"]));
-            setTimeout(updateVideos, 100);
+            setTimeout(updateVideos, 200);
         });
         let removeBtn = $("<button>", {
-            "class": "btn delete-btn mr-2 ml-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
+            "class": "btn delete-btn mr-2", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
         });
         removeBtn.text("Remove Video");
         removeBtn.click(function () {
@@ -50,7 +50,7 @@ function createVideoCard(data, processing=true, channelId=null) {
     cardBody.append(video);
     if (!processing) {
         let results = $("<a>", { "class": "card-link", "href": "results.html?channel=" + channelId + "&video=" + parseInt(data["id"]), "id": "results" + data["id"] });
-        results.text("View Recent Clip");
+        results.text("View Results");
         cardBody.append(results);
     }
     card.append(cardBody);
@@ -114,7 +114,6 @@ $(document).ready(function () {
             if (valid == true) {
                 invalid = false;
                 eel.getProcessingVideos()(function (data) {
-                    console.log(data);
                     populateProcessingVideos(data);
                 });
                 eel.getUserVideos()(function (data) {

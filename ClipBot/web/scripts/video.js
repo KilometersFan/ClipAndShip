@@ -61,7 +61,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
         let clipBtn = $("<button>", {
             "class": "btn action-btn", "type": "submit", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
-        clipBtn.text("Clip Video");
+        clipBtn.text("Process Video");
         if (search) {
             clipBtn.click(function () {
                 $("#searchModal").modal('hide');
@@ -98,7 +98,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
     cardBody.append(video);
     if (results) {
         let results = $("<a>", { "class": "card-link", "href": "results.html?channel=" + channelId + "&video=" + data["id"], "id": "results" + data["id"] });
-        results.text("View Recent Clip");
+        results.text("View Results");
         cardBody.append(results);
         if (data["clipped"] === true) {
             results.show();
