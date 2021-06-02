@@ -341,11 +341,11 @@ healthchecksdb
 
 data/
 data/channels/
-exported/
+web/exported/
 *png
 twitch-app/
 .DS_Store
-exported/*
+web/exported/*
 ClipBot/config/
 dist/
 build/
