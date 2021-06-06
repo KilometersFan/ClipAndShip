@@ -4,6 +4,7 @@ import shutil
 import configparser
 import traceback
 import json
+import time
 import threading
 import multiprocessing
 import base64
@@ -98,9 +99,9 @@ def getChannels():
 	return bot.getChannels()
 
 @eel.expose
-def getChannel(id):
+def getChannel(id, info=True):
 	global bot
-	return bot.getChannel(id)
+	return bot.getChannel(id, info)
 
 @eel.expose
 def getChannelEmotes(id):
@@ -136,11 +137,13 @@ def editCategory(id, type, emotes_add, emotes_left):
 		type = type.lower()
 		global bot
 		channel = bot.getChannel(id, False)
-		print("Emotes to Add", emotes_add)
-		print("Emotes Left to set", emotes_left)
-		channel.rmvEmotesFromCategory(type, emotes_left)
-		channel.addEmotesToCategory(type, emotes_add)
-		cfg.set(str(id), type, ",".join(emotes_add + emotes_left))
+		emotesToAdd = set(emotes_add)
+		emotesLeft = set(emotes_left)
+		print("Emotes to Add", emotesToAdd)
+		print("Emotes Left to set", emotesLeft)
+		channel.rmvEmotesFromCategory(type, set(emotes_left))
+		channel.addEmotesToCategory(type, set(emotes_add))
+		cfg.set(str(id), type, ",".join(list(emotesToAdd.union(emotesLeft))))
 		with open("config/channels.ini", "w") as configFile:
 			cfg.write(configFile)
 		return ""
@@ -253,7 +256,7 @@ def getVideoResults(channel_id, video_id):
 	results = {}
 	for category in channel.getCategories():
 		try:
-			if(os.path.exists(f"{channel._pathName}/{video_id}/data.json")):
+			if os.path.exists(f"{channel._pathName}/{video_id}/data.json") :
 				with open(f"{channel._pathName}/{video_id}/data.json") as ifile:
 					results = json.load(ifile)
 			else:
@@ -296,6 +299,53 @@ def resetNotificationCount():
 	global notification
 	notification = False
 	eel.videoHandler(notification)
+
+@eel.expose
+def getRecommendedEmotes(channel_id, category_type, isList=False):
+	if os.path.exists(f"data/channels/{channel_id}/recommendation_data.json"):
+		with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
+			channel = getChannel(channel_id, False)
+			category = category_type if isList else channel.getCategory(category_type)
+			chain = json.load(ifile)
+			emotesInCategory = set(category_type) if isList else category.getEmotes(True)
+			top5Emotes = set()
+			chainIndices = {emote: 0 for emote in emotesInCategory}
+			emoteFullyChecked = {emote: False for emote in emotesInCategory}
+			done = False
+			start = time.time()
+			print(f"Beginning process of generating recommended emotes at {start}")
+			for emote in emotesInCategory:
+				chain[emote] = [(k,v/float(chain["totalEmotes"])) for k,v in sorted(chain[emote].items(), key=lambda item: item[1]/chain["totalEmotes"], reverse=True)]
+			while len(top5Emotes) < 5 and not done:
+				candidateEmote = None
+				candidatePercentage = 0
+				parentEmote = None
+				for emote in emotesInCategory:
+					if all(isChecked == True for isChecked in emoteFullyChecked.values()):
+						done = True
+						break
+					while chain[emote][chainIndices[emote]][0] in top5Emotes and chainIndices[emote] < len(chain[emote]):
+						chainIndices[emote] += 1
+					if chainIndices[emote] >= len(chain[emote]):
+						emoteFullyChecked[emote] = True
+						continue
+					while chain[emote][chainIndices[emote]][0] in emotesInCategory:
+						chainIndices[emote] += 1
+					if chain[emote][chainIndices[emote]][1] > candidatePercentage \
+						and chain[emote][chainIndices[emote]][0] not in top5Emotes:
+						candidatePercentage = chain[emote][chainIndices[emote]][1]
+						candidateEmote = chain[emote][chainIndices[emote]][0]
+						parentEmote = emote
+				if parentEmote is not None:
+					chainIndices[parentEmote] += 1
+				if candidateEmote is not None:
+					top5Emotes.add(candidateEmote)
+			end = time.time()
+			print(f"Finished process of generating recommended emotes at {end}. Process took {end - start}s")
+			print(top5Emotes)
+			return list(top5Emotes)
+	else:
+		return []
 
 def get_preferred_mode():
 	if eel.chrome.find_path():

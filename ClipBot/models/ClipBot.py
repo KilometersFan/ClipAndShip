@@ -1,5 +1,4 @@
 from pprint import pprint
-import eel
 import configparser
 import twitch
 import requests
@@ -167,6 +166,7 @@ class ClipBot ():
     def clipVideo(self, channel_id, id):
         if self._helix:
             channel = self._channels[channel_id]
+            print(channel.getEmoteNames())
             print(f"Channel id: {channel_id}")
             print(f"Starting video processing of video {id} for {channel.getName()}")
             helper = ClipBotHelper(channel, self)
@@ -203,4 +203,5 @@ if __name__ == "__main__":
     bot = ClipBot()
     bot.setupConfig()
     bot.setupChannels()
+
     bot.clipVideo(59635827, 1039871181)

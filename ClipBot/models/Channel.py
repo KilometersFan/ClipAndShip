@@ -63,6 +63,9 @@ class Channel(object):
         for emoteType in emoteTypes:
             for emote in self.getEmotes()[emoteType]:
                 channelEmoteList.add(emote["name"].lower())
+        for category in self.getCategories():
+            for emote in category.getEmotes():
+                channelEmoteList.add(emote)
         return channelEmoteList
 
     # add category to channel

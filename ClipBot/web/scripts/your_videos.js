@@ -84,9 +84,17 @@ function populateUserVideos(data) {
             eel.getChannel(parseInt(channelId))(function (data) {
                 let channelCol = $("<div>", {"class": "col-sm-12"});
                 let channelRow = $("<div>", {"class": "row"});
-                let channelName = $("<h3>");
+                let channelContainer = $("<div>", {"class": "col-sm-12 d-flex align-items-center"});
+                let channelName = $("<h3>", {"class": "p-2 mr-auto"});
                 channelName.text(data["name"]);
-                channelCol.append(channelName);
+                channelContainer.append(channelName);
+                let channelVideos = $("<a>", {"class": "btn btn-primary p-2", "href": "video.html?id=" + channelId});
+                channelVideos.text("Channel Videos");
+                let channelSettings = $("<a>", {"class": "btn btn-secondary p-2 mr-2", "href": "channel.html?id=" + channelId});
+                channelSettings.text("Channel Settings");
+                channelContainer.append(channelSettings);
+                channelContainer.append(channelVideos);
+                channelRow.append(channelContainer);
                 if (videos.length > 0) {
                     eel.getVideos(parseInt(channelId), videos)(function (response) {
                         for (let i = 0; i < response.length; i++) {

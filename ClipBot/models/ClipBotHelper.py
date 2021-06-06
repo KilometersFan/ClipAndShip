@@ -1,10 +1,11 @@
+import json
 import os
 import re
 import sys
 import time
 import requests.exceptions
 from pprint import pprint
-from json import dump
+from json import dump, load
 from datetime import datetime
 from .Channel import Channel
 
@@ -25,6 +26,7 @@ class ClipBotHelper(object):
         processedComments = []
         totalComments = 0
         totalCommentDiff = 0
+        totalEmotes = 0
         channelEmotes = self._channel.getEmoteNames()
         prevCommentCreated = None
         knownBots = ["Nightbot", "Fossabot", "Moobot", "PhantomBot"]
@@ -54,11 +56,47 @@ class ClipBotHelper(object):
                 if prevCommentCreated:
                     totalCommentDiff += createdAtTime - prevCommentCreated
                 prevCommentCreated = createdAtTime
+                totalEmotes += len(emotesInComment)
         end = time.time()
         rate = totalComments/totalCommentDiff
         print(f"RATE: {rate}")
         print("=================================================================")
         print(f"Finished preprocessing of comments at {datetime.now()}. Took {end - start} seconds")
+        print(f"Total comments in processed comments: {totalComments}")
+        # Update/Create Markov chain for recommendations
+        if not os.path.exists(self._pathName):
+            os.makedirs(self._pathName)
+        if os.path.exists(f"{self._pathName}/recommendation_data.json"):
+            with open(f"{self._pathName}/recommendation_data.json", "r") as ifile:
+                chain = load(ifile)
+        else:
+            chain = {}
+            for emote in channelEmotes:
+                chain[emote] = {}
+        if "totalEmotes" in chain:
+            chain["totalEmotes"] += totalEmotes
+        else:
+            chain["totalEmotes"] = totalEmotes
+        prevWords = []
+        for comment in processedComments:
+            words = list(comment["emoteSet"])
+            print(words)
+
+            for i in range(len(words) - 1):
+                if words[i + 1] not in  chain[words[i]]:
+                    chain[words[i]][words[i + 1]] = 1
+                else:
+                    chain[words[i]][words[i + 1]] += 1
+            if len(prevWords):
+                for prevWord in prevWords:
+                    for i in range(len(words)):
+                        if words[i] not in chain[prevWord]:
+                            chain[prevWord][words[i]] = 1
+                        else:
+                            chain[prevWord][words[i]] += 1
+            prevWords = words
+        with open(f"{self._pathName}/recommendation_data.json", "w") as ofile:
+            dump(chain, ofile, separators=(",", ":"), indent=4)
         return processedComments, rate
 
 
@@ -82,7 +120,6 @@ class ClipBotHelper(object):
                         video = v
                         comments = c
                 print("Grabbed video and comments")
-                # pprint(data)
                 processedComments, rate = self.processComments(comments)
                 groups = []
                 group = {}
@@ -91,7 +128,7 @@ class ClipBotHelper(object):
                 print(f"Starting clip process for video {videoId} at {datetime.now()}")
                 start = time.time()
                 print(f"Total processed comments {len(processedComments)}")
-                # # Get groups from processed comments
+                # Get groups from processed comments
                 for comment in processedComments:
                     if self._processingGroup and prevCommentEnd and ((comment["created"] - prevCommentEnd) > 2 * rate):
                         self._endTime = prevCommentEnd
@@ -119,6 +156,7 @@ class ClipBotHelper(object):
                         group["graph_data"] = {}
                         group["totalComments"] = 0
                         group["comments"] = [comment["emoteFrequency"]]
+                        group["text"] = comment["text"]
                     else:
                         if (comment["created"] - self._startTime) not in group["graph_x"]:
                             group["emoteSet"] = group["emoteSet"].union(set(comment["emoteSet"]))
@@ -133,14 +171,15 @@ class ClipBotHelper(object):
                             group["comments"].append(comment["emoteFrequency"])
                             group["graph_x"].append(comment["created"] - self._startTime)
                             prevCommentEnd = comment["created"]
+                            group["text"] += " " + comment["text"]
                 totalGroups = len(groups)
                 print(f"Total number of groups found before filter = {totalGroups}")
                 avgEmotesPerGroup = sum(group["totalFrequency"] for group in groups)/totalGroups
                 avgLengthPerGroup = sum((group["end"] - group["start"]) for group in groups) / totalGroups
                 filteredGroups = list(filter(lambda group:
-                                             group["totalFrequency"] > 1.5 * avgEmotesPerGroup
-                                             and (group["end"] - group["start"]) > 1.5 * avgLengthPerGroup
-                                             and group["emoteRate"] > 1.5 * avgEmotesPerGroup/avgLengthPerGroup,
+                                             group["totalFrequency"] > 1.25 * avgEmotesPerGroup
+                                             and (group["end"] - group["start"]) > 1.25 * avgLengthPerGroup
+                                             and group["emoteRate"] > 1.25 * avgEmotesPerGroup/avgLengthPerGroup,
                                              groups))
                 print(f"Total number of groups found after first filter = {len(filteredGroups)}")
                 end = time.time()
@@ -223,6 +262,13 @@ class ClipBotHelper(object):
                     os.makedirs(f"{self._pathName}/{videoId}")
                 with open(f"{self._pathName}/{videoId}/data.json", "w+") as ofile:
                     dump(data, ofile, separators=(",", ":"), indent=4)
+                with open(f"{self._pathName}/{videoId}/data.csv", "w+") as ofile:
+                    for group in filteredGroups:
+                        labels = []
+                        for category in categories:
+                            label = "1" if category in group["similarities"] else "0"
+                            labels.append(label)
+                        ofile.write(f"{group['text']},{','.join(labels)}\n")
                 response["status"] = 200
                 response["msg"] = "Successfully clipped the video: " + video.title + " recorded on " + video.created_at[:10]
                 response["id"] = video.id

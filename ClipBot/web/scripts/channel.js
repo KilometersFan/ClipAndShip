@@ -128,7 +128,7 @@ function populateCategoryEmotes(data) {
         let editContainer = $("<div>", { "class": "container-fluid", "id": type + "EditCategoryContainer" });
         let editForm = $("<form>", { "id": type + "EditForm" });
         let editFormGroup = $("<div>", { "id": type + "EditFormGroup", "class": "form-group" });
-        let editCategoryRow = $("<div>", { "class": "row ml-0 mr-0", "id": type + "EditCategoryRow" });
+        let editCategoryRow = $("<div>", { "class": "d-flex row ml-0 mr-0", "id": type + "EditCategoryRow" });
 
         let editBtn = $("<button>", {
             "type": "button", "id": type + "EditBtn", "class": "btn action-btn mt-1 mb-1 ml-2 mr-2", "data-toggle": "modal", "data-target": "#" + type + "EditModal"
@@ -168,6 +168,43 @@ function populateCategoryEmotes(data) {
             let editEmoteBox = createEmoteBoxInput(result["imageUrl"], emoteMap[name] || name, "emoteBoxChecked", "emoteBoxRemove", "EditInput", type + "EmotesToRmv", true);
             editCategoryRow.append(editEmoteBox);
         }
+        let editFormRecommendedContainer = $("<div>", { "id": "editFormRecommendedContainer", "class": "form-group" });
+        let editRecommendedRow = $("<div>", { "class": "d-flex row ml-0 mr-0", "id": type + "EditRecommendedRow" });
+        let editFormRecommendedButton = $("<button>", {"class": "btn btn-primary"});
+        editFormRecommendedButton.text("Get Recommendations");
+        editFormRecommendedButton.click(function (e) {
+            e.preventDefault();
+            editRecommendedRow.empty();
+            eel.getRecommendedEmotes(channelId, type)(function (response) {
+                if (response.length === 0) {
+                    let emptyRecommendations = $("<p>");
+                    emptyRecommendations.text("Recommendations are only available after a video is processed.");
+                    editRecommendedRow.append()
+                }
+                for (let i = 0; i < response.length; i++) {
+                    let result;
+                    let bttvRes = bttvEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    let twitchRes = twitchEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    let ffRes = ffEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    if (bttvRes) {
+                        result = bttvRes;
+                    }
+                    else if (twitchRes) {
+                        result = twitchRes;
+                    }
+                    else if (ffRes) {
+                        result = ffRes;
+                    }
+                    else {
+                        result = { imageUrl: "../error-placeholder.png" };
+                    }
+                    let emoteRecommendedBox = createEmoteBoxInput(result["imageUrl"], emoteMap[response[i]] || response[i], "emoteInput", "emoteBoxChecked", "RecommendedEmoteEdit", "editRecommendedEmotesToAdd");
+                    editRecommendedRow.append(emoteRecommendedBox);
+                }
+            });
+        });
+        editFormRecommendedContainer.append(editFormRecommendedButton);
+        editFormRecommendedContainer.append(editRecommendedRow);
         editFormGroup.append(editCategoryRow);
         editForm.append(editFormGroup);
         editContainer.append(editForm);
@@ -182,7 +219,7 @@ function populateCategoryEmotes(data) {
         let emoteAddTitle = $("<h2>", { "class": "mt-2 mb-2" });
         emoteAddTitle.text("Emotes to Add");
         editFormGroup.append(emoteAddTitle);
-
+        editFormGroup.append(editFormRecommendedContainer);
         //Create Twitch, FFZ, BTTV emote sections
         let emoteTypes = ["Other", "Twitch", "FF", "BTTV"];
         emoteTypes.forEach((emoteType) => {
@@ -224,6 +261,8 @@ function populateCategoryEmotes(data) {
             let newValues = [];
             
             [...document.querySelectorAll('input[name="editEmotesToAdd"]:checked')]
+                .forEach((cb) => emotes_add.push(cb));
+            [...document.querySelectorAll('input[name="editRecommendedEmotesToAdd"]:checked')]
                 .forEach((cb) => emotes_add.push(cb));
             [...document.querySelectorAll('input[name="' + type + 'EmotesToRmv"]:checked')]
                 .forEach((cb) => emotes_left.push(cb.value.toLowerCase()));
@@ -312,6 +351,46 @@ $(document).ready(function () {
             }
         }
     });
+    $("#recommendedBtn").click(function (e) {
+        e.preventDefault();
+        $("#recommendedRow").empty();
+        let emotes = [];
+        [...document.querySelectorAll('input[name="emotesToAdd"]:checked')]
+                .forEach((cb) => emotes.push(cb.value));
+        let emptyRecommendations = $("<p>");
+        if (emotes.length === 0) {
+            emptyRecommendations.text("Please choose at least one emote to calculate recommendations.");
+            $("#categoryRecommendedContainer").append(emptyRecommendations)
+        }
+        else {
+            eel.getRecommendedEmotes(channelId, emotes, true)(function (response) {
+                if (response.length === 0) {
+                    emptyRecommendations.text("Recommendations are only available after a video is processed.");
+                    $("#categoryRecommendedContainer").append(emptyRecommendations)
+                }
+                for (let i = 0; i < response.length; i++) {
+                    let result;
+                    let bttvRes = bttvEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    let twitchRes = twitchEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    let ffRes = ffEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    if (bttvRes) {
+                        result = bttvRes;
+                    }
+                    else if (twitchRes) {
+                        result = twitchRes;
+                    }
+                    else if (ffRes) {
+                        result = ffRes;
+                    }
+                    else {
+                        result = { imageUrl: "../error-placeholder.png" };
+                    }
+                    let emoteRecommendedBox = createEmoteBoxInput(result["imageUrl"], emoteMap[response[i]] || response[i], "emoteInput", "emoteBoxChecked", "RecommendedEmoteEdit", "recommendedEmotesToAdd");
+                    $("#recommendedRow").append(emoteRecommendedBox);
+                }
+            });
+        }
+    });
     $("#categoryForm").submit(function (event) {
         event.preventDefault()
         if (!$("#newCategory").val()) {
@@ -328,6 +407,8 @@ $(document).ready(function () {
             let type = $("#newCategory").val();
             console.log(document.querySelectorAll('input[name="emotesToAdd"]:checked'));
             [...document.querySelectorAll('input[name="emotesToAdd"]:checked')]
+                .forEach((cb) => emotes.push(cb.value));
+            [...document.querySelectorAll('input[name="recommendedEmotesToAdd"]:checked')]
                 .forEach((cb) => emotes.push(cb.value));
             let otherEmotes = $("#addOtherEmotes").val();
             if (otherEmotes) {
@@ -395,7 +476,6 @@ $(document).ready(function () {
     });
     $("#categoriesBtn").click(function () {
         $("#categories").slideToggle();
-        console.log($(this).children('i').eq(0));
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
             $(this).children('i').eq(0).removeClass("fa-toggle-on");
             $(this).children('i').eq(0).addClass("fa-toggle-off");
