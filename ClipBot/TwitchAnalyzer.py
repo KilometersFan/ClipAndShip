@@ -302,8 +302,8 @@ def resetNotificationCount():
 
 @eel.expose
 def getRecommendedEmotes(channel_id, category_type, isList=False):
-	if os.path.exists(f"data/channels/{channel_id}/markov_chain.json"):
-		with open(f"data/channels/{channel_id}/markov_chain.json") as ifile:
+	if os.path.exists(f"data/channels/{channel_id}/recommendation_data.json"):
+		with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
 			channel = getChannel(channel_id, False)
 			category = category_type if isList else channel.getCategory(category_type)
 			chain = json.load(ifile)
