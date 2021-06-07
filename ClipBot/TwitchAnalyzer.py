@@ -324,7 +324,7 @@ def getRecommendedEmotes(channel_id, category_type, isList=False):
 					if all(isChecked == True for isChecked in emoteFullyChecked.values()):
 						done = True
 						break
-					while chain[emote][chainIndices[emote]][0] in top5Emotes and chainIndices[emote] < len(chain[emote]):
+					while chainIndices[emote] < len(chain[emote]) and chain[emote][chainIndices[emote]][0] in top5Emotes:
 						chainIndices[emote] += 1
 					if chainIndices[emote] >= len(chain[emote]):
 						emoteFullyChecked[emote] = True
