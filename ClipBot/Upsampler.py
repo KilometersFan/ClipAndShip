@@ -6,6 +6,7 @@ import random
 import configparser
 import pandas as pd
 import numpy as np
+from math import floor
 from pprint import pprint
 
 def get_class_weight(df, categories):
@@ -82,7 +83,7 @@ if __name__ == "__main__":
         for category in imbalanced_classes:
             for j in range(5):
                 sampledData = []
-                for i in range(random.randrange(avg_group_size//2, avg_group_size)):
+                for i in range(random.randrange(floor(avg_group_size *3/4), avg_group_size)):
                     emote = random.choice(categoriesMap[category])
                     sums = {}
                     for key in chain[emote].keys():
