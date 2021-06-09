@@ -18,10 +18,8 @@ def get_class_weight(df, categories):
 
 if __name__ == "__main__":
     print("Enter the ID of the channel you want to upsample")
-    channel_id = "59635827" # input()
-
+    channel_id = input()
     start = time.time()
-    print(f"Starting upsampling process at {start} for channel {channel_id}")
 
     if not os.path.exists("config/channels.ini"):
         print("Channels config file not found. Quitting...")
@@ -38,6 +36,25 @@ if __name__ == "__main__":
         emoteList = cfg[channel_id][option].split(",")
         categoriesMap[option] = emoteList
     pprint(categoriesMap)
+
+    print("Do you want to set a minimum number of data points? yes/no")
+    hasMinimum = input().lower()
+    if hasMinimum == "yes":
+        print("Please enter the minimum number:")
+        try:
+            min_sample_count = int(input())
+            if min_sample_count <= 0:
+                print("Value must be a positive number. Quitting...")
+                sys.exit()
+        except ValueError as e:
+            print("Value entered is not an integer. Quitting...")
+            sys.exit()
+    elif hasMinimum == "no":
+        min_sample_count = -1
+    else:
+        print("Invalid answer provided. Quitting...")
+        sys.exit()
+    print(f"Starting upsampling process at {start} for channel {channel_id}")
 
     rootdir = f"data/channels/{channel_id}"
     columns = ["text"]
@@ -61,52 +78,72 @@ if __name__ == "__main__":
     avg_group_size //= video_count
 
     rootdf = pd.concat(dfs, join="inner")
-    pprint(rootdf.shape)
     pprint(rootdf)
 
     class_weights = get_class_weight(rootdf, categories)
     total_weight = sum(class_weights.values())
     print(f"Total class weight: {total_weight}")
     print(class_weights)
+    if not os.path.exists(f"data/channels/{channel_id}/recommendation_data.json"):
+        print(f"Recommendation data file not found for {channel_id}. Quitting...")
+    with open(f"data/channels/{channel_id}/recommendation_data.json", "r") as ifile:
+        chain = json.load(ifile)
     imbalanced_classes = set()
     for category in categories:
         if class_weights[category]/total_weight < 1.0/(len(categories)):
             imbalanced_classes.add(category)
     print(imbalanced_classes)
     # Load recommendation data
-    if not os.path.exists(f"data/channels/{channel_id}/recommendation_data.json"):
-        print(f"Recommendation data file not found for {channel_id}. Quitting...")
-    with open(f"data/channels/{channel_id}/recommendation_data.json", "r") as ifile:
-        chain = json.load(ifile)
     categoryCount = len(imbalanced_classes)
     while categoryCount > 0:
         for category in imbalanced_classes:
-            for j in range(5):
-                sampledData = []
-                for i in range(random.randrange(floor(avg_group_size *3/4), avg_group_size)):
-                    emote = random.choice(categoriesMap[category])
-                    sums = {}
-                    for key in chain[emote].keys():
-                        sums[key] = float(sum(chain[emote].values()))
-                    for key in chain[emote].keys():
-                        chain[emote][key] = chain[emote][key]/sums[key]
+            sampledData = []
+            for i in range(random.randrange(floor(avg_group_size *3/4), avg_group_size)):
+                emote = random.choice(categoriesMap[category])
+                sums = {}
+                for key in chain[emote].keys():
+                    sums[key] = float(sum(chain[emote].values()))
+                for key in chain[emote].keys():
+                    chain[emote][key] = chain[emote][key]/sums[key]
 
-                    data = np.random.choice(list(chain[emote].keys()), 1, p=list(chain[emote].values()))
-                    newData = [emote, data[0]]
-                    sampledData.extend(newData)
-                # create text column value
-                upsampledText = " ".join(sampledData)
-                upsampledRow = [upsampledText]
-                for existingCategory in sorted(categories):
-                    upsampledRow.append(1 if existingCategory == category else 0)
-                rootdf.loc[len(rootdf)] = upsampledRow
-                new_class_weights = get_class_weight(rootdf, categories)
-                new_total_weight = sum(new_class_weights.values())
-                newImbalancedCount = 0
-                for imbalanced_category in imbalanced_classes:
-                    if (new_class_weights[imbalanced_category] / new_total_weight) < (1.0 / (len(categories))):
-                        newImbalancedCount += 1
-                categoryCount = newImbalancedCount
+                data = np.random.choice(list(chain[emote].keys()), 1, p=list(chain[emote].values()))
+                newData = [emote, data[0]]
+                sampledData.extend(newData)
+            # create text column value
+            upsampledText = " ".join(sampledData)
+            upsampledRow = [upsampledText]
+            for existingCategory in sorted(categories):
+                upsampledRow.append(1 if existingCategory == category else 0)
+            rootdf.loc[len(rootdf)] = upsampledRow
+            new_class_weights = get_class_weight(rootdf, categories)
+            new_total_weight = sum(new_class_weights.values())
+            newImbalancedCount = 0
+            for imbalanced_category in imbalanced_classes:
+                if (new_class_weights[imbalanced_category] / new_total_weight) < (1.0 / (len(categories))):
+                    newImbalancedCount += 1
+            categoryCount = newImbalancedCount
+            print(f"New imbalanced count: {newImbalancedCount}")
+        if categoryCount == 0:
+            print("=================================")
+            print(f"Category count is 0")
+            last_class_weights = get_class_weight(rootdf, categories)
+            last_total_weight = sum(last_class_weights.values())
+            lastImbalancedCount = 0
+            new_imbalanced_classes = set()
+            for category in categories:
+                if (last_class_weights[category] / last_total_weight) < (1.0 / (len(categories))):
+                    new_imbalanced_classes.add(category)
+            categoryCount = len(new_imbalanced_classes)
+            imbalanced_classes = new_imbalanced_classes
+
+            # check if # rows is >= minimum provided and when the initial imbalanced classes are upsampled
+            if len(imbalanced_classes) == 0 and min_sample_count > 0:
+                if len(rootdf) < min_sample_count:
+                    imbalanced_classes = set(categories)
+                    categoryCount = len(categories)
+            print(f"New imbalanced count (last): {categoryCount}")
+            print(f"New imbalanced set: {imbalanced_classes}")
+            print("######################################")
     rootdf.to_csv(f"data/channels/{channel_id}/upsampled_data.csv",index=False)
     print(f"New shape of data: {rootdf.shape}")
     final_class_weights = get_class_weight(rootdf, categories)
