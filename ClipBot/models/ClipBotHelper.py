@@ -39,10 +39,12 @@ class ClipBotHelper(object):
             emotesInComment = channelEmotes.intersection(set(splitComment))
             if len(emotesInComment) and comment.commenter.display_name not in knownBots:
                 regex = re.compile('|'.join(emotesInComment))
-                commentEmotesOnly = " ".join(regex.findall(commentText))
+                allEmotesInComment = regex.findall(commentText)
+                commentEmotesOnly = " ".join(allEmotesInComment)
                 createdAtTime = comment.content_offset_seconds
                 processedComment = {
                     "text": commentEmotesOnly,
+                    "size": len(allEmotesInComment),
                     "emoteSet": emotesInComment,
                     "emoteFrequency":
                         {
@@ -86,14 +88,14 @@ class ClipBotHelper(object):
                 if words[i + 1] not in  chain[words[i]]:
                     chain[words[i]][words[i + 1]] = 1
                 else:
-                    chain[words[i]][words[i + 1]] += 1
+                    chain[words[i]][words[i + 1]] += 2 if words[i] == words[i + 1] else 1
             if len(prevWords):
                 for prevWord in prevWords:
                     for i in range(len(words)):
                         if words[i] not in chain[prevWord]:
                             chain[prevWord][words[i]] = 1
                         else:
-                            chain[prevWord][words[i]] += 1
+                            chain[prevWord][words[i]] += 2 if prevWord == words[i] else 1
             prevWords = words
         with open(f"{self._pathName}/recommendation_data.json", "w") as ofile:
             dump(chain, ofile, separators=(",", ":"), indent=4)
@@ -148,6 +150,7 @@ class ClipBotHelper(object):
                         group["emoteSet"] = set(comment["emoteSet"])
                         group["emoteFrequency"] = {}
                         group["totalFrequency"] = 0
+                        group["size"] = comment["size"]
                         for emote in comment["emoteSet"]:
                             group["emoteFrequency"][emote] = comment["emoteFrequency"][emote]
                             group["totalFrequency"] += comment["emoteFrequency"][emote]
@@ -167,7 +170,7 @@ class ClipBotHelper(object):
                                     group["emoteFrequency"][emote] = comment["emoteFrequency"][emote]
                                 group["totalFrequency"] += comment["emoteFrequency"][emote]
                             group["totalComments"] += 1
-
+                            group["size"] += comment["size"]
                             group["comments"].append(comment["emoteFrequency"])
                             group["graph_x"].append(comment["created"] - self._startTime)
                             prevCommentEnd = comment["created"]
@@ -241,6 +244,7 @@ class ClipBotHelper(object):
                 filteredGroups = list(filter(lambda group:
                                              len(group["similarities"]) > 0,
                                              filteredGroups))
+                avgGroupSize = sum(group["size"] for group in filteredGroups) / len(filteredGroups) if len(filteredGroups) > 0 else 0
                 print(f"Total number of groups found after second filter = {len(filteredGroups)}")
                 end = time.time()
                 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
@@ -252,7 +256,8 @@ class ClipBotHelper(object):
                 videoStartTime = video.created_at[:decimalIndex]
                 data = {
                     "groups": filteredGroups,
-                    "videoStart": videoStartTime
+                    "videoStart": videoStartTime,
+                    "avgSize" : avgGroupSize
                 }
                 oauthWorks = True
                 # save group data to json file
@@ -263,6 +268,7 @@ class ClipBotHelper(object):
                 with open(f"{self._pathName}/{videoId}/data.json", "w+") as ofile:
                     dump(data, ofile, separators=(",", ":"), indent=4)
                 with open(f"{self._pathName}/{videoId}/data.csv", "w+") as ofile:
+                    ofile.write(f"text,{','.join(categories)}\n")
                     for group in filteredGroups:
                         labels = []
                         for category in categories:

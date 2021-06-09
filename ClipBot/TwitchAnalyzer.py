@@ -92,7 +92,6 @@ def removeChannels(channels):
 	except Exception as e:
 		return e.args
 
-
 @eel.expose
 def getChannels():
 	global bot
@@ -243,7 +242,6 @@ def clipVideoHelper(channel_id, id=None):
 	global notification
 	notification = True
 	eel.videoHandler(notification)
-
 
 @eel.expose
 def getVideoResults(channel_id, video_id):
