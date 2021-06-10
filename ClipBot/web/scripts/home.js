@@ -70,6 +70,7 @@ $(document).ready(function () {
         }
     });
     $("#searchChannelBtn").click(function () {
+        $("#searchInput").prop("disabled", false);
         $("#searchChannelForm").trigger("reset");
         $("#addChannelForm").trigger("reset");
         $("#searchChannelResult").empty();
