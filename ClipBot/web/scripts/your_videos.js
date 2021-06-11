@@ -72,6 +72,7 @@ function populateProcessingVideos(data) {
 
 function populateUserVideos(data) {
     let row = $("#yourVideoRow");
+    console.log(data);
     row.empty();
     if (Object.keys(data).length == 0) {
         let noVideos = $("<p>", {"style": "padding-left: 15px"})
@@ -81,12 +82,13 @@ function populateUserVideos(data) {
     else {
         Object.keys(data).forEach((channelId) => {
             let videos = data[channelId];
-            eel.getChannel(parseInt(channelId))(function (data) {
+            eel.getChannel(parseInt(channelId))(function (info) {
+                console.log(info);
                 let channelCol = $("<div>", {"class": "col-sm-12"});
                 let channelRow = $("<div>", {"class": "row"});
                 let channelContainer = $("<div>", {"class": "col-sm-12 d-flex align-items-center"});
                 let channelName = $("<h3>", {"class": "p-2 mr-auto"});
-                channelName.text(data["name"]);
+                channelName.text(info["name"]);
                 channelContainer.append(channelName);
                 let channelVideos = $("<a>", {"class": "btn btn-primary p-2", "href": "video.html?id=" + channelId});
                 channelVideos.text("Channel Videos");

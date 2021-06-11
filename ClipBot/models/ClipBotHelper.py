@@ -17,7 +17,8 @@ class ClipBotHelper(object):
             clipBot.setUpConfig()
         self._channel = channel
         self._helix = clipBot.getHelix()
-        self._pathName = f"data/channels/{self._channel.getId()}"
+        path = os.getcwd()
+        self._pathName = f"{path}/data/channels/{self._channel.getId()}"
         self._startTime = None
         self._endTime = None
         self._processingGroup = False
@@ -91,6 +92,8 @@ class ClipBotHelper(object):
                     chain[words[i]][words[i + 1]] += 2 if words[i] == words[i + 1] else 1
             if len(prevWords):
                 for prevWord in prevWords:
+                    if prevWord not in chain:
+                        chain[prevWord] = {}
                     for i in range(len(words)):
                         if words[i] not in chain[prevWord]:
                             chain[prevWord][words[i]] = 1

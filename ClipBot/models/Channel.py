@@ -23,12 +23,13 @@ class Channel(object):
         self._twitchSubURL = "https://api.twitchemotes.com/api/v4/channels/"
         self._clipBot = clipBot
         validHelix = False
+        path = os.getcwd()
         # reset helix if acces token is invalid
         while not validHelix:
             try:
                 if helix is not None:
                     self._name = helix.user(id).display_name
-                    self._pathName = f"data/channels/{self._id}"
+                    self._pathName = f"{path}/data/channels/{self._id}"
                     self._desc = helix.user(id).description
                     self._img = helix.user(id).profile_image_url
                     self._frankerfacezURL = "https://api.frankerfacez.com/v1/room/" + self._name.lower()

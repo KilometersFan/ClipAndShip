@@ -58,12 +58,7 @@ $(document).ready(function () {
     eel.initClipBot();
     eel.validBot()(function (valid) {
         if (valid == true) {
-            if (sessionStorage.getItem("channels")) {
-                setChannels(JSON.parse(sessionStorage.getItem("channels")));
-            }
-            else {
-                eel.getChannels()(setChannels);
-            }
+            eel.getChannels()(setChannels);
         }
         else {
             $("#numChannels").html("No channels found.")
@@ -125,9 +120,6 @@ $(document).ready(function () {
                     $(".errorChannel").hide();
                     $(".errorChannel").text("");
                     eel.searchChannel(name)(function (result) {
-                        let cachedChannels = JSON.parse(sessionStorage.getItem("channels"));
-                        cachedChannels.push([result.displayName, result.id, result.desc, result.imgURL]);
-                        sessionStorage.setItem("channels", JSON.stringify(cachedChannels));
                         // Add channel card
                         let searchCard = createChannelCard(result.displayName, result.id, result.desc, result.imgURL);
                         $("#channelsContainer").append(searchCard);
@@ -158,9 +150,6 @@ $(document).ready(function () {
         }
         else {
             $(".error").hide();
-            let cachedChannels = JSON.parse(sessionStorage.getItem("channels"));
-            cachedChannels.filter((channelInfo) => { return !channelsRmv.includes(channelInfo["id"]) });
-            sessionStorage.setItem("channels", JSON.stringify(cachedChannels));
             eel.removeChannels(channelsRmv)(function (response) {
                 if (!response) {
                     $('#rmvChannelModal').modal('hide');

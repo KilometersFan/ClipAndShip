@@ -3,6 +3,8 @@ import configparser
 import twitch
 import requests
 import json
+import shutil
+import os
 from multiprocessing import Process, Manager
 from .Channel import Channel
 from .Category import Category
@@ -21,6 +23,7 @@ class ClipBot ():
         self._commentProcessing = {}
         self._helpers = {}
         self._accessToken = None
+        self._path = os.getcwd()
     
     # return twitch Helix object
     def getHelix(self):
@@ -42,7 +45,7 @@ class ClipBot ():
     # set up helix and twitch related stuff
     def setupConfig(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read("config/config.ini")
+        cfg.read(f"{self._path}/config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -71,7 +74,7 @@ class ClipBot ():
     # refresh access token when needed
     def refreshToken(self):
         cfg = configparser.ConfigParser()
-        cfg.read("config/config.ini")
+        cfg.read(f"{self._path}/config/config.ini")
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -106,7 +109,7 @@ class ClipBot ():
                         channel.addCategory(category)
                     self.addChannel(channel)
                     validToken = True
-                except requests.exceptions.HTTPError as http_err: 
+                except requests.exceptions.HTTPError as http_err:
                     statusCode = http_err.response.status_code
                     if statusCode == 401:
                         print("401 Unauthorized error, refreshing access token")
@@ -153,6 +156,8 @@ class ClipBot ():
     def removeChannel(self, channel_id):
         if self._channels.get(channel_id, None):
             del self._channels[channel_id]
+            if os.path.exists(f"{self._path}/data/channels/{channel_id}"):
+                shutil.rmtree(f"{self._path}/data/channels/{channel_id}")
         else:
             print("Channel doesn't exist.")
             raise Exception("Channel doesn't exist.")
