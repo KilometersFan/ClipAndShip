@@ -25,13 +25,8 @@ The intended users are content creators and video editors who want to streamline
 - Modern browser. This app creates a new window in Google Chrome or your default browser (if Chrome isn't installed). 
 - If running locally you need Python3, [eel](https://github.com/ChrisKnott/Eel), [plotly](https://plotly.com/), [pandas](https://pandas.pydata.org/), [numpy](https://numpy.org/), [configparser](https://docs.python.org/3/library/configparser.html), and [twitch-python](https://github.com/PetterKraabol/Twitch-Python)
 
-## Limitations
-- Everything is stored locally. All analysis, channel categories, and channel info is on your machine, not on the cloud. Hopefully you have a beefy computer, but if you make videos, you probably have a lot of storage already. Still, be aware of this.
-- Similarly, analysis performance is based on your machine. A computer with more cores and a fast processor will run analysis faster than a worse machine.
-- Reliance on third party technologies. This app uses BTTV, FrankerFaceZ, and Twitch APIs. If any of these companies change something to their API the app may not work correctly. In that case, please report problems on the issues page.
-- The TCA works well with channels that have emote-heavy chats but performs poorly if the chat doesn't frequently use emotes.
-
-Feel free to ask questsions or report bugs on the issues page. If you enjoy the app, please spread the word! I want to make it easier for content creators to do their job. I watch those highlight videos too after all.
+## Local Development
+To run the main program change directory to ```Clipbot``` and run ```python3 TwitchAnalyzer.py```. To run the upsampler program, run ```python3 Upsampler.py``` in the same directory. The upsampler will only work if the you processed at least one video for the specified channel.
 
 ## Example
 ### Adding a Channel
@@ -57,3 +52,11 @@ Feel free to ask questsions or report bugs on the issues page. If you enjoy the 
 
 ### Inspecting a Clip
 <img width="1262" alt="Screen Shot 2021-06-11 at 1 24 02 PM" src="https://user-images.githubusercontent.com/35278719/121744797-4aa43200-cab8-11eb-88de-5e2a4d9ecf2b.png">
+
+## Limitations
+- Everything is stored locally. All analysis, channel categories, and channel info is on your machine, not on the cloud. Hopefully you have a beefy computer, but if you make videos, you probably have a lot of storage already. Still, be aware of this.
+- Similarly, analysis performance is based on your machine. A computer with more cores and a fast processor will run analysis faster than a worse machine.
+- Reliance on third party technologies. This app uses BTTV, FrankerFaceZ, and Twitch APIs. If any of these companies change something to their API the app may not work correctly. In that case, please report problems on the issues page.
+- The TCA works well with channels that have emote-heavy chats but performs poorly if the chat doesn't frequently use emotes.
+
+Feel free to ask questions or report bugs on the issues page.
