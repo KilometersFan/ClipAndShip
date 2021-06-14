@@ -39,22 +39,3 @@ class Category(object):
             return self._emotes
         emotes = sorted(list(self._emotes), key=str.lower)
         return emotes
-
-    # returns whether or not emote param is in the emotes for this category
-    def checkIfEmoteExists(self, emote):
-        return True if emote in self._emotes else False
-
-    # add timestamp to list of timestamps
-    def addTimestamp(self, range):
-        self._timestamps.append(range)
-
-    # erases all timestamps
-    def clearTimestamps(self):
-        self._timestamps.clear()
-
-    # returns sorted list of timestamps, ensures all timestamps are unique
-    def getTimestamps(self):
-        timestamps = set(self._timestamps)
-        timestamps = list(timestamps)
-        timestamps.sort()
-        return timestamps

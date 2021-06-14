@@ -1,9 +1,7 @@
-import twitch
 import requests
 import json
 import re
 import os
-from pprint import pprint
 from datetime import datetime
 from dateutil import tz
 from .Category import Category
@@ -55,8 +53,10 @@ class Channel(object):
         ffEmotes = sorted(list(self._ffEmotes), key=lambda e: e['name'].lower())
         bttvEmotes = sorted(list(self._bttvEmotes), key=lambda e: e['name'].lower())
         twitchEmotes = sorted(list(self._twitchEmotes), key= lambda e: e['name'].lower())
-        # pprint({ "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes})
         return { "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes}
+
+    def getEmotesMap(self):
+        return self._nameToEmotesMap
 
     def getEmoteNames(self):
         emoteTypes = ["ffEmotes", "bttvEmotes", "twitchEmotes"]
@@ -261,7 +261,4 @@ class Channel(object):
             except requests.exceptions.Timeout as e:
                 print("FFZ Emotes Request timed out")
                 print(e.args)
-
-    def getEmotesMap(self):
-        return self._nameToEmotesMap
 

@@ -1,10 +1,8 @@
-import json
 import os
 import re
 import sys
 import time
 import requests.exceptions
-from pprint import pprint
 from json import dump, load
 from datetime import datetime
 from .Channel import Channel

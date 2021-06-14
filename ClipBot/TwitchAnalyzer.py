@@ -111,6 +111,12 @@ def getChannelEmotes(id):
 	return bot.getChannel(id, False).getEmotes()
 
 @eel.expose
+def searchChannel(channel_name):
+	global bot
+	return bot.searchForChannel(channel_name)
+
+
+@eel.expose
 def addCategory(id, type, emotes):
 	if not os.path.exists("config"):
 		return "Can't find config file."
@@ -180,9 +186,51 @@ def getCategories(channel_id):
 	return result
 
 @eel.expose
-def searchChannel(channel_name):
-	global bot
-	return bot.searchForChannel(channel_name)
+def getRecommendedEmotes(channel_id, category_type, isList=False):
+	if os.path.exists(f"{path}/data/channels/{channel_id}/recommendation_data.json"):
+		with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
+			channel = getChannel(channel_id, False)
+			category = category_type if isList else channel.getCategory(category_type)
+			chain = json.load(ifile)
+			emotesInCategory = set(category_type) if isList else category.getEmotes(True)
+			top5Emotes = set()
+			chainIndices = {emote: 0 for emote in emotesInCategory}
+			emoteFullyChecked = {emote: False for emote in emotesInCategory}
+			done = False
+			start = time.time()
+			print(f"Beginning process of generating recommended emotes at {start}")
+			for emote in emotesInCategory:
+				chain[emote] = [(k,v/float(chain["totalEmotes"])) for k,v in sorted(chain[emote].items(), key=lambda item: item[1]/chain["totalEmotes"], reverse=True)]
+			while len(top5Emotes) < 5 and not done:
+				candidateEmote = None
+				candidatePercentage = 0
+				parentEmote = None
+				for emote in emotesInCategory:
+					if all(isChecked == True for isChecked in emoteFullyChecked.values()):
+						done = True
+						break
+					while chainIndices[emote] < len(chain[emote]) and chain[emote][chainIndices[emote]][0] in top5Emotes:
+						chainIndices[emote] += 1
+					if chainIndices[emote] >= len(chain[emote]):
+						emoteFullyChecked[emote] = True
+						continue
+					while chain[emote][chainIndices[emote]][0] in emotesInCategory:
+						chainIndices[emote] += 1
+					if chain[emote][chainIndices[emote]][1] > candidatePercentage \
+						and chain[emote][chainIndices[emote]][0] not in top5Emotes:
+						candidatePercentage = chain[emote][chainIndices[emote]][1]
+						candidateEmote = chain[emote][chainIndices[emote]][0]
+						parentEmote = emote
+				if parentEmote is not None:
+					chainIndices[parentEmote] += 1
+				if candidateEmote is not None:
+					top5Emotes.add(candidateEmote)
+			end = time.time()
+			print(f"Finished process of generating recommended emotes at {end}. Process took {end - start}s")
+			print(top5Emotes)
+			return list(top5Emotes)
+	else:
+		return []
 
 @eel.expose
 def getVideos(channel_id, videos = None):
@@ -300,53 +348,6 @@ def resetNotificationCount():
 	global notification
 	notification = False
 	eel.videoHandler(notification)
-
-@eel.expose
-def getRecommendedEmotes(channel_id, category_type, isList=False):
-	if os.path.exists(f"{path}/data/channels/{channel_id}/recommendation_data.json"):
-		with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
-			channel = getChannel(channel_id, False)
-			category = category_type if isList else channel.getCategory(category_type)
-			chain = json.load(ifile)
-			emotesInCategory = set(category_type) if isList else category.getEmotes(True)
-			top5Emotes = set()
-			chainIndices = {emote: 0 for emote in emotesInCategory}
-			emoteFullyChecked = {emote: False for emote in emotesInCategory}
-			done = False
-			start = time.time()
-			print(f"Beginning process of generating recommended emotes at {start}")
-			for emote in emotesInCategory:
-				chain[emote] = [(k,v/float(chain["totalEmotes"])) for k,v in sorted(chain[emote].items(), key=lambda item: item[1]/chain["totalEmotes"], reverse=True)]
-			while len(top5Emotes) < 5 and not done:
-				candidateEmote = None
-				candidatePercentage = 0
-				parentEmote = None
-				for emote in emotesInCategory:
-					if all(isChecked == True for isChecked in emoteFullyChecked.values()):
-						done = True
-						break
-					while chainIndices[emote] < len(chain[emote]) and chain[emote][chainIndices[emote]][0] in top5Emotes:
-						chainIndices[emote] += 1
-					if chainIndices[emote] >= len(chain[emote]):
-						emoteFullyChecked[emote] = True
-						continue
-					while chain[emote][chainIndices[emote]][0] in emotesInCategory:
-						chainIndices[emote] += 1
-					if chain[emote][chainIndices[emote]][1] > candidatePercentage \
-						and chain[emote][chainIndices[emote]][0] not in top5Emotes:
-						candidatePercentage = chain[emote][chainIndices[emote]][1]
-						candidateEmote = chain[emote][chainIndices[emote]][0]
-						parentEmote = emote
-				if parentEmote is not None:
-					chainIndices[parentEmote] += 1
-				if candidateEmote is not None:
-					top5Emotes.add(candidateEmote)
-			end = time.time()
-			print(f"Finished process of generating recommended emotes at {end}. Process took {end - start}s")
-			print(top5Emotes)
-			return list(top5Emotes)
-	else:
-		return []
 
 def get_preferred_mode():
 	if eel.chrome.find_path():

@@ -6,7 +6,6 @@ import random
 import configparser
 import pandas as pd
 import numpy as np
-from math import floor
 from pprint import pprint
 
 def get_class_weight(df, categories):

@@ -1,4 +1,3 @@
-from pprint import pprint
 import configparser
 import twitch
 import requests
@@ -28,19 +27,6 @@ class ClipBot ():
     # return twitch Helix object
     def getHelix(self):
         return self._helix
-
-    # add channel to user list
-    def addChannel(self, channel):
-        channel.populateEmotes()
-        self._channels[channel.getId()] = channel
-        self._channelInfo[channel.getId()] = {
-            "name": channel.getName(),
-            "id": channel.getId(),
-            "desc": channel.getDesc(),
-            "imgUrl": channel.getImg(),
-            "emoteMap": channel.getEmotesMap(),
-            "categories": [category.getType() for category in channel.getCategories()],
-        }
     
     # set up helix and twitch related stuff
     def setupConfig(self, refresh=False):
@@ -91,6 +77,19 @@ class ClipBot ():
                     print("Unable to complete post request for token")
             except requests.exceptions.Timeout:
                 print("Request for refresh token timed out")
+
+    # add channel to user list
+    def addChannel(self, channel):
+        channel.populateEmotes()
+        self._channels[channel.getId()] = channel
+        self._channelInfo[channel.getId()] = {
+            "name": channel.getName(),
+            "id": channel.getId(),
+            "desc": channel.getDesc(),
+            "imgUrl": channel.getImg(),
+            "emoteMap": channel.getEmotesMap(),
+            "categories": [category.getType() for category in channel.getCategories()],
+        }
 
     # read from channls.ini all the info from user's channels
     def setupChannels(self):
@@ -203,10 +202,3 @@ class ClipBot ():
             if len(list(value)) > 0:
                 results += channel.getVideos(list(value))
         return results
-
-if __name__ == "__main__":
-    bot = ClipBot()
-    bot.setupConfig()
-    bot.setupChannels()
-
-    bot.clipVideo(59635827, 1039871181)
