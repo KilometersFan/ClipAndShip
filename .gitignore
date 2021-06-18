@@ -351,3 +351,4 @@ dist/
 build/
 twitch/
 TwitchAnalyzer.spec
+*egg-info/
