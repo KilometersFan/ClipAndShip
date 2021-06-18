@@ -343,6 +343,7 @@ data/
 data/channels/
 web/exported/
 *png
+*mp4
 twitch-app/
 .DS_Store
 web/exported/*
