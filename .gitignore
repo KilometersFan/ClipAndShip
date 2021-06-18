@@ -346,7 +346,7 @@ web/exported/
 twitch-app/
 .DS_Store
 web/exported/*
-ClipBot/config/
+config/
 dist/
 build/
 twitch/
