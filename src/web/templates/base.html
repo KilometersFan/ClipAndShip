@@ -69,6 +69,29 @@
             }
             {% endblock %}
         }
+        eel.expose(downloadHandler)
+        function downloadHandler(response) {
+            console.log(response);
+            if (response) {
+                const row = $(`#start-${response["start"]}-end-${response["end"]}`);
+                const btn = $(`#start-${response["start"]}-end-${response["end"]}-btn`);
+                btn.addClass("btn-secondary");
+                btn.removeClass("btn-primary");
+                btn.prop("disabled", true);
+                row.css('background-color', '#5E17EB');
+                setTimeout(function(){
+                    if (selectedRow.attr('id') === row.attr('id')) {
+                        row.css('background-color', '#33b1ff');
+                    }
+                    else {
+                        row.css('background-color', 'inherit');
+                    }
+                }, 1500);
+            }
+            else {
+                console.log("No response after download");
+            }
+        }
     </script>
 </body>
 </html>

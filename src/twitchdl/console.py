@@ -15,37 +15,6 @@ Command = namedtuple("Command", ["name", "description", "arguments"])
 
 CLIENT_WEBSITE = 'https://github.com/ihabunek/twitch-dl'
 
-
-def time(value):
-    """Parse a time string (hh:mm or hh:mm:ss) to number of seconds."""
-    parts = [int(p) for p in value.split(":")]
-
-    if not 2 <= len(parts) <= 3:
-        raise ArgumentTypeError()
-
-    hours = parts[0]
-    minutes = parts[1]
-    seconds = parts[2] if len(parts) > 2 else 0
-
-    if hours < 0 or not (0 <= minutes <= 59) or not (0 <= seconds <= 59):
-        raise ArgumentTypeError()
-
-    return hours * 3600 + minutes * 60 + seconds
-
-
-def limit(value):
-    """Validates the number of videos to fetch."""
-    try:
-        value = int(value)
-    except ValueError:
-        raise ArgumentTypeError("must be an integer")
-
-    if not 1 <= int(value) <= 100:
-        raise ArgumentTypeError("must be between 1 and 100")
-
-    return value
-
-
 COMMANDS = [
     Command(
         name="download",
@@ -63,13 +32,21 @@ COMMANDS = [
             }),
             (["-s", "--start"], {
                 "help": "Download video from this time (hh:mm or hh:mm:ss)",
-                "type": time,
+                "type": int,
                 "default": None,
             }),
             (["-e", "--end"], {
                 "help": "Download video up to this time (hh:mm or hh:mm:ss)",
-                "type": time,
+                "type": int,
                 "default": None,
+            }),
+            (["-ch", "--channel"], {
+                "help": "channel ID",
+                "type": str,
+            }),
+            (["-c", "--category"], {
+                "help": "category type",
+                "type": str,
             }),
             (["-f", "--format"], {
                 "help": "Video format to convert into, passed to ffmpeg as the "
@@ -134,7 +111,7 @@ def get_parser():
 def main():
     parser = get_parser()
     args = parser.parse_args()
-
+    print(args)
     if "func" not in args:
         parser.print_help()
         return
@@ -152,6 +129,7 @@ def main():
         for err in e.errors:
             print_err("*", err["message"])
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

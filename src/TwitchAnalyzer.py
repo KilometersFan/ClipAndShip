@@ -20,7 +20,6 @@ bot = None
 videoThreads = {}
 notification = False
 path = os.getcwd()
-print(path)
 
 @eel.expose
 def initClipBot():
@@ -316,6 +315,17 @@ def getVideoResults(channel_id, video_id):
 			print(e.args)
 			print("Exception!")
 			return {"error": "Unable to read file"}
+	if os.path.exists(f"clips/{channel_id}/{video_id}/"):
+		downloaded_video_clips = []
+		for category in channel.getCategories():
+			if os.path.exists(f"clips/{channel_id}/{video_id}/{category.getType()}/"):
+				clip_names = [f.name.split(".")[0] for f in os.scandir(f"clips/{channel_id}/{video_id}/{category.getType()}/") if not f.is_dir()]
+				for name in clip_names:
+					_, _, start, end = name.split("_")
+					downloaded_video_clips.append(f"{start}-{end}")
+		results["downloaded"] = downloaded_video_clips
+	else:
+		results["downloaded"] = []
 	return results
 
 @eel.expose
@@ -352,34 +362,31 @@ def resetNotificationCount():
 	eel.videoHandler(notification)
 
 @eel.expose
-def downloadClip(video_id, start, end):
+def downloadClip(channel_id, video_id, category, start, end):
 	if end <= start:
 		print("Invalid clip params.")
 		return {"status": "400"}
-	download_thread = threading.Thread(target=clipVideoHelper, args=(video_id, start, end), daemon=True)
+	download_thread = threading.Thread(target=invoke_twitchdl, args=(channel_id, video_id, category, start, end), daemon=True)
 	download_thread.start()
 
 
-def download_clip_helper(video_id, start, end):
-	manager = Manager()
-	response = manager.dict()
-	p = Process(target=invoke_twitchdl, args=(response, video_id, start, end))
-	p.start()
-	p.join()
-	return response
-
-
-def invoke_twitchdl(response, video_id, start, end):
-	return_val = subprocess.run(["python3", "twitchdl/console.py", "download", video_id,
-								 "--overwrite", "--format", "mp4", "--start", start, "--end", end],
+def invoke_twitchdl(channel_id, video_id, category, start, end):
+	response = {"start": start, "end": end, "video_id": video_id}
+	return_val = subprocess.run(["python3", "twitchdl/console.py", "download", video_id, "--channel", str(channel_id),
+								 "--overwrite", "--format", "mp4", "--start", str(start), "--end", str(end), "--category", category],
 								stderr=subprocess.STDOUT, universal_newlines=True)
-	print(return_val.returncode)
 	if return_val.returncode != 0:
-		print(f"Download failed for clip at {start} to {end} for video {video_id}")
+		msg = f"Download failed for clip at {start} to {end} for video {video_id}"
+		print(msg)
 		response["status"] = 500
+		response["msg"] = msg
 	else:
-		print(f"Successfully downloaded clip at {start} to {end} for video {video_id}")
+		msg = f"Successfully downloaded clip at {start} to {end} for video {video_id}"
+		print(msg)
 		response["status"] = 200
+		response["msg"] = msg
+	print(f"download response: {response}")
+	eel.downloadHandler(response)
 
 
 def get_preferred_mode():

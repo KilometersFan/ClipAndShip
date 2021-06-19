@@ -51,6 +51,7 @@ $(document).ready(function () {
                         });
                         eel.getVideoResults(channelId, video)(function (results) {
                             videoResults = results;
+                            console.log(videoResults);
                             populateTable();
                             $("#loading").hide();
                         });
@@ -198,7 +199,7 @@ function populateTable (defaultFilteredResults=null) {
         filteredResults = videoResults["groups"];
     }
     filteredResults.forEach((group) => {
-        let row = $("<tr>", {"class": "tableRow", "id": i});
+        let row = $("<tr>", {"class": "tableRow", "id": `start-${group["start"]}-end-${group["end"]}`});
         row.hover(function() {
             $(this).css("cursor", "grab");
         });
@@ -226,11 +227,29 @@ function populateTable (defaultFilteredResults=null) {
         });
         groupCategories.css("white-space", "pre");
         groupCategories.text(groupSimilarities.join("\n\n"));
+        let downloadCol = $("<td>", {"id": `start-${group["start"]}-end-${group["end"]}-download`});
+        let downloadBtn = $("<button>", {"class": "btn btn-primary", "id": `start-${group["start"]}-end-${group["end"]}-btn`});
+        downloadBtn.text("Download Clip");
+        let categories = Object.keys(group["similarities"]).join("_");
+        if (videoResults["downloaded"].includes(`${group["start"]}-${group["end"]}`)) {
+            downloadBtn.prop("disabled", true);
+            downloadBtn.removeClass("btn-primary");
+            downloadBtn.addClass("btn-secondary");
+        }
+        else {
+            downloadBtn.click(function() {
+                eel.downloadClip(channelId, videoId, categories, group["start"], group["end"])(function(response) {
+                    console.log(response);
+                });
+            });
+        }
+        downloadCol.append(downloadBtn);
         row.append(groupId);
         row.append(groupLength);
         row.append(groupStart);
         row.append(groupEnd);
         row.append(groupCategories);
+        row.append(downloadCol);
         $("#resultBody").append(row);
     });
 }

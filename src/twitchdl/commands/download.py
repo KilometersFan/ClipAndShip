@@ -55,20 +55,25 @@ def _join_vods(playlist_path, target, overwrite):
         raise ConsoleError("Joining files failed")
 
 
-def _video_target_filename(video, format):
+def _video_target_filename(video, channel_id, format, start, end, category):
     match = re.search(r"^(\d{4})-(\d{2})-(\d{2})T", video['publishedAt'])
     date = "".join(match.groups())
 
     name = "_".join([
-        date,
         video['id'],
-        video['creator']['login'],
+        date,
+        str(start),
+        str(end),
     ])
-    filepath = f"clips/{video['id']}/{name}.{format}"
+    filepath = f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}"
     if not path.exists("clips/"):
         makedirs("clips/")
-    if not path.exists(f"clips/{video['id']}"):
-        makedirs(f"clips/{video['id']}")
+    if not path.exists(f"clips/{channel_id}/"):
+        makedirs(f"clips/{channel_id}/")
+    if not path.exists(f"clips/{channel_id}/{video['id']}/"):
+        makedirs(f"clips/{channel_id}/{video['id']}/")
+    if not path.exists(f"clips/{channel_id}/{video['id']}/{category}/"):
+        makedirs(f"clips/{channel_id}/{video['id']}/{category}/")
     return filepath
 
 
@@ -79,7 +84,7 @@ def _get_vod_paths(playlist, start, end):
     for segment in playlist.segments:
         vod_end = vod_start + segment.duration
 
-        # `vod_end > start` is used here becuase it's better to download a bit
+        # `vod_end > start` is used here because it's better to download a bit
         # more than a bit less, similar for the end condition
         start_condition = not start or vod_end > start
         end_condition = not end or vod_start < end
@@ -163,7 +168,7 @@ def _download_video(video_id, args):
         return
 
     print_out("\n\nJoining files...")
-    target = _video_target_filename(video, args.format)
+    target = _video_target_filename(video, args.channel, args.format, args.start, args.end, args.category)
     _join_vods(playlist_path, target, args.overwrite)
 
     if args.keep:
