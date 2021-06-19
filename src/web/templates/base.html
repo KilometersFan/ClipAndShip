@@ -72,24 +72,44 @@
         eel.expose(downloadHandler)
         function downloadHandler(response) {
             console.log(response);
-            if (response) {
-                const row = $(`#start-${response["start"]}-end-${response["end"]}`);
-                const btn = $(`#start-${response["start"]}-end-${response["end"]}-btn`);
-                btn.addClass("btn-secondary");
-                btn.removeClass("btn-primary");
-                btn.prop("disabled", true);
-                row.css('background-color', '#5E17EB');
-                setTimeout(function(){
-                    if (selectedRow.attr('id') === row.attr('id')) {
-                        row.css('background-color', '#33b1ff');
-                    }
-                    else {
-                        row.css('background-color', 'inherit');
-                    }
-                }, 1500);
+            $("#downloadErr").text("");
+            $("#downloadSuccess").text("");
+            if (response["status"] == 200) {
+                if (response["isVOD"]) {
+                    $("#downloadVod").prop("disabled", true);
+                    $("#downloadSuccess").text(`Download for VOD successful. File is located at vods/${response["video_id"]}.mp4`);
+                }
+                else if (response["isOther"])  {
+                    $("#downloadSuccess").text(`Download for Other Clip successful. File is located at clips/${response["channel_id"]}/${response["video_id"]}/other_clips/${response["video_id"]}_${response["start"]}_${response["end"]}.mp4`);
+                }
+                else {
+                    $("#downloadSuccess").text(`Download for clip successful. File is located at clips/${response["channel_id"]}/${response["video_id"]}/${response["category"]}/${response["start"]}_${response["end"]}.mp4`);
+                    const row = $(`#start-${response["start"]}-end-${response["end"]}`);
+                    const btn = $(`#start-${response["start"]}-end-${response["end"]}-btn`);
+                    btn.empty();
+                    btn.append($("<i>", {"class": "fa fa-download"}));
+                    btn.addClass("btn-secondary");
+                    btn.removeClass("btn-primary");
+                    btn.prop("disabled", true);
+                    row.css('background-color', '#5E17EB');
+                    setTimeout(function(){
+                        if (selectedRow.attr('id') === row.attr('id')) {
+                            row.css('background-color', '#33b1ff');
+                        }
+                        else {
+                            row.css('background-color', 'inherit');
+                        }
+                    }, 1500);
+                }
             }
             else {
-                console.log("No response after download");
+                if (response["isVOD"]) {
+                    $("#downloadSuccess").prop("disabled", false);
+                }
+                else if (response["isOther"]) {
+                    $("#downloadOther").prop("disabled", false);
+                }
+                $("#downloadErr").text("Download failed");
             }
         }
     </script>

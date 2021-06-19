@@ -55,25 +55,32 @@ def _join_vods(playlist_path, target, overwrite):
         raise ConsoleError("Joining files failed")
 
 
-def _video_target_filename(video, channel_id, format, start, end, category):
-    match = re.search(r"^(\d{4})-(\d{2})-(\d{2})T", video['publishedAt'])
-    date = "".join(match.groups())
-
-    name = "_".join([
-        video['id'],
-        date,
-        str(start),
-        str(end),
-    ])
-    filepath = f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}"
-    if not path.exists("clips/"):
-        makedirs("clips/")
-    if not path.exists(f"clips/{channel_id}/"):
-        makedirs(f"clips/{channel_id}/")
-    if not path.exists(f"clips/{channel_id}/{video['id']}/"):
-        makedirs(f"clips/{channel_id}/{video['id']}/")
-    if not path.exists(f"clips/{channel_id}/{video['id']}/{category}/"):
-        makedirs(f"clips/{channel_id}/{video['id']}/{category}/")
+def _video_target_filename(video, channel_id, format, category, start=None, end=None):
+    parts = []
+    if start and end:
+        parts.extend([str(start), str(end)])
+    else:
+        parts.append(video['id'])
+    name = "_".join(parts)
+    if start and end:
+        if not path.exists("clips/"):
+            makedirs("clips/")
+        if not path.exists(f"clips/{channel_id}/"):
+            makedirs(f"clips/{channel_id}/")
+        if not path.exists(f"clips/{channel_id}/{video['id']}/"):
+            makedirs(f"clips/{channel_id}/{video['id']}/")
+        if category is not None:
+            filepath = f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}"
+            if not path.exists(f"clips/{channel_id}/{video['id']}/{category}/"):
+                makedirs(f"clips/{channel_id}/{video['id']}/{category}/")
+        else:
+            filepath = f"clips/{channel_id}/{video['id']}/other_clips/{name}.{format}"
+            if not path.exists(f"clips/{channel_id}/{video['id']}/other_clips/"):
+                makedirs(f"clips/{channel_id}/{video['id']}/other_clips/")
+    else:
+        if not path.exists("vods/"):
+            makedirs("vods/")
+        filepath = f"vods/{name}.{format}"
     return filepath
 
 
@@ -168,7 +175,7 @@ def _download_video(video_id, args):
         return
 
     print_out("\n\nJoining files...")
-    target = _video_target_filename(video, args.channel, args.format, args.start, args.end, args.category)
+    target = _video_target_filename(video, args.channel, args.format, args.category, args.start, args.end)
     _join_vods(playlist_path, target, args.overwrite)
 
     if args.keep:

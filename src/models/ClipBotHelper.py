@@ -137,8 +137,8 @@ class ClipBotHelper(object):
                         self._endTime = prevCommentEnd
                         # print(f"End - start time = {(self._endTime - self._startTime).total_seconds()}")
                         if (self._endTime - self._startTime) > 0:
-                            group["start"] = self._startTime - (self._endTime/self._startTime)/2
-                            group["end"] = self._endTime - (self._endTime/self._startTime)/4
+                            group["start"] = self._startTime - (self._endTime-self._startTime)/2
+                            group["end"] = self._endTime - (self._endTime-self._startTime)/2
                             group["emoteRate"] = group["totalFrequency"]/(group["end"] - group["start"])
                             groups.append(group.copy())
                         # print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
@@ -181,9 +181,9 @@ class ClipBotHelper(object):
                 avgEmotesPerGroup = sum(group["totalFrequency"] for group in groups)/totalGroups
                 avgLengthPerGroup = sum((group["end"] - group["start"]) for group in groups) / totalGroups
                 filteredGroups = list(filter(lambda group:
-                                             group["totalFrequency"] > 1.25 * avgEmotesPerGroup
-                                             and (group["end"] - group["start"]) > 1.25 * avgLengthPerGroup
-                                             and group["emoteRate"] > 1.25 * avgEmotesPerGroup/avgLengthPerGroup,
+                                             group["totalFrequency"] > 1 * avgEmotesPerGroup
+                                             and (group["end"] - group["start"]) > 1 * avgLengthPerGroup
+                                             and group["emoteRate"] > 1 * avgEmotesPerGroup/avgLengthPerGroup,
                                              groups))
                 print(f"Total number of groups found after first filter = {len(filteredGroups)}")
                 end = time.time()
@@ -201,14 +201,10 @@ class ClipBotHelper(object):
                         group["graph_y"] = {}
                     for category in categories:
                         emotesInCategory = self._channel.getCategory(category).getEmotes()
-                        # print(f"Group Emotes {' '.join(group['emoteSet'])}, Category Emotes: {' '.join(emotesInCategory)}")
                         intersection = group["emoteSet"].intersection(emotesInCategory)
                         union = group["emoteSet"].union(emotesInCategory)
                         similarity = len(intersection)/float(len(union))
-                        # print(f"Number of category emotes in the group: {sum(group['emoteFrequency'][emote] for emote in group['emoteFrequency'].keys() if emote in emotesInCategory)}")
                         weight = sum(group["emoteFrequency"][emote] for emote in group["emoteFrequency"].keys() if emote in emotesInCategory)/group["totalFrequency"]
-                        # print(f"Similarity: {similarity}, Weight: {weight}, Weighted Similarity: {similarity * weight}")
-                        # print("*****************************************")
                         if similarity * weight > 0:
                             group["similarities"][category] = round(similarity, 3)
                         for i,comment in enumerate(group["comments"]):
