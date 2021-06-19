@@ -1,3 +1,6 @@
+"""
+    Credits: twitch-dl by ihabunek https://github.com/ihabunek/twitch-dl
+"""
 import os
 import requests
 
@@ -6,8 +9,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from functools import partial
 from requests.exceptions import RequestException
-from src.vod_downloads.output import print_out
-from src.vod_downloads.utils import format_size, format_duration
+from src.twitchdl.output import print_out
+from src.twitchdl.utils import format_size, format_duration
 
 
 CHUNK_SIZE = 1024

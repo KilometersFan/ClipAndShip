@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+    Credits: twitch-dl by ihabunek https://github.com/ihabunek/twitch-dl
+"""
 
 import json
 import sys
 import re
 
-import src.vod_downloads.utils as utils
+import src.twitchdl.utils as utils
 
 
 START_CODES = {

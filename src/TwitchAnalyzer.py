@@ -8,9 +8,11 @@ import time
 import threading
 import multiprocessing
 import base64
+import subprocess
 import pandas as pd
 import plotly.express as px
 import eel.chrome, eel.edge
+from multiprocessing import Process, Manager
 from models.ClipBot import ClipBot
 from models.Channel import Channel
 
@@ -348,6 +350,37 @@ def resetNotificationCount():
 	global notification
 	notification = False
 	eel.videoHandler(notification)
+
+@eel.expose
+def downloadClip(video_id, start, end):
+	if end <= start:
+		print("Invalid clip params.")
+		return {"status": "400"}
+	download_thread = threading.Thread(target=clipVideoHelper, args=(video_id, start, end), daemon=True)
+	download_thread.start()
+
+
+def download_clip_helper(video_id, start, end):
+	manager = Manager()
+	response = manager.dict()
+	p = Process(target=invoke_twitchdl, args=(response, video_id, start, end))
+	p.start()
+	p.join()
+	return response
+
+
+def invoke_twitchdl(response, video_id, start, end):
+	return_val = subprocess.run(["python3", "twitchdl/console.py", "download", video_id,
+								 "--overwrite", "--format", "mp4", "--start", start, "--end", end],
+								stderr=subprocess.STDOUT, universal_newlines=True)
+	print(return_val.returncode)
+	if return_val.returncode != 0:
+		print(f"Download failed for clip at {start} to {end} for video {video_id}")
+		response["status"] = 500
+	else:
+		print(f"Successfully downloaded clip at {start} to {end} for video {video_id}")
+		response["status"] = 200
+
 
 def get_preferred_mode():
 	if eel.chrome.find_path():

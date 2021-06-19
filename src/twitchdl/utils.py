@@ -1,3 +1,7 @@
+"""
+    Credits: twitch-dl by ihabunek https://github.com/ihabunek/twitch-dl
+"""
+
 import re
 import unicodedata
 

@@ -339,17 +339,18 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# Repo specific
+*.png
+*.mp4
+.DS_Store
+twitch-app/
 data/
 data/channels/
 web/exported/
-*png
-*mp4
-twitch-app/
-.DS_Store
 web/exported/*
 config/
+clips/
 dist/
 build/
-twitch/
 TwitchAnalyzer.spec
 *egg-info/
