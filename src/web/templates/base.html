@@ -80,6 +80,9 @@
                     $("#downloadSuccess").text(`Download for VOD successful. File is located at vods/${response["video_id"]}.mp4`);
                 }
                 else if (response["isOther"])  {
+                    $("#downloadOther").prop("disabled", false);
+                    $("#downloadOtherInputStart").val("");
+                    $("#downloadOtherInputEnd").val("");
                     $("#downloadSuccess").text(`Download for Other Clip successful. File is located at clips/${response["channel_id"]}/${response["video_id"]}/other_clips/${response["video_id"]}_${response["start"]}_${response["end"]}.mp4`);
                 }
                 else {
