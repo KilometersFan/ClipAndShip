@@ -8,6 +8,7 @@ import time
 import threading
 import multiprocessing
 import base64
+import subprocess
 import pandas as pd
 import plotly.express as px
 import eel.chrome, eel.edge
@@ -18,7 +19,6 @@ bot = None
 videoThreads = {}
 notification = False
 path = os.getcwd()
-print(path)
 
 @eel.expose
 def initClipBot():
@@ -314,6 +314,18 @@ def getVideoResults(channel_id, video_id):
 			print(e.args)
 			print("Exception!")
 			return {"error": "Unable to read file"}
+	if os.path.exists(f"clips/{channel_id}/{video_id}/"):
+		downloaded_video_clips = []
+		for category in channel.getCategories():
+			if os.path.exists(f"clips/{channel_id}/{video_id}/{category.getType()}/"):
+				clip_names = [f.name.split(".")[0] for f in os.scandir(f"clips/{channel_id}/{video_id}/{category.getType()}/") if not f.is_dir()]
+				for name in clip_names:
+					start, end = name.split("_")
+					downloaded_video_clips.append(f"{start}-{end}")
+		results["downloaded"] = downloaded_video_clips
+	else:
+		results["downloaded"] = []
+	results["downloadedVOD"] = os.path.exists(f"vods/{video_id}.mp4")
 	return results
 
 @eel.expose
@@ -348,6 +360,52 @@ def resetNotificationCount():
 	global notification
 	notification = False
 	eel.videoHandler(notification)
+
+@eel.expose
+def downloadClip(channel_id, video_id, category, start, end):
+	if end <= start:
+		print("Invalid clip params.")
+		return {"status": "400"}
+	download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, channel_id, category, start, end), daemon=True)
+	download_thread.start()
+
+@eel.expose
+def downloadVod(video_id):
+	print(video_id)
+	download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, None, None), daemon=True)
+	download_thread.start()
+
+def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
+	print(start, end, video_id, channel_id)
+	response = {"start": start, "end": end, "video_id": video_id, "channel_id": channel_id, "category": category}
+	if start == -1 and end == 0:
+		response["isVOD"] = True
+	elif not category:
+		response["isOther"] = True
+	cmd = ["python3", "twitchdl/console.py", "download", video_id, "--overwrite", "--format", "mp4"]
+	if channel_id is not None:
+		cmd.extend(["--channel", str(channel_id)])
+	if start >= 0:
+		cmd.extend(["--start", str(start)])
+	if end > 0:
+		cmd.extend(["--end", str(end)])
+	if category is not None:
+		cmd.extend(["--category", category])
+	print(cmd)
+	return_val = subprocess.run(cmd, stderr=subprocess.STDOUT, universal_newlines=True)
+	if return_val.returncode != 0:
+		msg = f"Download failed for clip at {start} to {end} for video {video_id}"
+		print(msg)
+		response["status"] = 500
+		response["msg"] = msg
+	else:
+		msg = f"Successfully downloaded clip at {start} to {end} for video {video_id}"
+		print(msg)
+		response["status"] = 200
+		response["msg"] = msg
+	print(f"download response: {response}")
+	eel.downloadHandler(response)
+
 
 def get_preferred_mode():
 	if eel.chrome.find_path():

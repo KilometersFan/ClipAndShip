@@ -24,6 +24,7 @@ $(document).ready(function () {
                     let video = searchParams.get("video");
                     videoId = video;
                     channelId = channel;
+                    $("#channelVideoTitle").text(`Video ID: ${videoId}`);
                     $("#channelBtn").prop("href", `channel.html?id=${channelId}`);
                     $("#videoBtn").prop("href", `video.html?id=${channelId}`);
                     $("#vod").attr("src", `https://player.twitch.tv/?video=${video}&parent=localhost&time=0h0m0s&autoplay=false`);
@@ -51,8 +52,15 @@ $(document).ready(function () {
                         });
                         eel.getVideoResults(channelId, video)(function (results) {
                             videoResults = results;
+                            console.log(videoResults);
                             populateTable();
                             $("#loading").hide();
+                            if (videoResults["downloadedVOD"] === true){
+                                $("#downloadVod").prop("disabled", true);
+                                $("#downloadVod").click(function () {
+                                    return;
+                                })
+                            }
                         });
                     });
                 }
@@ -164,7 +172,49 @@ $("#playSelected").click(function () {
     }
     $("#vod").attr("src", src);
 });
-
+$("#downloadVod").click(function (){
+    eel.downloadVod(videoId);
+    $(this).prop("disabled", true);
+});
+$("#downloadOther").click(function () {
+    $("#downloadOther").prop("disabled", true);
+    const start = $("#downloadOtherInputStart").val();
+    const end = $("#downloadOtherInputEnd").val();
+    if (start && end) {
+        $("#downloadErr").text("");
+        parsedStart = parseSeconds(start);
+        parsedEnd = parseSeconds(end);
+        if (parsedStart >= 0 && parsedEnd >= 0) {
+            eel.downloadClip(channelId, videoId, null, parseSeconds(start), parseSeconds(end));
+        }
+        else {
+            $("#downloadErr").text("Start and/or End time(s) are invalid");
+            $(this).prop("disabled", false);
+        }
+    }
+    else {
+        $(this).prop("disabled", false);
+        $("#downloadOtherInputStart").val("");
+        $("#downloadOtherInputEnd").val("");
+        $("#downloadErr").text("Start and End times must both be specified");
+    }
+});
+function parseSeconds(timestamp) {
+    const parts = timestamp.split(":");
+    if (parts.length !== 3) {
+        return -1;
+    }
+    const hours = parseInt(parts[0]);
+    const minutes = parseInt(parts[1]);
+    const seconds = parseInt(parts[2]);
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+        return -1;
+    }
+    if (hours < 0 || !(minutes <= 59 && minutes >= 0) || !(seconds <= 59 && seconds >= 0)) {
+        return -1;
+    }
+    return hours * 3600 + minutes * 60 + seconds
+}
 function createTimestamp(seconds) {
     let hours = (seconds/3600>>0);
     let min = ((seconds/60) % 60 >>0)
@@ -198,7 +248,7 @@ function populateTable (defaultFilteredResults=null) {
         filteredResults = videoResults["groups"];
     }
     filteredResults.forEach((group) => {
-        let row = $("<tr>", {"class": "tableRow", "id": i});
+        let row = $("<tr>", {"class": "tableRow", "id": `start-${group["start"]}-end-${group["end"]}`});
         row.hover(function() {
             $(this).css("cursor", "grab");
         });
@@ -226,11 +276,29 @@ function populateTable (defaultFilteredResults=null) {
         });
         groupCategories.css("white-space", "pre");
         groupCategories.text(groupSimilarities.join("\n\n"));
+        let downloadCol = $("<td>", {"id": `start-${group["start"]}-end-${group["end"]}-download`});
+        let downloadBtn = $("<button>", {"class": "btn btn-primary", "id": `start-${group["start"]}-end-${group["end"]}-btn`});
+        downloadBtn.append($("<i>", {"class": "fa fa-download"}));
+        let categories = Object.keys(group["similarities"]).join("_");
+        if (videoResults["downloaded"].includes(`${group["start"]}-${group["end"]}`)) {
+            downloadBtn.prop("disabled", true);
+            downloadBtn.removeClass("btn-primary");
+            downloadBtn.addClass("btn-secondary");
+        }
+        else {
+            downloadBtn.click(function() {
+                eel.downloadClip(channelId, videoId, categories, group["start"], group["end"]);
+                downloadBtn.empty()
+                downloadBtn.append($("<i>", {"class": "fa fa-spinner"}));
+            });
+        }
+        downloadCol.append(downloadBtn);
         row.append(groupId);
         row.append(groupLength);
         row.append(groupStart);
         row.append(groupEnd);
         row.append(groupCategories);
+        row.append(downloadCol);
         $("#resultBody").append(row);
     });
 }
