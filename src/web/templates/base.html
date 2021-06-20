@@ -57,17 +57,20 @@
     <script type="text/javascript">
         eel.expose(videoHandler);
         function videoHandler(response) {
-            if (response) {
+            console.log(response);
+            if (response == true) {
                 $("#notificationCount").text("New");
             }
             else {
                 $("#notificationCount").text();
             }
-            {% block videoHandler %}
+            console.log("Updating videos");
             if (updateVideos) {
-                setTimeout(updateVideos, 500);
+                setTimeout(updateVideos, 1000);
             }
-            {% endblock %}
+            else {
+                console.log("Can't update videos");
+            }
         }
         eel.expose(downloadHandler)
         function downloadHandler(response) {
@@ -116,5 +119,7 @@
             }
         }
     </script>
+{% block videoHandler %}
+{% endblock %}
 </body>
 </html>

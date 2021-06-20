@@ -289,10 +289,12 @@ def clipVideo(channel_id, id=None):
 
 def clipVideoHelper(channel_id, id=None):
 	bot.clipVideo(channel_id, id)
+	print("Finished clipping video")
 	print("###########################")
+	eel.videoHandler(True)
 	global notification
 	notification = True
-	eel.videoHandler(notification)
+
 
 @eel.expose
 def getVideoResults(channel_id, video_id):
