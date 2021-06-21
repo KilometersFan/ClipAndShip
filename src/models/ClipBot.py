@@ -2,12 +2,20 @@ import configparser
 import twitch
 import requests
 import json
+import sys
 import shutil
 import os
 from multiprocessing import Process, Manager
 from .Channel import Channel
 from .Category import Category
 from .ClipBotHelper import ClipBotHelper
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 
 class ClipBot ():
     """Bot that helps find clips in a twitch VOD by analyzing chat messages"""
@@ -22,8 +30,7 @@ class ClipBot ():
         self._commentProcessing = {}
         self._helpers = {}
         self._accessToken = None
-        self._path = os.getcwd()
-    
+
     # return twitch Helix object
     def getHelix(self):
         return self._helix
@@ -31,7 +38,7 @@ class ClipBot ():
     # set up helix and twitch related stuff
     def setupConfig(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read(f"{self._path}/config/config.ini")
+        cfg.read(resource_path("config.ini"))
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -60,7 +67,7 @@ class ClipBot ():
     # refresh access token when needed
     def refreshToken(self):
         cfg = configparser.ConfigParser()
-        cfg.read(f"{self._path}/config/config.ini")
+        cfg.read(resource_path("config.ini"))
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -91,10 +98,10 @@ class ClipBot ():
             "categories": [category.getType() for category in channel.getCategories()],
         }
 
-    # read from channls.ini all the info from user's channels
+    # read from channels.ini all the info from user's channels
     def setupChannels(self):
         cfg = configparser.ConfigParser()
-        cfg.read("config/channels.ini")
+        cfg.read(resource_path("channels.ini"))
         for section in cfg.sections():
             validToken = False
             while not validToken:
@@ -155,8 +162,8 @@ class ClipBot ():
     def removeChannel(self, channel_id):
         if self._channels.get(channel_id, None):
             del self._channels[channel_id]
-            if os.path.exists(f"{self._path}/data/channels/{channel_id}"):
-                shutil.rmtree(f"{self._path}/data/channels/{channel_id}")
+            if os.path.exists(resource_path(f"data/channels/{channel_id}")):
+                shutil.rmtree(resource_path(f"data/channels/{channel_id}"))
         else:
             print("Channel doesn't exist.")
             raise Exception("Channel doesn't exist.")

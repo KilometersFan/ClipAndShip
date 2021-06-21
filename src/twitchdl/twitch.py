@@ -5,8 +5,8 @@ Credits: twitch-dl by ihabunek https://github.com/ihabunek/twitch-dl
 
 import requests
 
-from src.twitchdl import CLIENT_ID
-from src.twitchdl.exceptions import ConsoleError
+CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
+import exceptions
 
 
 class GQLError(Exception):
@@ -21,7 +21,7 @@ def authenticated_post(url, data=None, json=None, headers={}):
     response = requests.post(url, data=data, json=json, headers=headers)
     if response.status_code == 400:
         data = response.json()
-        raise ConsoleError(data["message"])
+        raise exceptions.ConsoleError(data["message"])
 
     response.raise_for_status()
 

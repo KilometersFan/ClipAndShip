@@ -7,6 +7,13 @@ from json import dump, load
 from datetime import datetime
 from .Channel import Channel
 
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
 class ClipBotHelper(object):
     """ClipBotHelper that handles individual channels and their videos"""
     def __init__(self, channel: Channel, clipBot):
@@ -15,8 +22,7 @@ class ClipBotHelper(object):
             clipBot.setUpConfig()
         self._channel = channel
         self._helix = clipBot.getHelix()
-        path = os.getcwd()
-        self._pathName = f"{path}/data/channels/{self._channel.getId()}"
+        self._pathName = resource_path(f"data/channels/{self._channel.getId()}")
         self._startTime = None
         self._endTime = None
         self._processingGroup = False

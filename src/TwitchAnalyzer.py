@@ -1,5 +1,6 @@
 import eel
 import os
+import sys
 import shutil
 import configparser
 import traceback
@@ -18,7 +19,12 @@ from models.Channel import Channel
 bot = None
 videoThreads = {}
 notification = False
-path = os.getcwd()
+
+
+def resource_path(relative_path):
+	""" Get absolute path to resource, works for dev and for PyInstaller """
+	base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+	return os.path.join(base_path, relative_path)
 
 @eel.expose
 def initClipBot():
@@ -35,7 +41,7 @@ def validBot():
 @eel.expose
 def checkCredentials():
 	cfg = configparser.ConfigParser()
-	cfg.read("config/config.ini")
+	cfg.read(resource_path('config.ini'))
 	if cfg:
 		if cfg.has_section("settings"):
 			if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
@@ -47,22 +53,20 @@ def checkCredentials():
 
 @eel.expose
 def enterCredentials(client_id, client_secret):
-	if not os.path.exists(f"{path}/config/"):
-		os.makedirs(f"{path}/config/")
 	cfg = configparser.ConfigParser()
 	cfg["settings"] = {}
 	cfg["settings"]["client_id"] = client_id
 	cfg["settings"]["secret"] = client_secret
-	with open("config/config.ini", "w") as configFile:
+	with open(resource_path('config.ini'), "w") as configFile:
 		cfg.write(configFile)
 
 @eel.expose
 def addChannel(id):
-	if not os.path.exists(f"{path}/config"):
-		os.makedirs(f"{path}/config")
+	if not os.path.exists(resource_path('channels.ini')):
+		return "Config file not found."
 	try:
 		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
+		cfg.read(resource_path('channels.ini'))
 		global bot
 		if bot.getChannel(int(id)):
 			print("Channel already exists.")
@@ -70,7 +74,7 @@ def addChannel(id):
 		newChannel = Channel(int(id), bot.getHelix(), bot)
 		bot.addChannel(newChannel)
 		cfg.add_section(id)
-		with open(f"{path}/config/channels.ini", "w") as configFile:
+		with open(resource_path('channels.ini'), "w") as configFile:
 			cfg.write(configFile)
 		return ""
 	except Exception as e:
@@ -79,16 +83,16 @@ def addChannel(id):
 
 @eel.expose
 def removeChannels(channels):
-	if not os.path.exists(f"{path}/config/"):
+	if not os.path.exists(resource_path('channels.ini')):
 		return "Config file not found."
 	try:
 		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
+		cfg.read(f"channels.ini")
 		global bot
 		for channel in channels:
 			cfg.remove_section(channel)
 			bot.removeChannel(int(channel))
-		with open(f"{path}/config/channels.ini", "w") as configFile:
+		with open(resource_path('channels.ini'), "w") as configFile:
 			cfg.write(configFile)
 		return ""
 	except Exception as e:
@@ -118,8 +122,8 @@ def searchChannel(channel_name):
 
 @eel.expose
 def addCategory(id, type, emotes):
-	if not os.path.exists("config"):
-		return "Can't find config file."
+	if not os.path.exists(resource_path('channels.ini')):
+		return "Config file not found."
 	try:
 		type = type.lower()
 		global bot
@@ -127,9 +131,9 @@ def addCategory(id, type, emotes):
 		channel.addCategory(type, True, id)
 		channel.addEmotesToCategory(type, emotes)
 		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
+		cfg.read(resource_path('channels.ini'))
 		cfg.set(str(id), type, ",".join(emotes))
-		with open(f"{path}/config/channels.ini", "w") as configFile:
+		with open(resource_path('channels.ini'), "w") as configFile:
 			cfg.write(configFile)
 		return ""
 	except Exception as e:
@@ -137,11 +141,11 @@ def addCategory(id, type, emotes):
 
 @eel.expose
 def editCategory(id, type, emotes_add, emotes_left):
-	if not os.path.exists(f"{path}/config"):
-		return "Can't find config file."
+	if not os.path.exists(resource_path('channels.ini')):
+		return "Config file not found."
 	try:
 		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
+		cfg.read(resource_path('channels.ini'))
 		type = type.lower()
 		global bot
 		channel = bot.getChannel(id, False)
@@ -152,7 +156,7 @@ def editCategory(id, type, emotes_add, emotes_left):
 		channel.rmvEmotesFromCategory(type, set(emotes_left))
 		channel.addEmotesToCategory(type, set(emotes_add))
 		cfg.set(str(id), type, ",".join(list(emotesToAdd.union(emotesLeft))))
-		with open(f"{path}/config/channels.ini", "w") as configFile:
+		with open(resource_path('channels.ini'), "w") as configFile:
 			cfg.write(configFile)
 		return ""
 	except Exception as e:
@@ -160,18 +164,18 @@ def editCategory(id, type, emotes_add, emotes_left):
 
 @eel.expose
 def deleteCategory(id, types):
-	if not os.path.exists(f"{path}/config"):
-		return 
+	if not os.path.exists(resource_path('channels.ini')):
+		return "Config file not found."
 	try:
 		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
+		cfg.read(resource_path('channels.ini'))
 		global bot
 		channel = bot.getChannel(id, False)
 		for type in types:
 			type = type.lower()
 			channel.removeCategory(type)
 			cfg.remove_option(str(id), type)
-		with open(f"{path}/config/channels.ini", "w") as configFile:
+		with open(resource_path('channels.ini'), "w") as configFile:
 			cfg.write(configFile)
 		return ""
 	except Exception as e:
@@ -187,8 +191,8 @@ def getCategories(channel_id):
 
 @eel.expose
 def getRecommendedEmotes(channel_id, category_type, isList=False):
-	if os.path.exists(f"{path}/data/channels/{channel_id}/recommendation_data.json"):
-		with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
+	if os.path.exists(resource_path(f"data/channels/{channel_id}/recommendation_data.json")):
+		with open(resource_path(f"data/channels/{channel_id}/recommendation_data.json")) as ifile:
 			channel = getChannel(channel_id, False)
 			category = category_type if isList else channel.getCategory(category_type)
 			chain = json.load(ifile)
@@ -242,9 +246,9 @@ def getVideos(channel_id, videos = None):
 def getUserVideos(channel_id=None):
 	if channel_id:
 		try:
-			print(f"data/channels/{channel_id}")
-			if os.path.exists(f"data/channels/{channel_id}"):
-				video_ids =[ int(f.name) for f in os.scandir(f"{path}/data/channels/{channel_id}") if f.is_dir() ]
+			print(resource_path(f"data/channels/{channel_id}"))
+			if os.path.exists(resource_path(f"data/channels/{channel_id}")):
+				video_ids =[ int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir() ]
 				print(video_ids)
 				return video_ids
 			else:
@@ -255,11 +259,11 @@ def getUserVideos(channel_id=None):
 			return []
 	else:
 		try:
-			if os.path.exists("data/channels/"):
-				channel_ids =[ f.name for f in os.scandir("data/channels/") if f.is_dir() ]
+			if os.path.exists(resource_path("data/channels/")):
+				channel_ids =[ f.name for f in os.scandir(resource_path("data/channels/")) if f.is_dir() ]
 				response = {}
 				for channel_id in channel_ids:
-					response[channel_id] = [ int(f.name) for f in os.scandir(f"{path}/data/channels/{channel_id}") if f.is_dir() ]
+					response[channel_id] = [ int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir() ]
 				return response
 			else:
 				print("Channel folder not found")
@@ -272,8 +276,8 @@ def getUserVideos(channel_id=None):
 def removeVideo(channel_id, video_id):
 	video_id.strip()
 	try:
-		if os.path.exists(f"{path}/data/channels/{channel_id}/{video_id}"):
-			shutil.rmtree(f"{path}/data/channels/{channel_id}/{video_id}")
+		if os.path.exists(resource_path(f"data/channels/{channel_id}/{video_id}")):
+			shutil.rmtree(resource_path(f"data/channels/{channel_id}/{video_id}"))
 			return {"success" : "Video was successfully deleted"}
 		else:
 			print("Video file not found")
@@ -299,16 +303,16 @@ def clipVideoHelper(channel_id, id=None):
 @eel.expose
 def getVideoResults(channel_id, video_id):
 	if not video_id or not channel_id:
-		return {"error" : "Unable to process request"}
+		return {"error": "Unable to process request"}
 	global bot
 	channel = bot.getChannel(channel_id, False)
-	if not os.path.exists(f"{channel._pathName}/{video_id}"):
-		return {"error" : "Video was not processed"}
+	if not os.path.exists(resource_path(f"{channel._pathName}/{video_id}")):
+		return {"error": "Video was not processed"}
 	results = {}
 	for category in channel.getCategories():
 		try:
-			if os.path.exists(f"{channel._pathName}/{video_id}/data.json") :
-				with open(f"{channel._pathName}/{video_id}/data.json") as ifile:
+			if os.path.exists(resource_path(f"{channel._pathName}/{video_id}/data.json")):
+				with open(resource_path(f"{channel._pathName}/{video_id}/data.json")) as ifile:
 					results = json.load(ifile)
 			else:
 				results[category.getType()] = {}
@@ -316,18 +320,18 @@ def getVideoResults(channel_id, video_id):
 			print(e.args)
 			print("Exception!")
 			return {"error": "Unable to read file"}
-	if os.path.exists(f"clips/{channel_id}/{video_id}/"):
+	if os.path.exists(resource_path(f"clips/{channel_id}/{video_id}/")):
 		downloaded_video_clips = []
 		for category in channel.getCategories():
-			if os.path.exists(f"clips/{channel_id}/{video_id}/{category.getType()}/"):
-				clip_names = [f.name.split(".")[0] for f in os.scandir(f"clips/{channel_id}/{video_id}/{category.getType()}/") if not f.is_dir()]
+			if os.path.exists(resource_path(f"clips/{channel_id}/{video_id}/{category.getType()}/")):
+				clip_names = [f.name.split(".")[0] for f in os.scandir(resource_path(f"clips/{channel_id}/{video_id}/{category.getType()}/")) if not f.is_dir()]
 				for name in clip_names:
 					start, end = name.split("_")
 					downloaded_video_clips.append(f"{start}-{end}")
 		results["downloaded"] = downloaded_video_clips
 	else:
 		results["downloaded"] = []
-	results["downloadedVOD"] = os.path.exists(f"vods/{video_id}.mp4")
+	results["downloadedVOD"] = os.path.exists(resource_path(f"vods/{video_id}.mp4"))
 	return results
 
 @eel.expose
@@ -337,8 +341,9 @@ def getProcessingVideos():
 
 @eel.expose
 def csvExport(video_id, data):
-	print(data)
-	with open(f"{path}/web/exported/{video_id}_groups.csv", "w") as ofile:
+	if not os.path.exists(resource_path("web/exported/")):
+		os.makedirs(resource_path("web/exported/"))
+	with open(resource_path(f"web/exported/{video_id}_groups.csv"), "w") as ofile:
 		for group in data:
 			line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
 			print(line)
@@ -349,10 +354,10 @@ def csvExport(video_id, data):
 def getGraph(graph_data):
 	df = pd.DataFrame(graph_data, columns=["category", "time", "instances"])
 	fig = px.scatter(df, x="time", y="instances", color="category",
-					 labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
+					 labels={"time": "Time (s)", "instances": "Category emote usage per comment", "category": "Category"},
 					 width=450, height=350)
 	fig.update_layout(
-		margin=dict(l=0,r=0,t=0,b=0)
+		margin={"l": 0, "r": 0, "t": 0, "b": 0}
 	)
 	img_bytes = fig.to_image(format="png")
 	return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
@@ -384,7 +389,7 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
 		response["isVOD"] = True
 	elif not category:
 		response["isOther"] = True
-	cmd = ["python3", "twitchdl/console.py", "download", video_id, "--overwrite", "--format", "mp4"]
+	cmd = ["python3", resource_path("twitchdl/console.py"), "download", video_id, "--overwrite", "--format", "mp4"]
 	if channel_id is not None:
 		cmd.extend(["--channel", str(channel_id)])
 	if start >= 0:
