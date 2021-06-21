@@ -342,6 +342,7 @@ healthchecksdb
 # Repo specific
 *.png
 *.mp4
+*.pyo
 .DS_Store
 twitch-app/
 data/

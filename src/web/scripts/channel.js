@@ -4,6 +4,7 @@ let twitchEmotes;
 let bttvEmotes;
 let ffEmotes;
 let userCategories = [];
+let globalData;
 function hasWhiteSpace(s) {
     return /\s/g.test(s);
 }
@@ -297,9 +298,10 @@ function populateCategoryEmotes(data) {
         });
     }
     $("#categoryLoading").hide();
-    populateEmotes("twitchEmotes", data);
-    populateEmotes("ffEmotes", data);
-    populateEmotes("bttvEmotes", data);
+    globalData = data;
+    populateEmotes("twitchEmotes", globalData);
+    populateEmotes("ffEmotes", globalData);
+    populateEmotes("bttvEmotes", globalData);
 
 }
 function setEmotes(emotes) {
@@ -441,6 +443,9 @@ $(document).ready(function () {
         }
     });
     $("#addCategoryBtn").click(function () {
+        populateEmotes("twitchEmotes", globalData);
+        populateEmotes("ffEmotes", globalData);
+        populateEmotes("bttvEmotes", globalData);
         $("#categoryForm").trigger("reset");
         $(".error").hide();
     });
