@@ -10,24 +10,17 @@ class Category(object):
     def get_channel_id(self):
         return self._channel_id
 
-    # sets the type for this category
-    def set_type(self, new_type):
-        self._name = new_type
-
     # get the type of this category
     def get_type(self):
         return self._name
 
+    # sets the type for this category
+    def set_type(self, new_type):
+        self._name = new_type
+
     # add emote to category
     def add_emote(self, emote):
         self._emotes.add(emote.lower())
-    
-    # reset emotes and add the ones in emotes param
-    def set_emotes(self, emotes):
-        print("Set emotes!")
-        self.clear_emotes()
-        for emote in emotes:
-            self.add_emote(emote)
 
     # erase all emotes in this category
     def clear_emotes(self):
@@ -39,3 +32,10 @@ class Category(object):
             return self._emotes
         emotes = sorted(list(self._emotes), key=str.lower)
         return emotes
+
+    # reset emotes and add the ones in emotes param
+    def set_emotes(self, emotes):
+        print("Set emotes!")
+        self.clear_emotes()
+        for emote in emotes:
+            self.add_emote(emote)

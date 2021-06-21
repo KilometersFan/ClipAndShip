@@ -11,7 +11,11 @@ from .ClipBotHelper import ClipBotHelper
 
 
 class ClipBot:
-    """Bot that helps find clips in a twitch VOD by analyzing chat messages"""
+    """
+        Bot that handles connecting to Twitch API, configuring/modifying channels and categories,
+        and retrieving/processing videos.
+
+    """
 
     def __init__(self):
         self._oauth_url = "https://id.twitch.tv/oauth2/"
@@ -82,19 +86,6 @@ class ClipBot:
             except requests.exceptions.Timeout:
                 print("Request for refresh token timed out")
 
-    # add channel to user list
-    def add_channel(self, channel):
-        channel.populate_emotes()
-        self._channels[channel.get_id()] = channel
-        self._channel_info[channel.get_id()] = {
-            "name": channel.get_name(),
-            "id": channel.get_id(),
-            "desc": channel.get_desc(),
-            "imgUrl": channel.get_img(),
-            "emoteMap": channel.get_emotes_map(),
-            "categories": [category.get_type() for category in channel.get_categories()],
-        }
-
     # read from channls.ini all the info from user's channels
     def setup_channels(self):
         cfg = configparser.ConfigParser()
@@ -122,11 +113,39 @@ class ClipBot:
                         break
         self.has_channels = True
 
+    # add channel to user list
+    def add_channel(self, channel):
+        channel.populate_emotes()
+        self._channels[channel.get_id()] = channel
+        self._channel_info[channel.get_id()] = {
+            "name": channel.get_name(),
+            "id": channel.get_id(),
+            "desc": channel.get_desc(),
+            "imgUrl": channel.get_img(),
+            "emoteMap": channel.get_emotes_map(),
+            "categories": [category.get_type() for category in channel.get_categories()],
+        }
+
+    # remove channel from user's list
+    def remove_channel(self, channel_id):
+        if self._channels.get(channel_id, None):
+            del self._channels[channel_id]
+            if os.path.exists(f"{self._path}/data/channels/{channel_id}"):
+                shutil.rmtree(f"{self._path}/data/channels/{channel_id}")
+        else:
+            print("Channel doesn't exist.")
+            raise Exception("Channel doesn't exist.")
+        if channel_id in self._channel_info:
+            del self._channel_info[channel_id]
+        else:
+            print("Channel doesn't exist.")
+            raise Exception("Channel doesn't exist.")
+
     # return all channels
     def get_channels(self):
         return list(self._channel_info.values())
 
-    # return a specific channl, either obejct or just dictionary with info
+    # return a specific channel, either the Channel object or just dictionary with info
     def get_channel(self, channel_id, info=True):
         if info:
             return self._channel_info.get(channel_id, None)
@@ -156,22 +175,7 @@ class ClipBot:
                 found = True
                 return {"status", 404}
 
-    # remove channel from user's list
-    def remove_channel(self, channel_id):
-        if self._channels.get(channel_id, None):
-            del self._channels[channel_id]
-            if os.path.exists(f"{self._path}/data/channels/{channel_id}"):
-                shutil.rmtree(f"{self._path}/data/channels/{channel_id}")
-        else:
-            print("Channel doesn't exist.")
-            raise Exception("Channel doesn't exist.")
-        if channel_id in self._channel_info:
-            del self._channel_info[channel_id]
-        else:
-            print("Channel doesn't exist.")
-            raise Exception("Channel doesn't exist.")
-
-    # run clip video function for channel
+    # run clip video function for channel in a new process
     def clip_video(self, channel_id, video_id):
         if self._helix:
             channel = self._channels[channel_id]

@@ -347,8 +347,8 @@ healthchecksdb
 twitch-app/
 data/
 data/channels/
-web/exported/
-web/exported/*
+src/web/exported/
+src/web/exported/*
 config/
 clips/
 dist/

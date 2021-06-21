@@ -6,6 +6,7 @@ from datetime import datetime
 from dateutil import tz
 from .Category import Category
 
+
 class Channel(object):
     """Twitch channel, stores categories set by channel"""
     def __init__(self, channel_id: int, helix, clip_bot):
@@ -56,9 +57,11 @@ class Channel(object):
         twitch_emotes = sorted(list(self._twitch_emotes), key=lambda e: e['name'].lower())
         return {"ffEmotes": ff_emotes, "bttvEmotes": bttv_emotes, "twitchEmotes": twitch_emotes}
 
+    # get emotes as a dictionary { name: url }
     def get_emotes_map(self):
         return self._name_to_emotes_map
 
+    # get all emotes as a list [ name ]
     def get_emote_names(self):
         emote_types = ["ffEmotes", "bttvEmotes", "twitchEmotes"]
         channel_emote_list = set()
@@ -108,7 +111,7 @@ class Channel(object):
             return self._categories[name]
         return None
 
-    # add emotes in param to catgeory specified by type
+    # add emotes in param to category specified by type
     def add_emotes_to_category(self, name, emotes):
         category = self._categories[name]
         if category:
@@ -142,7 +145,7 @@ class Channel(object):
     def get_desc(self):
         return self._desc
 
-    # return channel videos specifed by list of ids (if present) or the 9 most recent
+    # return channel videos 
     def get_videos(self, videos=None):
         data = []
         valid_helix = False

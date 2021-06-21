@@ -9,7 +9,9 @@ from .Channel import Channel
 
 
 class ClipBotHelper(object):
-    """ClipBotHelper that handles individual channels and their videos"""
+    """
+        ClipBotHelper that handles individual channels and processing their videos
+    """
 
     def __init__(self, channel: Channel, clip_bot):
         self._clip_bot = clip_bot
@@ -35,9 +37,11 @@ class ClipBotHelper(object):
         print(f"Beginning preprocessing of comments at {datetime.now()}")
         print("=================================================================")
         for comment in comments:
+            # get all emotes in a comment
             comment_text = comment.message.body.lower()
             split_comment = comment_text.split()
             emotes_in_comment = channel_emotes.intersection(set(split_comment))
+            # record stats about the comment and its emotes, build emote-only version of comment
             if len(emotes_in_comment) and comment.commenter.display_name not in known_bots:
                 regex = re.compile('|'.join(emotes_in_comment))
                 all_emotes_in_comment = regex.findall(comment_text)
@@ -54,18 +58,20 @@ class ClipBotHelper(object):
                     "created": created_at_time,
                 }
                 processed_comments.append(processed_comment)
+                # update global stats info for later
                 total_comments += 1
                 if prev_comment_created:
                     total_comment_diff += created_at_time - prev_comment_created
                 prev_comment_created = created_at_time
                 total_emotes += len(emotes_in_comment)
         end = time.time()
+        # calculate rate of comments
         rate = total_comments / total_comment_diff
         print(f"RATE: {rate}")
         print("=================================================================")
         print(f"Finished preprocessing of comments at {datetime.now()}. Took {end - start} seconds")
         print(f"Total comments in processed comments: {total_comments}")
-        # Update/Create Markov chain for recommendations
+        # load markov chain or make one
         if not os.path.exists(self._path_name):
             os.makedirs(self._path_name)
         if os.path.exists(f"{self._path_name}/recommendation_data.json"):
@@ -80,6 +86,7 @@ class ClipBotHelper(object):
         else:
             chain["totalEmotes"] = total_emotes
         prev_words = []
+        # update markov chain for recommendations
         for comment in processed_comments:
             words = list(comment["emoteSet"])
             print(words)
@@ -103,7 +110,6 @@ class ClipBotHelper(object):
             dump(chain, ofile, separators=(",", ":"), indent=4)
         return processed_comments, rate
 
-    # go through video and broadcast messages to each category thread
     def process_video(self, response, video_id=None):
         oauth_works = False
         categories = [category.get_type() for category in self._channel.get_categories()]
@@ -123,6 +129,7 @@ class ClipBotHelper(object):
                         video = v
                         comments = c
                 print("Grabbed video and comments")
+                # preprocess comments for analysis
                 processed_comments, rate = self.process_comments(comments)
                 groups = []
                 group = {}
@@ -131,22 +138,28 @@ class ClipBotHelper(object):
                 print(f"Starting clip process for video {video_id} at {datetime.now()}")
                 start = time.time()
                 print(f"Total processed comments {len(processed_comments)}")
-                # Get groups from processed comments
+                # Calculate groups from processed comments
                 for comment in processed_comments:
+                    # if the time difference between the current comment and the previous is larger than the 2 * rate
+                    # finish the group (excluding current comment)
                     if self._processing_group and prev_comment_end and ((comment["created"] - prev_comment_end) >
                                                                         2 * rate):
                         self._end_time = prev_comment_end
                         if (self._end_time - self._start_time) > 0:
+                            # set length of group to be a little larger than the exact end-start time of group
+                            # because it's better to have more footage than less
                             group["start"] = self._start_time - (self._end_time - self._start_time) / 2
-                            group["end"] = self._end_time - (self._end_time - self._start_time) / 2
+                            group["end"] = self._end_time + (self._end_time - self._start_time) / 2
                             group["emoteRate"] = group["totalFrequency"] / (group["end"] - group["start"])
                             groups.append(group.copy())
                         self._processing_group = False
                         group.clear()
+                    # create a new group if none is present
                     if not self._processing_group:
                         self._start_time = comment["created"]
                         self._processing_group = True
                         prev_comment_end = self._start_time
+                        # set group info to the first comment's info for now
                         group["emoteSet"] = set(comment["emoteSet"])
                         group["emoteFrequency"] = {}
                         group["totalFrequency"] = 0
@@ -154,31 +167,44 @@ class ClipBotHelper(object):
                         for emote in comment["emoteSet"]:
                             group["emoteFrequency"][emote] = comment["emoteFrequency"][emote]
                             group["totalFrequency"] += comment["emoteFrequency"][emote]
+                        # create graph info defaults
                         group["graph_x"] = [0.0]
                         group["graph_y"] = {}
                         group["graph_data"] = {}
                         group["totalComments"] = 0
                         group["comments"] = [comment["emoteFrequency"]]
                         group["text"] = comment["text"]
+                    # add to existing group
                     else:
+                        # check if the comment's start time is already present in the graph
+                        # (need to prevent dupes for the dataframe creation)
                         if (comment["created"] - self._start_time) not in group["graph_x"]:
+                            # add the current comment's emotes to the group's emote set
                             group["emoteSet"] = group["emoteSet"].union(set(comment["emoteSet"]))
+                            # update group emote and total frequency
                             for emote in comment["emoteSet"]:
                                 if emote in group["emoteFrequency"]:
                                     group["emoteFrequency"][emote] += comment["emoteFrequency"][emote]
                                 else:
                                     group["emoteFrequency"][emote] = comment["emoteFrequency"][emote]
                                 group["totalFrequency"] += comment["emoteFrequency"][emote]
+                            # increment total comments, size
                             group["totalComments"] += 1
                             group["size"] += comment["size"]
                             group["comments"].append(comment["emoteFrequency"])
+                            # update graph info
                             group["graph_x"].append(comment["created"] - self._start_time)
+                            # set prev_comment_end to current comment creation datetime
                             prev_comment_end = comment["created"]
+                            # add to group text of emotes
                             group["text"] += " " + comment["text"]
                 total_groups = len(groups)
                 print(f"Total number of groups found before filter = {total_groups}")
+                # calculate stats for all groups
                 avg_emotes_per_group = sum(group["totalFrequency"] for group in groups) / total_groups
                 avg_length_per_group = sum((group["end"] - group["start"]) for group in groups) / total_groups
+                # filter groups that have a smaller total frequency or smaller group length or smaller emote rate
+                # than the avg
                 filtered_groups = list(filter(lambda current_group:
                                               current_group["totalFrequency"] > 1 * avg_emotes_per_group
                                               and (current_group["end"] - current_group["start"]) >
@@ -195,21 +221,27 @@ class ClipBotHelper(object):
                 print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
                 print(f"Starting to assign categories to processed groups for video {video_id} at {datetime.now()}")
                 start = time.time()
+                # sort groups by start time
                 filtered_groups = sorted(filtered_groups, key=lambda current_group: current_group["start"])
+                # calculate similarity score + graph info
                 for group in filtered_groups:
                     group["similarities"] = {}
+                    # setup category info for the graph
                     for category in categories:
                         group["graph_data"][category] = []
                         group["graph_y"] = {}
+                    # similarity score calculation
                     for category in categories:
                         emotes_in_category = self._channel.get_category(category).get_emotes()
                         intersection = group["emoteSet"].intersection(emotes_in_category)
                         union = group["emoteSet"].union(emotes_in_category)
                         similarity = len(intersection) / float(len(union))
+                        # weight is how often a category's emotes appear in the group/total emotes
                         weight = sum(group["emoteFrequency"][emote] for emote in group["emoteFrequency"].keys() if
                                      emote in emotes_in_category) / group["totalFrequency"]
                         if similarity * weight > 0:
                             group["similarities"][category] = round(similarity, 3)
+                        # calculate y value for graph per comment, equal to # of emotes used that are in a category
                         for i, comment in enumerate(group["comments"]):
                             if category in group["graph_y"]:
                                 group["graph_y"][category].append(
@@ -222,6 +254,8 @@ class ClipBotHelper(object):
                             if total_emotes_in_category > 0:
                                 group["graph_data"][category].append(
                                     [category, group["graph_x"][i], total_emotes_in_category])
+                    # filter out categories with no data in the y axis or if the number of emotes in the category
+                    # of the group is less than 1/3 of the total emotes in the group
                     for category in categories:
                         if sum(group["graph_y"][category]) == 0:
                             group["graph_y"].pop(category)
@@ -230,7 +264,7 @@ class ClipBotHelper(object):
                             group["similarities"].pop(category)
                             group["graph_y"].pop(category)
                             group["graph_data"].pop(category)
-                    # clean up data
+                    # clean up data that we don't save in the json
                     group.pop("comments")
                     group.pop("graph_x")
                     group.pop("graph_y")
@@ -238,6 +272,7 @@ class ClipBotHelper(object):
                     group.pop("totalFrequency")
                     group.pop("totalComments")
                     group.pop("emoteSet")
+                    # round the data for readability
                     group["start"] = round(group["start"])
                     group["end"] = round(group["end"])
                     group["length"] = round(group["end"] - group["start"])
@@ -245,9 +280,11 @@ class ClipBotHelper(object):
                     for category in group["graph_data"].keys():
                         group_time_data.extend(group["graph_data"][category])
                     group["graph_data"] = group_time_data
+                # filter out groups that were not labeled as a category (similarity score is 0 for all categories
                 filtered_groups = list(filter(lambda current_group:
                                               len(current_group["similarities"]) > 0,
                                               filtered_groups))
+                # calculate avg group size for stats
                 avg_group_size = sum(group["size"] for group in filtered_groups) / len(filtered_groups) if len(
                     filtered_groups) > 0 else 0
                 print(f"Total number of groups found after second filter = {len(filtered_groups)}")

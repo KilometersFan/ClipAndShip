@@ -20,6 +20,10 @@ videoThreads = {}
 notification = False
 path = os.getcwd()
 
+"""
+    Set up the Bot and get everything ready
+"""
+
 
 @eel.expose
 def init_clip_bot():
@@ -33,6 +37,11 @@ def init_clip_bot():
 def valid_bot():
     global bot
     return True if bot.has_channels and bot.oauth_configured else False
+
+
+"""
+    Deal with the Twitch API credentials     
+"""
 
 
 @eel.expose
@@ -59,6 +68,11 @@ def enter_credentials(client_id, client_secret):
     cfg["settings"]["secret"] = client_secret
     with open("config/config.ini", "w") as config_file:
         cfg.write(config_file)
+
+
+"""
+    Handle a specific channel or channels
+"""
 
 
 @eel.expose
@@ -123,6 +137,11 @@ def get_channel_emotes(channel_id):
 def search_channel(channel_name):
     global bot
     return bot.search_for_channel(channel_name)
+
+
+"""
+    For a channel setting, deal with a category or categories
+"""
 
 
 @eel.expose
@@ -190,15 +209,6 @@ def delete_category(channel_id, names):
 
 
 @eel.expose
-def get_categories(channel_id):
-    global bot
-    channel = bot.get_channel(channel_id, False)
-    categories = channel.get_categories()
-    result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
-    return result
-
-
-@eel.expose
 def get_recommended_emotes(channel_id, category_type, is_list=False):
     if os.path.exists(f"{path}/data/channels/{channel_id}/recommendation_data.json"):
         with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
@@ -250,6 +260,20 @@ def get_recommended_emotes(channel_id, category_type, is_list=False):
 
 
 @eel.expose
+def get_categories(channel_id):
+    global bot
+    channel = bot.get_channel(channel_id, False)
+    categories = channel.get_categories()
+    result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
+    return result
+
+
+"""
+    Handle a channel's videos or the user's processed/processing videos    
+"""
+
+
+@eel.expose
 def get_videos(channel_id, videos=None):
     global bot
     channel = bot.get_channel(channel_id, False)
@@ -289,6 +313,12 @@ def get_user_videos(channel_id=None):
 
 
 @eel.expose
+def get_processing_videos():
+    global bot
+    return bot.get_processing_videos()
+
+
+@eel.expose
 def remove_video(channel_id, video_id):
     video_id.strip()
     try:
@@ -304,6 +334,18 @@ def remove_video(channel_id, video_id):
 
 
 @eel.expose
+def reset_notification_count():
+    global notification
+    notification = False
+    eel.videoHandler(notification)
+
+
+"""
+    Process a video
+"""
+
+
+@eel.expose
 def clip_video(channel_id, video_id=None):
     video_thread = threading.Thread(target=clip_video_helper, args=(channel_id, video_id), daemon=True)
     video_thread.start()
@@ -313,9 +355,14 @@ def clip_video_helper(channel_id, video_id=None):
     bot.clip_video(channel_id, video_id)
     print("Finished clipping video")
     print("###########################")
-    eel.videoHandler(True)
     global notification
     notification = True
+    eel.videoHandler(notification)
+
+
+"""
+    Handle processed video results
+"""
 
 
 @eel.expose
@@ -355,23 +402,6 @@ def get_video_results(channel_id, video_id):
 
 
 @eel.expose
-def get_processing_videos():
-    global bot
-    return bot.get_processing_videos()
-
-
-@eel.expose
-def csv_export(video_id, data):
-    print(data)
-    with open(f"{path}/web/exported/{video_id}_groups.csv", "w") as ofile:
-        for group in data:
-            line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
-            print(line)
-            ofile.write(line)
-    return {"status": 200}
-
-
-@eel.expose
 def get_graph(graph_data):
     df = pd.DataFrame(graph_data, columns=["category", "time", "instances"])
     fig = px.scatter(df, x="time", y="instances", color="category",
@@ -384,27 +414,20 @@ def get_graph(graph_data):
     return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
 
 
-@eel.expose
-def reset_notification_count():
-    global notification
-    notification = False
-    eel.videoHandler(notification)
+"""
+    Download a clip/vod/csv file
+"""
 
 
 @eel.expose
-def download_clip(channel_id, video_id, category, start, end):
-    if end <= start:
-        print("Invalid clip params.")
-        return {"status": "400"}
-    download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, channel_id, category, start, end),
-                                       daemon=True)
-    download_thread.start()
-
-
-@eel.expose
-def download_vod(video_id):
-    download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, None, None), daemon=True)
-    download_thread.start()
+def csv_export(video_id, data):
+    print(data)
+    with open(f"{path}/web/exported/{video_id}_groups.csv", "w") as ofile:
+        for group in data:
+            line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
+            print(line)
+            ofile.write(line)
+    return {"status": 200}
 
 
 def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
@@ -437,6 +460,27 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
         response["msg"] = msg
     print(f"download response: {response}")
     eel.downloadHandler(response)
+
+
+@eel.expose
+def download_clip(channel_id, video_id, category, start, end):
+    if end <= start:
+        print("Invalid clip params.")
+        return {"status": "400"}
+    download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, channel_id, category, start, end),
+                                       daemon=True)
+    download_thread.start()
+
+
+@eel.expose
+def download_vod(video_id):
+    download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, None, None), daemon=True)
+    download_thread.start()
+
+
+"""
+    Check what browser to open up on start
+"""
 
 
 def get_preferred_mode():
