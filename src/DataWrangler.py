@@ -8,12 +8,14 @@ import pandas as pd
 import numpy as np
 from pprint import pprint
 
-def get_class_weight(df, categories):
+
+def get_class_weight(categories):
     class_weight = {}
     for num, col in enumerate(categories):
         if num not in class_weight:
             class_weight[col] = round(rootdf[rootdf[col] == 1][col].sum() / rootdf.shape[0] * 100, 2)
     return class_weight
+
 
 def create_sample_data(category, categoriesMap, chain, start, end):
     sampledData = []
@@ -29,6 +31,7 @@ def create_sample_data(category, categoriesMap, chain, start, end):
         newData = [emote, data[0]]
         sampledData.extend(newData)
     return sampledData
+
 
 if __name__ == "__main__":
     """

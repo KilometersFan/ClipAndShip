@@ -176,7 +176,7 @@ function populateCategoryEmotes(data) {
         editFormRecommendedButton.click(function (e) {
             e.preventDefault();
             editRecommendedRow.empty();
-            eel.getRecommendedEmotes(channelId, type)(function (response) {
+            eel.get_recommended_emotes(channelId, type)(function (response) {
                 if (response.length === 0) {
                     let emptyRecommendations = $("<p>");
                     emptyRecommendations.text("Recommendations are only available after a video is processed.");
@@ -283,7 +283,8 @@ function populateCategoryEmotes(data) {
                     newValues.push(otherEmotes[m]);
                 }
             }
-            eel.editCategory(channelId, type, newValues, emotes_left)(function (response) {
+            eel.edit_category(channelId, type, newValues, emotes_left)(function (response) {
+                console.log(response);
                 if (!response) {
                     editModal.modal("hide");
                     $("#categoriesRow").empty();
@@ -326,13 +327,13 @@ function setEmotes(emotes) {
     else {
         $("#TwitchEmpty").hide()
     }
-    eel.getCategories(channelId)(populateCategoryEmotes);
+    eel.get_categories(channelId)(populateCategoryEmotes);
 }
 function populateCategories(id) {
-    eel.getChannelEmotes(id)(setEmotes);
+    eel.get_channel_emotes(id)(setEmotes);
 }
 $(document).ready(function () {
-    eel.validBot()(function (valid) {
+    eel.valid_bot()(function (valid) {
         invalid = true;
         while (invalid) {
             if (valid == true) {
@@ -340,7 +341,7 @@ $(document).ready(function () {
                 let searchParams = new URLSearchParams(window.location.search);
                 if (searchParams.has("id") && searchParams.get("id")) {
                     let id = parseInt(searchParams.get("id"));
-                    eel.getChannel(id)(populateChannelInfo);
+                    eel.get_channel(id)(populateChannelInfo);
                     populateCategories(id);
                 }
                 else {
@@ -348,8 +349,8 @@ $(document).ready(function () {
                 }
             }
             else {
-                eel.initClipBot();
-                invalid = !eel.validBot();
+                eel.init_clip_bot();
+                invalid = !eel.valid_bot();
             }
         }
     });
@@ -365,7 +366,7 @@ $(document).ready(function () {
             $("#categoryRecommendedContainer").append(emptyRecommendations)
         }
         else {
-            eel.getRecommendedEmotes(channelId, emotes, true)(function (response) {
+            eel.get_recommended_emotes(channelId, emotes, true)(function (response) {
                 if (response.length === 0) {
                     emptyRecommendations.text("Recommendations are only available after a video is processed.");
                     $("#categoryRecommendedContainer").append(emptyRecommendations)
@@ -428,7 +429,7 @@ $(document).ready(function () {
             console.log(otherEmotes);
             console.log(`{type}: `);
             console.log(emotes);
-            eel.addCategory(channelId, type, emotes)(function (response) {
+            eel.add_category(channelId, type, emotes)(function (response) {
                 if (!response) {
                     $('#addCategoryModal').modal('hide');
                     $("#categoriesRow").empty();
@@ -460,7 +461,7 @@ $(document).ready(function () {
         }
         else {
             $(".error").hide();
-            eel.deleteCategory(channelId, categories)(function (response) {
+            eel.delete_category(channelId, categories)(function (response) {
                 if (!response) {
                     $('#rmvCategoryModal').modal('hide');
                     $("#categoriesRow").empty();

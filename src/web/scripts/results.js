@@ -13,7 +13,7 @@ $(function () {
 })
 $(document).ready(function () {
     selectedCategories = new Set();
-    eel.validBot()(function (valid) {
+    eel.valid_bot()(function (valid) {
         invalid = true;
         while (invalid) {
             if (valid == true) {
@@ -29,7 +29,7 @@ $(document).ready(function () {
                     $("#videoBtn").prop("href", `video.html?id=${channelId}`);
                     $("#vod").attr("src", `https://player.twitch.tv/?video=${video}&parent=localhost&time=0h0m0s&autoplay=false`);
                     $("#vod").attr("width", $("#currentCategory").width())
-                    eel.getChannel(channel)(function (info) {
+                    eel.get_channel(channel)(function (info) {
                         categories = info["categories"];
                         categories.forEach((category) => {
                             let btn = $("<button>", {"class": "btn btn-secondary"});
@@ -50,7 +50,7 @@ $(document).ready(function () {
                             });
                             $("#categoryBtns").append(btn);
                         });
-                        eel.getVideoResults(channelId, video)(function (results) {
+                        eel.get_video_results(channelId, video)(function (results) {
                             videoResults = results;
                             console.log(videoResults);
                             populateTable();
@@ -69,8 +69,8 @@ $(document).ready(function () {
                 }
             }
             else {
-                eel.initClipBot();
-                invalid = !eel.validBot();
+                eel.init_clip_bot();
+                invalid = !eel.valid_bot();
             }
         }
     });
@@ -132,7 +132,7 @@ $("#csvExport").click(function() {
         delete group.emoteFrequency;
     });
 
-    eel.csvExport(videoId, csvData);
+    eel.csv_export(videoId, csvData);
 });
 
 $("#next").click(function () {
@@ -173,7 +173,7 @@ $("#playSelected").click(function () {
     $("#vod").attr("src", src);
 });
 $("#downloadVod").click(function (){
-    eel.downloadVod(videoId);
+    eel.download_vod(videoId);
     $(this).prop("disabled", true);
 });
 $("#downloadOther").click(function () {
@@ -185,7 +185,7 @@ $("#downloadOther").click(function () {
         parsedStart = parseSeconds(start);
         parsedEnd = parseSeconds(end);
         if (parsedStart >= 0 && parsedEnd >= 0) {
-            eel.downloadClip(channelId, videoId, null, parseSeconds(start), parseSeconds(end));
+            eel.download_clip(channelId, videoId, null, parseSeconds(start), parseSeconds(end));
         }
         else {
             $("#downloadErr").text("Start and/or End time(s) are invalid");
@@ -257,7 +257,7 @@ function populateTable (defaultFilteredResults=null) {
                 $(this).css("background-color", "#33b1ff");
                 selectedRow = $(this);
                 clearSelectedRowColor();
-                eel.getGraph(group["graph_data"])(function (graph) {
+                eel.get_graph(group["graph_data"])(function (graph) {
                     $("#groupChart").attr("src", `data:image/png;base64, ${graph}`)
                 });
             })
@@ -288,7 +288,7 @@ function populateTable (defaultFilteredResults=null) {
             }
             else {
                 downloadBtn.click(function() {
-                    eel.downloadClip(channelId, videoId, categories, group["start"], group["end"]);
+                    eel.download_clip(channelId, videoId, categories, group["start"], group["end"]);
                     downloadBtn.empty()
                     downloadBtn.append($("<i>", {"class": "fa fa-spinner"}));
                 });
