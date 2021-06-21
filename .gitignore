@@ -344,12 +344,12 @@ healthchecksdb
 *.mp4
 *.pyo
 .DS_Store
+src/*.ini
 twitch-app/
 data/
 data/channels/
 web/exported/
 web/exported/*
-config/
 clips/
 dist/
 dist/*

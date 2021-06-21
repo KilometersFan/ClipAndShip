@@ -8,11 +8,10 @@ from datetime import datetime
 from .Channel import Channel
 
 
-def resource_path(relative_path, getParent = False):
+def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    parent_path = os.path.join(base_path, "..")
-    return os.path.join(parent_path if getParent else base_path, relative_path)
+    return os.path.join(base_path, relative_path)
 
 
 class ClipBotHelper(object):
@@ -23,7 +22,7 @@ class ClipBotHelper(object):
             clipBot.setUpConfig()
         self._channel = channel
         self._helix = clipBot.getHelix()
-        self._pathName = resource_path(f"data/channels/{self._channel.getId()}", True)
+        self._pathName = resource_path(f"data/channels/{self._channel.getId()}")
         self._startTime = None
         self._endTime = None
         self._processingGroup = False

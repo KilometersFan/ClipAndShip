@@ -11,11 +11,10 @@ from .Category import Category
 from .ClipBotHelper import ClipBotHelper
 
 
-def resource_path(relative_path, getParent = False):
+def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    parent_path = os.path.join(base_path, "..")
-    return os.path.join(parent_path if getParent else base_path, relative_path)
+    return os.path.join(base_path, relative_path)
 
 
 class ClipBot ():
@@ -39,7 +38,7 @@ class ClipBot ():
     # set up helix and twitch related stuff
     def setupConfig(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read(resource_path("config.ini", True))
+        cfg.read(resource_path("config.ini"))
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -68,7 +67,7 @@ class ClipBot ():
     # refresh access token when needed
     def refreshToken(self):
         cfg = configparser.ConfigParser()
-        cfg.read(resource_path("config.ini", True))
+        cfg.read(resource_path("config.ini"))
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -102,7 +101,7 @@ class ClipBot ():
     # read from channels.ini all the info from user's channels
     def setupChannels(self):
         cfg = configparser.ConfigParser()
-        cfg.read(resource_path("channels.ini", True))
+        cfg.read(resource_path("channels.ini"))
         for section in cfg.sections():
             validToken = False
             while not validToken:
