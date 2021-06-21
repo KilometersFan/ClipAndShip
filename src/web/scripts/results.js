@@ -247,58 +247,60 @@ function populateTable (defaultFilteredResults=null) {
     else {
         filteredResults = videoResults["groups"];
     }
-    filteredResults.forEach((group) => {
-        let row = $("<tr>", {"class": "tableRow", "id": `start-${group["start"]}-end-${group["end"]}`});
-        row.hover(function() {
-            $(this).css("cursor", "grab");
-        });
-        row.click(function() {
-            $(this).css("background-color", "#33b1ff");
-            selectedRow = $(this);
-            clearSelectedRowColor();
-            eel.getGraph(group["graph_data"])(function (graph) {
-                $("#groupChart").attr("src", `data:image/png;base64, ${graph}`)
+    if (filteredResults) {
+        filteredResults.forEach((group) => {
+            let row = $("<tr>", {"class": "tableRow", "id": `start-${group["start"]}-end-${group["end"]}`});
+            row.hover(function() {
+                $(this).css("cursor", "grab");
             });
-        })
-        let groupId = $("<th>", {"scope": "row"});
-        groupId.text(i);
-        i++;
-        let groupLength = $("<td>");
-        groupLength.text(group["length"]);
-        let groupStart = $("<td>");
-        groupStart.text(createTimestamp(group["start"]));
-        let groupEnd = $("<td>");
-        groupEnd.text(createTimestamp(group["end"]));
-        let groupCategories = $("<td>");
-        let groupSimilarities = []
-        Object.keys(group["similarities"]).forEach((key) => {
-            groupSimilarities.push(`${key}: ${group["similarities"][key]}`);
-        });
-        groupCategories.css("white-space", "pre");
-        groupCategories.text(groupSimilarities.join("\n\n"));
-        let downloadCol = $("<td>", {"id": `start-${group["start"]}-end-${group["end"]}-download`});
-        let downloadBtn = $("<button>", {"class": "btn btn-primary", "id": `start-${group["start"]}-end-${group["end"]}-btn`});
-        downloadBtn.append($("<i>", {"class": "fa fa-download"}));
-        let categories = Object.keys(group["similarities"]).join("_");
-        if (videoResults["downloaded"].includes(`${group["start"]}-${group["end"]}`)) {
-            downloadBtn.prop("disabled", true);
-            downloadBtn.removeClass("btn-primary");
-            downloadBtn.addClass("btn-secondary");
-        }
-        else {
-            downloadBtn.click(function() {
-                eel.downloadClip(channelId, videoId, categories, group["start"], group["end"]);
-                downloadBtn.empty()
-                downloadBtn.append($("<i>", {"class": "fa fa-spinner"}));
+            row.click(function() {
+                $(this).css("background-color", "#33b1ff");
+                selectedRow = $(this);
+                clearSelectedRowColor();
+                eel.getGraph(group["graph_data"])(function (graph) {
+                    $("#groupChart").attr("src", `data:image/png;base64, ${graph}`)
+                });
+            })
+            let groupId = $("<th>", {"scope": "row"});
+            groupId.text(i);
+            i++;
+            let groupLength = $("<td>");
+            groupLength.text(group["length"]);
+            let groupStart = $("<td>");
+            groupStart.text(createTimestamp(group["start"]));
+            let groupEnd = $("<td>");
+            groupEnd.text(createTimestamp(group["end"]));
+            let groupCategories = $("<td>");
+            let groupSimilarities = []
+            Object.keys(group["similarities"]).forEach((key) => {
+                groupSimilarities.push(`${key}: ${group["similarities"][key]}`);
             });
-        }
-        downloadCol.append(downloadBtn);
-        row.append(groupId);
-        row.append(groupLength);
-        row.append(groupStart);
-        row.append(groupEnd);
-        row.append(groupCategories);
-        row.append(downloadCol);
-        $("#resultBody").append(row);
-    });
+            groupCategories.css("white-space", "pre");
+            groupCategories.text(groupSimilarities.join("\n\n"));
+            let downloadCol = $("<td>", {"id": `start-${group["start"]}-end-${group["end"]}-download`});
+            let downloadBtn = $("<button>", {"class": "btn btn-primary", "id": `start-${group["start"]}-end-${group["end"]}-btn`});
+            downloadBtn.append($("<i>", {"class": "fa fa-download"}));
+            let categories = Object.keys(group["similarities"]).join("_");
+            if (videoResults["downloaded"].includes(`${group["start"]}-${group["end"]}`)) {
+                downloadBtn.prop("disabled", true);
+                downloadBtn.removeClass("btn-primary");
+                downloadBtn.addClass("btn-secondary");
+            }
+            else {
+                downloadBtn.click(function() {
+                    eel.downloadClip(channelId, videoId, categories, group["start"], group["end"]);
+                    downloadBtn.empty()
+                    downloadBtn.append($("<i>", {"class": "fa fa-spinner"}));
+                });
+            }
+            downloadCol.append(downloadBtn);
+            row.append(groupId);
+            row.append(groupLength);
+            row.append(groupStart);
+            row.append(groupEnd);
+            row.append(groupCategories);
+            row.append(downloadCol);
+            $("#resultBody").append(row);
+        });
+    }
 }
