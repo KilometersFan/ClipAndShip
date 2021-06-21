@@ -145,7 +145,7 @@ class Channel(object):
     def get_desc(self):
         return self._desc
 
-    # return channel videos 
+    # return channel videos
     def get_videos(self, videos=None):
         data = []
         valid_helix = False

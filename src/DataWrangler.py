@@ -17,10 +17,10 @@ def get_class_weight(categories):
     return class_weight
 
 
-def create_sample_data(category, categoriesMap, chain, start, end):
-    sampledData = []
+def create_sample_data(category, categories_map, chain, start, end):
+    sampled_data = []
     for i in range(random.randrange(start), end):
-        emote = random.choice(categoriesMap[category])
+        emote = random.choice(categories_map[category])
         sums = {}
         for key in chain[emote].keys():
             sums[key] = float(sum(chain[emote].values()))
@@ -28,9 +28,9 @@ def create_sample_data(category, categoriesMap, chain, start, end):
             chain[emote][key] = chain[emote][key] / sums[key]
 
         data = np.random.choice(list(chain[emote].keys()), 1, p=list(chain[emote].values()))
-        newData = [emote, data[0]]
-        sampledData.extend(newData)
-    return sampledData
+        new_data = [emote, data[0]]
+        sampled_data.extend(new_data)
+    return sampled_data
 
 
 if __name__ == "__main__":
@@ -48,14 +48,14 @@ if __name__ == "__main__":
     cfg = configparser.ConfigParser()
     cfg.read("config/channels.ini")
     categories = cfg.options(channel_id)
-    categoriesMap = {}
+    categories_map = {}
     if channel_id not in cfg.sections():
         print("Channel ID is not in channel config file. Quitting...")
         sys.exit()
     for option in cfg.options(channel_id):
         emoteList = cfg[channel_id][option].split(",")
-        categoriesMap[option] = emoteList
-    pprint(categoriesMap)
+        categories_map[option] = emoteList
+    pprint(categories_map)
 
     columns = ["text"]
     columns.extend(categories)
@@ -63,11 +63,11 @@ if __name__ == "__main__":
     rootdir = f"data/channels/{channel_id}"
 
     print("Do you want to upsample your data to even out any category imbalance? yes/no")
-    isUpsample = input().lower()
-    if isUpsample == "yes":
+    is_upsample = input().lower()
+    if is_upsample == "yes":
         print("Do you want to set a minimum number of data points? yes/no")
-        hasMinimum = input().lower()
-        if hasMinimum == "yes":
+        has_minimum = input().lower()
+        if has_minimum == "yes":
             print("Please enter the minimum number:")
             try:
                 min_sample_count = int(input())
@@ -77,18 +77,18 @@ if __name__ == "__main__":
             except ValueError as e:
                 print("Value entered is not an integer. Quitting...")
                 sys.exit()
-        elif hasMinimum == "no":
+        elif has_minimum == "no":
             min_sample_count = -1
         else:
             print("Invalid answer provided. Quitting...")
             sys.exit()
 
         print("Do you want to create data that has multiple labels? yes/no")
-        multiLabeledData = input().lower()
-        if multiLabeledData == "yes":
-            createMultiLabelData = True
-        elif multiLabeledData == "no":
-            createMultiLabelData = False
+        multi_labeled_data = input().lower()
+        if multi_labeled_data == "yes":
+            create_multi_labeled_data = True
+        elif multi_labeled_data == "no":
+            create_multi_labeled_data = False
         else:
             print("Invalid answer provided. Quitting...")
             sys.exit()
@@ -108,7 +108,8 @@ if __name__ == "__main__":
                     if set(columns) == set(df.columns.tolist()):
                         dfs.append(df)
                     else:
-                        print(f"{d}/data.csv does not have the same categories as listed in the config file. Skipping...")
+                        print(
+                            f"{d}/data.csv does not have the same categories as listed in the config file. Skipping...")
                 if os.path.exists(f"{d}/data.json"):
                     with open(f"{d}/data.json", "r") as ifile:
                         data = json.load(ifile)
@@ -127,57 +128,58 @@ if __name__ == "__main__":
         with open(f"data/channels/{channel_id}/recommendation_data.json", "r") as ifile:
             chain = json.load(ifile)
         imbalanced_classes = set()
-        # Find imabalanced classed
+        # Find imbalanced classed
         for category in categories:
-            if class_weights[category]/total_weight < 1.0/(len(categories)):
+            if class_weights[category] / total_weight < 1.0 / (len(categories)):
                 imbalanced_classes.add(category)
         print(imbalanced_classes)
-        # create upsmapled data
-        categoryCount = len(imbalanced_classes)
-        while categoryCount > 0:
+        # create upsampled data
+        category_count = len(imbalanced_classes)
+        while category_count > 0:
             for category in imbalanced_classes:
-                sampledData = create_sample_data(category, categoriesMap, chain, avg_group_size * 2 // 3, avg_group_size)
+                sampled_data = create_sample_data(category, categories_map, chain, avg_group_size * 2 // 3,
+                                                  avg_group_size)
                 # create text column value
-                upsampledText = " ".join(sampledData)
-                upsampledRow = [upsampledText]
+                upsampled_text = " ".join(sampled_data)
+                upsampled_row = [upsampled_text]
                 for existingCategory in sorted(categories):
-                    upsampledRow.append(1 if existingCategory == category else 0)
-                rootdf.loc[len(rootdf)] = upsampledRow
+                    upsampled_row.append(1 if existingCategory == category else 0)
+                rootdf.loc[len(rootdf)] = upsampled_row
                 # Find new imbalanced classes
                 new_class_weights = get_class_weight(rootdf, categories)
                 new_total_weight = sum(new_class_weights.values())
-                newImbalancedCount = 0
+                new_imbalanced_count = 0
                 for imbalanced_category in imbalanced_classes:
                     if (new_class_weights[imbalanced_category] / new_total_weight) < (1.0 / (len(categories))):
-                        newImbalancedCount += 1
-                categoryCount = newImbalancedCount
-                print(f"New imbalanced count: {newImbalancedCount}")
+                        new_imbalanced_count += 1
+                category_count = new_imbalanced_count
+                print(f"New imbalanced count: {new_imbalanced_count}")
             # check if we created more imbalance or we are under the minimum sample count, if so keep upsampling
-            if categoryCount == 0:
+            if category_count == 0:
                 print("=================================")
                 print(f"Category count is 0")
                 last_class_weights = get_class_weight(rootdf, categories)
                 print(last_class_weights)
                 last_total_weight = sum(last_class_weights.values())
                 print(f"New total: {last_total_weight}")
-                lastImbalancedCount = 0
+                last_imbalanced_count = 0
                 new_imbalanced_classes = set()
                 for category in categories:
                     if (last_class_weights[category] / last_total_weight) < (1.0 / (len(categories))):
                         new_imbalanced_classes.add(category)
-                categoryCount = len(new_imbalanced_classes)
+                category_count = len(new_imbalanced_classes)
                 imbalanced_classes = new_imbalanced_classes
 
                 # check if # rows is >= minimum provided and when the initial imbalanced classes are upsampled
                 if len(imbalanced_classes) == 0 and min_sample_count > 0:
                     if len(rootdf) < min_sample_count:
                         imbalanced_classes = set(categories)
-                        categoryCount = len(categories)
-                print(f"New imbalanced count (last): {categoryCount}")
+                        category_count = len(categories)
+                print(f"New imbalanced count (last): {category_count}")
                 print(f"New imbalanced set: {imbalanced_classes}")
                 print("######################################")
         # create multi labeled data if specified
-        if createMultiLabelData:
+        if create_multi_labeled_data:
             print("Starting process to craete multilabeled data")
             for category in categories:
                 print(f"First category: {category}")
@@ -185,25 +187,29 @@ if __name__ == "__main__":
                     if category != other_category:
                         print(f"\tSecond category: {other_category}")
                         for j in range(5):
-                            firstSampledData = create_sample_data(category, categoriesMap, chain, avg_group_size // 3, avg_group_size * 3 // 4)
-                            secondSampleData = create_sample_data(other_category, categoriesMap, chain, avg_group_size // 3, avg_group_size * 3 // 4)
-                            sampledData = firstSampledData + secondSampleData
-                            upsampledText = " ".join(sampledData)
-                            upsampledRow = [upsampledText]
+                            first_sampled_data = create_sample_data(category, categories_map, chain,
+                                                                    avg_group_size // 3,
+                                                                    avg_group_size * 3 // 4)
+                            second_sample_data = create_sample_data(other_category, categories_map, chain,
+                                                                    avg_group_size // 3, avg_group_size * 3 // 4)
+                            sampled_data = first_sampled_data + second_sample_data
+                            upsampled_text = " ".join(sampled_data)
+                            upsampled_row = [upsampled_text]
                             for existingCategory in sorted(categories):
-                                upsampledRow.append(1 if existingCategory == category or existingCategory == other_category else 0)
-                            rootdf.loc[len(rootdf)] = upsampledRow
+                                upsampled_row.append(1 if existingCategory == category or
+                                                          existingCategory == other_category else 0)
+                            rootdf.loc[len(rootdf)] = upsampled_row
                 print("======================================")
 
-        rootdf.to_csv(f"data/channels/{channel_id}/upsampled_data.csv",index=False)
+        rootdf.to_csv(f"data/channels/{channel_id}/upsampled_data.csv", index=False)
         print(f"New shape of data: {rootdf.shape}")
         final_class_weights = get_class_weight(rootdf, categories)
         final_total_weight = sum(final_class_weights.values())
         print(f"Final total class weight: {final_total_weight}")
         print(final_class_weights)
         end = time.time()
-        print(f"Finished creating upsampled data for {channel_id} at {end}. Process took {end-start} seconds.")
-    elif isUpsample == "no":
+        print(f"Finished creating upsampled data for {channel_id} at {end}. Process took {end - start} seconds.")
+    elif is_upsample == "no":
         start = time.time()
         print(f"Starting data combination process at {start} for channel {channel_id}")
         dfs = []
@@ -215,12 +221,15 @@ if __name__ == "__main__":
                     if set(columns) == set(df.columns.tolist()):
                         dfs.append(df)
                     else:
-                        print(f"{d}/data.csv does not have the same categories as listed in the config file. Skipping...")
+                        print(
+                            f"{d}/data.csv does not have the same categories as listed in the config file. Skipping...")
         rootdf = pd.concat(dfs, join="inner")
         pprint(rootdf)
         rootdf.to_csv(f"data/channels/{channel_id}/combined_data.csv", index=False)
         end = time.time()
-        print(f"Finished data combination process at {start} for channel {channel_id} at {end}. Process took {end-start} seconds.")
+        print(
+            f"Finished data combination process at {start} for channel {channel_id} at {end}. "
+            f"Process took {end - start} seconds.")
     else:
         print("Invalid response. Quitting...")
         sys.exit()
