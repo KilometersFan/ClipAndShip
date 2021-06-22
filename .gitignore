@@ -346,10 +346,12 @@ healthchecksdb
 .DS_Store
 src/*.ini
 twitch-app/
+src/config/
+src/config/*
 data/
 data/channels/
-web/exported/
-web/exported/*
+src/web/exported/
+src/web/exported/*
 clips/
 dist/
 dist/*

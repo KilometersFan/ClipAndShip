@@ -18,7 +18,7 @@ function createVideoCard(data, processing=true, channelId=null) {
         });
         btn.text("Process");
         btn.click(async function () {
-            eel.clipVideo(parseInt(channelId), parseInt(data["id"]));
+            eel.clip_video(parseInt(channelId), parseInt(data["id"]));
             setTimeout(updateVideos, 200);
         });
         let removeBtn = $("<button>", {
@@ -27,14 +27,14 @@ function createVideoCard(data, processing=true, channelId=null) {
         removeBtn.text("Remove");
         removeBtn.click(function () {
             let videoToRmv = removeBtn.val();
-            eel.removeVideo(channelId, videoToRmv)(function (response) {
+            eel.remove_video(channelId, videoToRmv)(function (response) {
                 if (response.success) {
                     $("#rmvBody").text("Successfully removed video from your list.")
                 }
                 else {
                     $("#rmvBody").text("Unable to remove video from your list.")
                 }
-                eel.getUserVideos()(function (data) {
+                eel.get_user_videos()(function (data) {
                     populateUserVideos(data);
                 });
             });
@@ -82,7 +82,7 @@ function populateUserVideos(data) {
     else {
         Object.keys(data).forEach((channelId) => {
             let videos = data[channelId];
-            eel.getChannel(parseInt(channelId))(function (info) {
+            eel.get_channel(parseInt(channelId))(function (info) {
                 console.log(info);
                 let channelCol = $("<div>", {"class": "col-sm-12"});
                 let channelRow = $("<div>", {"class": "row"});
@@ -98,7 +98,7 @@ function populateUserVideos(data) {
                 channelContainer.append(channelVideos);
                 channelRow.append(channelContainer);
                 if (videos.length > 0) {
-                    eel.getVideos(parseInt(channelId), videos)(function (response) {
+                    eel.get_videos(parseInt(channelId), videos)(function (response) {
                         for (let i = 0; i < response.length; i++) {
                             let videoCard = createVideoCard(response[i], false, channelId);
                             channelRow.append(videoCard);
@@ -114,30 +114,30 @@ function populateUserVideos(data) {
 }
 
 function updateVideos() {
-    eel.getProcessingVideos()(function (data) {
+    eel.get_processing_videos()(function (data) {
         populateProcessingVideos(data);
     });
-    eel.getUserVideos()(function (data) {
+    eel.get_user_videos()(function (data) {
         populateUserVideos(data);
     });
 }
 
 $(document).ready(function () {
-    eel.validBot()(function (valid) {
+    eel.valid_bot()(function (valid) {
         invalid = true;
         while (invalid) {
             if (valid == true) {
                 invalid = false;
-                eel.getProcessingVideos()(function (data) {
+                eel.get_processing_videos()(function (data) {
                     populateProcessingVideos(data);
                 });
-                eel.getUserVideos()(function (data) {
+                eel.get_user_videos()(function (data) {
                     populateUserVideos(data);
                 });
             }
             else {
-                eel.initClipBot();
-                invalid = !eel.validBot();
+                eel.init_clip_bot();
+                invalid = !eel.valid_bot();
             }
         }
     });

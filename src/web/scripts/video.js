@@ -3,7 +3,7 @@ let channel_name;
 function populateVideos() {
     let row = $("#videoRow");
     row.empty();
-    eel.getVideos(channelId)(function (data) {
+    eel.get_videos(channelId)(function (data) {
         for (let i = 0; i < data.length; i++) {
             let videoCard = createVideoCard(data[i], false, false, true);
             row.append(videoCard);
@@ -46,7 +46,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
             });
         }
         clipBtn.click(function () {
-            eel.clipVideo(channelId, data["id"]);
+            eel.clip_video(channelId, data["id"]);
             setTimeout(updateVideos, 100);
         });
         container.append(clipBtn);
@@ -57,7 +57,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
             removeBtn.text("Remove");
             removeBtn.click(function () {
                 let videoToRmv = removeBtn.val();
-                eel.removeVideo(channelId, videoToRmv)(function (response) {
+                eel.remove_video(channelId, videoToRmv)(function (response) {
                     if (response.success) {
                         $("#rmvBody").text("Successfully removed video from your list.")
                     }
@@ -90,7 +90,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
     return col;
 }
 $(document).ready(function () {
-    eel.validBot()(function (valid) {
+    eel.valid_bot()(function (valid) {
         invalid = true;
         while (invalid) {
             if (valid == true) {
@@ -100,7 +100,7 @@ $(document).ready(function () {
                     let id = parseInt(searchParams.get("id"));
                     channelId = id;
                     $("#channelBtn").prop("href", "channel.html?id=" + channelId);
-                    eel.getChannel(id)(function (data) {
+                    eel.get_channel(id)(function (data) {
                         $("#channelVideoTitle").text(data["name"] + "'s Videos");
                         channel_name = data["name"];
                         populateVideos();
@@ -111,8 +111,8 @@ $(document).ready(function () {
                 }
             }
             else {
-                eel.initClipBot();
-                invalid = !eel.validBot();
+                eel.init_clip_bot();
+                invalid = !eel.valid_bot();
             }
         }
     });
@@ -135,7 +135,7 @@ $(document).ready(function () {
         }
         else {
             $(".error").hide();
-            eel.getVideos(channelId, [video])(function (data) {
+            eel.get_videos(channelId, [video])(function (data) {
                 if (data.error) {
                     $("#searchNotFound").show();
                     $("#searchNotFound").text(data.error);
