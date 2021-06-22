@@ -6,146 +6,150 @@ from datetime import datetime
 from dateutil import tz
 from .Category import Category
 
+
 class Channel(object):
     """Twitch channel, stores categories set by channel"""
-    def __init__(self, id: int, helix, clipBot):
-        self._id = id
+    def __init__(self, channel_id: int, helix, clip_bot):
+        self._id = channel_id
         self._helix = helix
         self._categories = {}
-        self._ffEmotes = []
-        self._bttvEmotes = []
-        self._twitchEmotes = []
-        self._nameToEmotesMap = {}
-        self._bttvURL = "https://api.betterttv.net/3/cached/users/twitch/"
-        self._bttvImgURL = "https://cdn.betterttv.net/emote/"
-        self._twitchSubURL = "https://api.twitchemotes.com/api/v4/channels/"
-        self._clipBot = clipBot
-        validHelix = False
+        self._emotes = set()
+        self._ffz_emotes = []
+        self._bttv_emotes = []
+        self._twitch_emotes = []
+        self._name_to_emotes_map = {}
+        self._bttv_url = "https://api.betterttv.net/3/cached/users/twitch/"
+        self._bttv_img_url = "https://cdn.betterttv.net/emote/"
+        self._twitch_sub_url = "https://api.twitchemotes.com/api/v4/channels/"
+        self._clip_bot = clip_bot
+        valid_helix = False
         path = os.getcwd()
-        # reset helix if acces token is invalid
-        while not validHelix:
+        # reset helix if access token is invalid
+        while not valid_helix:
             try:
                 if helix is not None:
-                    self._name = helix.user(id).display_name
-                    self._pathName = f"{path}/data/channels/{self._id}"
-                    self._desc = helix.user(id).description
-                    self._img = helix.user(id).profile_image_url
-                    self._frankerfacezURL = "https://api.frankerfacez.com/v1/room/" + self._name.lower()
-                    validHelix = True
+                    self._name = helix.user(channel_id).display_name
+                    self._path_name = f"{path}/data/channels/{self._id}"
+                    self._desc = helix.user(channel_id).description
+                    self._img = helix.user(channel_id).profile_image_url
+                    self._franker_face_z_url = "https://api.frankerfacez.com/v1/room/" + self._name.lower()
+                    valid_helix = True
                 else:
                     print("Helix doesn't exist")
             except requests.exceptions.HTTPError as http_err:
-                statusCode = http_err.response.status_code
-                if statusCode == 401:
+                status_code = http_err.response.status_code
+                if status_code == 401:
                     print("401 Unauthorized error, refreshing access token. Videos")
-                    clipBot.refreshToken()
-                    helix = clipBot.getHelix()
+                    clip_bot.refresh_token()
+                    helix = clip_bot.get_helix()
                     print("Finished")
                 else:
-                    print("Other error received:" , statusCode)
+                    print("Other error received:", status_code)
 
     # add emote to channel
-    def addEmote(self, emote):
+    def add_emote(self, emote):
         self._emotes.add(emote.lower())
 
     # return all emotes in channel
-    def getEmotes(self):
-        ffEmotes = sorted(list(self._ffEmotes), key=lambda e: e['name'].lower())
-        bttvEmotes = sorted(list(self._bttvEmotes), key=lambda e: e['name'].lower())
-        twitchEmotes = sorted(list(self._twitchEmotes), key= lambda e: e['name'].lower())
-        return { "ffEmotes" : ffEmotes, "bttvEmotes" : bttvEmotes, "twitchEmotes" : twitchEmotes}
+    def get_emotes(self):
+        ff_emotes = sorted(list(self._ffz_emotes), key=lambda e: e['name'].lower())
+        bttv_emotes = sorted(list(self._bttv_emotes), key=lambda e: e['name'].lower())
+        twitch_emotes = sorted(list(self._twitch_emotes), key=lambda e: e['name'].lower())
+        return {"ffEmotes": ff_emotes, "bttvEmotes": bttv_emotes, "twitchEmotes": twitch_emotes}
 
-    def getEmotesMap(self):
-        return self._nameToEmotesMap
+    # get emotes as a dictionary { name: url }
+    def get_emotes_map(self):
+        return self._name_to_emotes_map
 
-    def getEmoteNames(self):
-        emoteTypes = ["ffEmotes", "bttvEmotes", "twitchEmotes"]
-        channelEmoteList = set()
-        for emoteType in emoteTypes:
-            for emote in self.getEmotes()[emoteType]:
-                channelEmoteList.add(emote["name"].lower())
-        for category in self.getCategories():
-            for emote in category.getEmotes():
-                channelEmoteList.add(emote)
-        return channelEmoteList
+    # get all emotes as a list [ name ]
+    def get_emote_names(self):
+        emote_types = ["ffEmotes", "bttvEmotes", "twitchEmotes"]
+        channel_emote_list = set()
+        for emoteType in emote_types:
+            for emote in self.get_emotes()[emoteType]:
+                channel_emote_list.add(emote["name"].lower())
+        for category in self.get_categories():
+            for emote in category.get_emotes():
+                channel_emote_list.add(emote)
+        return channel_emote_list
 
     # add category to channel
-    def addCategory(self, category, isString=False, channelId=None):
-        if isString:
-            if(category not in self._categories):
-                self._categories[category] = Category(category, channelId)
+    def add_category(self, category, is_string=False, channel_id=None):
+        if is_string:
+            if category not in self._categories:
+                self._categories[category] = Category(category, channel_id)
             else:
                 print("Type {} already exists!".format(category))
                 raise Exception("Category type is a duplicate.")
         else:
-            if(category.getType() not in self._categories):
-                self._categories[category.getType()] = category
+            if category.get_type() not in self._categories:
+                self._categories[category.get_type()] = category
             else:
-                print("Type {} already exists!".format(type))
+                print("Type {} already exists!".format(category.get_type()))
                 raise Exception("Category type is a duplicate.")
     
     # remove category from channel
-    def removeCategory(self, type):
-        if(type in self._categories):
-            del self._categories[type]
+    def remove_category(self, name):
+        if name in self._categories:
+            del self._categories[name]
         else:
-            print("Type {} does not exist!".format(type))
+            print("Type {} does not exist!".format(name))
             raise Exception("Category type does not exist.")
     
     # remove all categories
-    def clearCategories(self):
+    def clear_categories(self):
         self._categories.clear()
 
     # return all categories
-    def getCategories(self):
-        categories = sorted(list(self._categories.values()), key= lambda c: c.getType())
+    def get_categories(self):
+        categories = sorted(list(self._categories.values()), key=lambda c: c.get_type())
         return categories
 
     # return category object based on type
-    def getCategory(self, type):
-        if type in self._categories:
-            return self._categories[type]
+    def get_category(self, name):
+        if name in self._categories:
+            return self._categories[name]
         return None
 
-    # add emotes in param to catgeory specified by type
-    def addEmotesToCategory(self, type, emotes):
-        category = self._categories[type]
+    # add emotes in param to category specified by type
+    def add_emotes_to_category(self, name, emotes):
+        category = self._categories[name]
         if category:
             for emote in emotes:
-                category.addEmote(emote.lower())
+                category.add_emote(emote.lower())
         else:
             print("Invalid category specified")
     
     # remove all emotes in param from category specified by type
-    def rmvEmotesFromCategory(self, type, emotes):
-        category = self.getCategory(type)
+    def rmv_emotes_from_category(self, name, emotes):
+        category = self.get_category(name)
         emotes = set([emote.lower() for emote in emotes])
         if category:
-            category.setEmotes(emotes)
+            category.set_emotes(emotes)
         else:
             print("Invalid category specified")
 
     # return channel name
-    def getName(self):
+    def get_name(self):
         return self._name
 
     # return Twitch channel id
-    def getId(self):
+    def get_id(self):
         return self._id
 
     # return channel image
-    def getImg(self):
+    def get_img(self):
         return self._img
 
     # return channel description
-    def getDesc(self):
+    def get_desc(self):
         return self._desc
 
-    # return channel videos specifed by list of ids (if present) or the 9 most recent
-    def getVideos(self, videos=None):
+    # return channel videos
+    def get_videos(self, videos=None):
         data = []
-        validHelix = False
-        while not validHelix:
+        valid_helix = False
+        while not valid_helix:
             if not videos:
                 try:
                     for video in self._helix.user(self._name).videos():
@@ -159,26 +163,28 @@ class Channel(object):
                         to_zone = tz.tzlocal()
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
-                        clipped = os.path.exists(self._pathName + "/" + video.id)
-                        processing = self._clipBot._processing.get(self.getId(), None)
+                        clipped = os.path.exists(self._path_name + "/" + video.id)
+                        processing = self._clip_bot._processing.get(self.get_id(), None)
                         if processing and video.id in processing:
                             processing = True
                         else:
                             processing = False
-                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description, "thumbnail": thumbnail, "url" : video.url, "clipped": clipped, "channelId": self.getId(), "processing": processing})
-                    validHelix = True
+                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description, 
+                                     "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                     "channelId": self.get_id(), "processing": processing})
+                    valid_helix = True
                 except requests.exceptions.HTTPError as e:
                     print(e.args)
-                    statusCode = e.response.status_code
-                    if statusCode == 401:
+                    status_code = e.response.status_code
+                    if status_code == 401:
                         print("Helix is out of date, refreshing.")
-                        self._helix = self._clipBot.getHelix()
+                        self._helix = self._clip_bot.get_helix()
                     else:
-                        return {"error" : "An unexpected error occurred."};
+                        return {"error": "An unexpected error occurred."}
             else:
-                for id in videos:
+                for video_id in videos:
                     try:
-                        video = self._helix.video(id)
+                        video = self._helix.video(video_id)
                         thumbnail = video.thumbnail_url
                         if not thumbnail:
                             thumbnail = "../NotFound.png"
@@ -189,76 +195,80 @@ class Channel(object):
                         to_zone = tz.tzlocal()
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
-                        clipped = os.path.exists(self._pathName + "/" + video.id)
-                        processing = self._clipBot._processing.get(self.getId(), None)
+                        clipped = os.path.exists(self._path_name + "/" + video.id)
+                        processing = self._clip_bot._processing.get(self.get_id(), None)
                         if processing and video.id in processing:
                             processing = True
                         else:
                             processing = False
-                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description, "thumbnail": thumbnail, "url" : video.url, "clipped": clipped, "channelId": self.getId(), "processing": processing})
-                        validHelix = True
+                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                     "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                     "channelId": self.get_id(), "processing": processing})
+                        valid_helix = True
                     except requests.exceptions.HTTPError as e:
                         print(e.args)
-                        statusCode = e.response.status_code
-                        if statusCode == 400:
+                        status_code = e.response.status_code
+                        if status_code == 400:
                             print("Video not found.")
-                            validHelix = True
-                        elif statusCode == 401:
+                            valid_helix = True
+                        elif status_code == 401:
                             print("Helix is out of date, refreshing.")
-                            self._helix = self._clipBot.getHelix()
+                            self._helix = self._clip_bot.get_helix()
                         else:
-                            return {"error" : "An unexpected error occurred."}; 
+                            return {"error": "An unexpected error occurred."}
         return data
 
     # Grab Twitch SUb, BTTV, FrankerFaceZ emotes and add to channel object
-    def populateEmotes(self):
-        bttvSuccess = False 
-        twitchSuccess = False 
-        ffzSuccess = False
-        while not bttvSuccess:
+    def populate_emotes(self):
+        bttv_success = False
+        twitch_success = False
+        ffz_success = False
+        while not bttv_success:
             try:
-                getBTTVEmotesRequest = requests.get(self._bttvURL + str(self._id), timeout=1)
-                if(getBTTVEmotesRequest.status_code == requests.codes.ok):
-                    bttvEmotes = json.loads(getBTTVEmotesRequest.text)
-                    for bttvEmote in bttvEmotes["sharedEmotes"]:
-                        self._bttvEmotes.append({"name" : bttvEmote["code"], "imageUrl" : self._bttvImgURL + bttvEmote["id"] + "/1x"})
-                        self._nameToEmotesMap[bttvEmote["code"].lower()] = bttvEmote["code"]
+                get_bttv_emotes_request = requests.get(self._bttv_url + str(self._id), timeout=1)
+                if get_bttv_emotes_request.status_code == requests.codes.ok:
+                    bttv_emotes = json.loads(get_bttv_emotes_request.text)
+                    for bttv_emote in bttv_emotes["sharedEmotes"]:
+                        self._bttv_emotes.append({"name": bttv_emote["code"],
+                                                  "imageUrl": self._bttv_img_url + bttv_emote["id"] + "/1x"})
+                        self._name_to_emotes_map[bttv_emote["code"].lower()] = bttv_emote["code"]
                 else:
                     print("Unable to complete get request for BTTV Emotes")
-                    print("Error code:", getBTTVEmotesRequest.status_code)
-                bttvSuccess = True
+                    print("Error code:", get_bttv_emotes_request.status_code)
+                bttv_success = True
             except requests.exceptions.Timeout as e:
                 print("BTTV Request timed out")
                 print(e.args)
-        while not twitchSuccess:
+        while not twitch_success:
             try:
-                getTwitchSubEmotes = requests.get(self._twitchSubURL + str(self._id), timeout=1)
-                if(getTwitchSubEmotes.status_code == requests.codes.ok):
-                    twitchSubEmotes = json.loads(getTwitchSubEmotes.text)
-                    for twitchSubEmote in twitchSubEmotes["emotes"]:
-                        self._twitchEmotes.append({"name" : twitchSubEmote["code"], "imageUrl" : "../error-placeholder.png"})
-                        self._nameToEmotesMap[twitchSubEmote["code"].lower()] = twitchSubEmote["code"]
+                get_twitch_sub_emotes = requests.get(self._twitch_sub_url + str(self._id), timeout=1)
+                if get_twitch_sub_emotes.status_code == requests.codes.ok:
+                    twitch_sub_emotes = json.loads(get_twitch_sub_emotes.text)
+                    for twitch_sub_emote in twitch_sub_emotes["emotes"]:
+                        self._twitch_emotes.append({"name": twitch_sub_emote["code"],
+                                                    "imageUrl": "../error-placeholder.png"})
+                        self._name_to_emotes_map[twitch_sub_emote["code"].lower()] = twitch_sub_emote["code"]
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
-                    print("Error code:", getTwitchSubEmotes.status_code)
-                twitchSuccess = True
+                    print("Error code:", get_twitch_sub_emotes.status_code)
+                twitch_success = True
             except requests.exceptions.Timeout as e:
                 print("Twitch Sub Emotes Request timed out")
                 print(e.args)
-        while not ffzSuccess:
+        while not ffz_success:
             try:
-                getFrankerFaceZEmotes = requests.get(self._frankerfacezURL, timeout=1)
-                if(getFrankerFaceZEmotes.status_code == requests.codes.ok):
-                    frankerFaceZEmotes = json.loads(getFrankerFaceZEmotes.text)
-                    set = frankerFaceZEmotes["room"]["set"] 
-                    for frankerFaceZEmote in frankerFaceZEmotes["sets"][str(set)]["emoticons"]:
-                        self._ffEmotes.append({"name" : frankerFaceZEmote["name"], "imageUrl" : frankerFaceZEmote["urls"]["1"]})
-                        self._nameToEmotesMap[frankerFaceZEmote["name"].lower()] = frankerFaceZEmote["name"]
+                get_franker_face_z_emotes = requests.get(self._franker_face_z_url, timeout=1)
+                if get_franker_face_z_emotes.status_code == requests.codes.ok:
+                    franker_face_z_emotes = json.loads(get_franker_face_z_emotes.text)
+                    franker_face_z_emote_set = franker_face_z_emotes["room"]["set"]
+                    for franker_face_z_emote in franker_face_z_emotes["sets"][str(franker_face_z_emote_set)]["emoticons"]:
+                        self._ffz_emotes.append({"name": franker_face_z_emote["name"],
+                                                 "imageUrl": franker_face_z_emote["urls"]["1"]})
+                        self._name_to_emotes_map[franker_face_z_emote["name"].lower()] = franker_face_z_emote["name"]
                 else:
                     print("Unable to complete get request for FrankerFaceZ Emotes")
-                    print("Error code:", getFrankerFaceZEmotes.status_code)
-                ffzSuccess = True
+                    print("Error code:", get_franker_face_z_emotes.status_code)
+                ffz_success = True
             except requests.exceptions.Timeout as e:
                 print("FFZ Emotes Request timed out")
                 print(e.args)
-

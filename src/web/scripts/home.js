@@ -55,10 +55,10 @@ function setChannels(c) {
 }
 
 $(document).ready(function () {
-    eel.initClipBot();
-    eel.validBot()(function (valid) {
+    eel.init_clip_bot();
+    eel.valid_bot()(function (valid) {
         if (valid == true) {
-            eel.getChannels()(setChannels);
+            eel.get_channels()(setChannels);
         }
         else {
             $("#numChannels").html("No channels found.")
@@ -83,7 +83,7 @@ $(document).ready(function () {
         else {
             $("#searchInput").prop("disabled", true);
             $(".error").hide();
-            eel.searchChannel(channel)(function (result) {
+            eel.search_channel(channel)(function (result) {
                 $("#searchChannelResult").empty();
                 if (result != null) {
                     $("#notFound").hide();
@@ -110,7 +110,7 @@ $(document).ready(function () {
         event.preventDefault();
         let channel = $("#addChannelSubmit").val()
         if (channel) {
-            eel.addChannel(channel)(function (response) {
+            eel.add_channel(channel)(function (response) {
                 if (response) {
                     $(".errorChannel").show();
                     $(".errorChannel").text(response[0]);
@@ -119,7 +119,7 @@ $(document).ready(function () {
                     let name = $("#searchInput").val();
                     $(".errorChannel").hide();
                     $(".errorChannel").text("");
-                    eel.searchChannel(name)(function (result) {
+                    eel.search_channel(name)(function (result) {
                         // Add channel card
                         let searchCard = createChannelCard(result.displayName, result.id, result.desc, result.imgURL);
                         $("#channelsContainer").append(searchCard);
@@ -150,11 +150,11 @@ $(document).ready(function () {
         }
         else {
             $(".error").hide();
-            eel.removeChannels(channelsRmv)(function (response) {
+            eel.remove_channels(channelsRmv)(function (response) {
                 if (!response) {
                     $('#rmvChannelModal').modal('hide');
                     $("#rmvChannelForm div").remove();
-                    eel.getChannels()(setChannels);
+                    eel.get_channels()(setChannels);
                 }
                 else {
                     $(".error").text("Unable to remove channel: " + response);

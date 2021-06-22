@@ -20,414 +20,489 @@ videoThreads = {}
 notification = False
 path = os.getcwd()
 
-@eel.expose
-def initClipBot():
-	global bot
-	bot = ClipBot()
-	bot.setupConfig()
-	bot.setupChannels()
-
-@eel.expose
-def validBot():
-	global bot
-	return True if bot.hasChannels and bot.oauthConfigured else False
-
-@eel.expose
-def checkCredentials():
-	cfg = configparser.ConfigParser()
-	cfg.read("config/config.ini")
-	if cfg:
-		if cfg.has_section("settings"):
-			if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
-				return True
-		else:
-			return False
-	else:
-		return False
-
-@eel.expose
-def enterCredentials(client_id, client_secret):
-	if not os.path.exists(f"{path}/config/"):
-		os.makedirs(f"{path}/config/")
-	cfg = configparser.ConfigParser()
-	cfg["settings"] = {}
-	cfg["settings"]["client_id"] = client_id
-	cfg["settings"]["secret"] = client_secret
-	with open("config/config.ini", "w") as configFile:
-		cfg.write(configFile)
-
-@eel.expose
-def addChannel(id):
-	if not os.path.exists(f"{path}/config"):
-		os.makedirs(f"{path}/config")
-	try:
-		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
-		global bot
-		if bot.getChannel(int(id)):
-			print("Channel already exists.")
-			raise Exception("Channel already exists.")
-		newChannel = Channel(int(id), bot.getHelix(), bot)
-		bot.addChannel(newChannel)
-		cfg.add_section(id)
-		with open(f"{path}/config/channels.ini", "w") as configFile:
-			cfg.write(configFile)
-		return ""
-	except Exception as e:
-		traceback.print_exc()
-		return e.args
-
-@eel.expose
-def removeChannels(channels):
-	if not os.path.exists(f"{path}/config/"):
-		return "Config file not found."
-	try:
-		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
-		global bot
-		for channel in channels:
-			cfg.remove_section(channel)
-			bot.removeChannel(int(channel))
-		with open(f"{path}/config/channels.ini", "w") as configFile:
-			cfg.write(configFile)
-		return ""
-	except Exception as e:
-		print(e.message)
-		return e.args
-
-@eel.expose
-def getChannels():
-	global bot
-	return bot.getChannels()
-
-@eel.expose
-def getChannel(id, info=True):
-	global bot
-	return bot.getChannel(id, info)
-
-@eel.expose
-def getChannelEmotes(id):
-	global bot
-	return bot.getChannel(id, False).getEmotes()
-
-@eel.expose
-def searchChannel(channel_name):
-	global bot
-	return bot.searchForChannel(channel_name)
+"""
+    Set up the Bot and get everything ready
+"""
 
 
 @eel.expose
-def addCategory(id, type, emotes):
-	if not os.path.exists("config"):
-		return "Can't find config file."
-	try:
-		type = type.lower()
-		global bot
-		channel = bot.getChannel(id, False)
-		channel.addCategory(type, True, id)
-		channel.addEmotesToCategory(type, emotes)
-		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
-		cfg.set(str(id), type, ",".join(emotes))
-		with open(f"{path}/config/channels.ini", "w") as configFile:
-			cfg.write(configFile)
-		return ""
-	except Exception as e:
-		return e.args
-
-@eel.expose
-def editCategory(id, type, emotes_add, emotes_left):
-	if not os.path.exists(f"{path}/config"):
-		return "Can't find config file."
-	try:
-		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
-		type = type.lower()
-		global bot
-		channel = bot.getChannel(id, False)
-		emotesToAdd = set(emotes_add)
-		emotesLeft = set(emotes_left)
-		print("Emotes to Add", emotesToAdd)
-		print("Emotes Left to set", emotesLeft)
-		channel.rmvEmotesFromCategory(type, set(emotes_left))
-		channel.addEmotesToCategory(type, set(emotes_add))
-		cfg.set(str(id), type, ",".join(list(emotesToAdd.union(emotesLeft))))
-		with open(f"{path}/config/channels.ini", "w") as configFile:
-			cfg.write(configFile)
-		return ""
-	except Exception as e:
-		return e.args
-
-@eel.expose
-def deleteCategory(id, types):
-	if not os.path.exists(f"{path}/config"):
-		return 
-	try:
-		cfg = configparser.RawConfigParser()
-		cfg.read(f"{path}/config/channels.ini")
-		global bot
-		channel = bot.getChannel(id, False)
-		for type in types:
-			type = type.lower()
-			channel.removeCategory(type)
-			cfg.remove_option(str(id), type)
-		with open(f"{path}/config/channels.ini", "w") as configFile:
-			cfg.write(configFile)
-		return ""
-	except Exception as e:
-		return e.args
-
-@eel.expose
-def getCategories(channel_id):
-	global bot
-	channel = bot.getChannel(channel_id, False)
-	categories = channel.getCategories()
-	result = [{"type": category.getType(), "emotes": category.getEmotes(True)} for category in categories]
-	return result
-
-@eel.expose
-def getRecommendedEmotes(channel_id, category_type, isList=False):
-	if os.path.exists(f"{path}/data/channels/{channel_id}/recommendation_data.json"):
-		with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
-			channel = getChannel(channel_id, False)
-			category = category_type if isList else channel.getCategory(category_type)
-			chain = json.load(ifile)
-			emotesInCategory = set(category_type) if isList else category.getEmotes(True)
-			top5Emotes = set()
-			chainIndices = {emote: 0 for emote in emotesInCategory}
-			emoteFullyChecked = {emote: False for emote in emotesInCategory}
-			done = False
-			start = time.time()
-			print(f"Beginning process of generating recommended emotes at {start}")
-			for emote in emotesInCategory:
-				chain[emote] = [(k,v/float(chain["totalEmotes"])) for k,v in sorted(chain[emote].items(), key=lambda item: item[1]/chain["totalEmotes"], reverse=True)]
-			while len(top5Emotes) < 5 and not done:
-				candidateEmote = None
-				candidatePercentage = 0
-				parentEmote = None
-				for emote in emotesInCategory:
-					if all(isChecked == True for isChecked in emoteFullyChecked.values()):
-						done = True
-						break
-					while chainIndices[emote] < len(chain[emote]) and chain[emote][chainIndices[emote]][0] in top5Emotes:
-						chainIndices[emote] += 1
-					if chainIndices[emote] >= len(chain[emote]):
-						emoteFullyChecked[emote] = True
-						continue
-					while chain[emote][chainIndices[emote]][0] in emotesInCategory:
-						chainIndices[emote] += 1
-					if chain[emote][chainIndices[emote]][1] > candidatePercentage \
-						and chain[emote][chainIndices[emote]][0] not in top5Emotes:
-						candidatePercentage = chain[emote][chainIndices[emote]][1]
-						candidateEmote = chain[emote][chainIndices[emote]][0]
-						parentEmote = emote
-				if parentEmote is not None:
-					chainIndices[parentEmote] += 1
-				if candidateEmote is not None:
-					top5Emotes.add(candidateEmote)
-			end = time.time()
-			print(f"Finished process of generating recommended emotes at {end}. Process took {end - start}s")
-			print(top5Emotes)
-			return list(top5Emotes)
-	else:
-		return []
-
-@eel.expose
-def getVideos(channel_id, videos = None):
-	global bot
-	channel = bot.getChannel(channel_id, False)
-	return channel.getVideos(videos)
-
-@eel.expose
-def getUserVideos(channel_id=None):
-	if channel_id:
-		try:
-			print(f"data/channels/{channel_id}")
-			if os.path.exists(f"data/channels/{channel_id}"):
-				video_ids =[ int(f.name) for f in os.scandir(f"{path}/data/channels/{channel_id}") if f.is_dir() ]
-				print(video_ids)
-				return video_ids
-			else:
-				print("Channel folder not found")
-				return []
-		except Exception as e:
-			print(e.args)
-			return []
-	else:
-		try:
-			if os.path.exists("data/channels/"):
-				channel_ids =[ f.name for f in os.scandir("data/channels/") if f.is_dir() ]
-				response = {}
-				for channel_id in channel_ids:
-					response[channel_id] = [ int(f.name) for f in os.scandir(f"{path}/data/channels/{channel_id}") if f.is_dir() ]
-				return response
-			else:
-				print("Channel folder not found")
-				return []
-		except Exception as e:
-			print(e.args)
-			return []
-		
-@eel.expose
-def removeVideo(channel_id, video_id):
-	video_id.strip()
-	try:
-		if os.path.exists(f"{path}/data/channels/{channel_id}/{video_id}"):
-			shutil.rmtree(f"{path}/data/channels/{channel_id}/{video_id}")
-			return {"success" : "Video was successfully deleted"}
-		else:
-			print("Video file not found")
-			return {"error" : "Video file not found"}
-	except Exception as e:
-		print(e.args)
-		return {"error" : e.args}
-
-@eel.expose
-def clipVideo(channel_id, id=None):
-	videoThread = threading.Thread(target=clipVideoHelper, args=(channel_id, id), daemon=True)
-	videoThread.start()
-
-def clipVideoHelper(channel_id, id=None):
-	bot.clipVideo(channel_id, id)
-	print("Finished clipping video")
-	print("###########################")
-	eel.videoHandler(True)
-	global notification
-	notification = True
+def init_clip_bot():
+    global bot
+    bot = ClipBot()
+    bot.setup_config()
+    bot.setup_channels()
 
 
 @eel.expose
-def getVideoResults(channel_id, video_id):
-	if not video_id or not channel_id:
-		return {"error" : "Unable to process request"}
-	global bot
-	channel = bot.getChannel(channel_id, False)
-	if not os.path.exists(f"{channel._pathName}/{video_id}"):
-		return {"error" : "Video was not processed"}
-	results = {}
-	for category in channel.getCategories():
-		try:
-			if os.path.exists(f"{channel._pathName}/{video_id}/data.json") :
-				with open(f"{channel._pathName}/{video_id}/data.json") as ifile:
-					results = json.load(ifile)
-			else:
-				results[category.getType()] = {}
-		except Exception as e:
-			print(e.args)
-			print("Exception!")
-			return {"error": "Unable to read file"}
-	if os.path.exists(f"clips/{channel_id}/{video_id}/"):
-		downloaded_video_clips = []
-		for category in channel.getCategories():
-			if os.path.exists(f"clips/{channel_id}/{video_id}/{category.getType()}/"):
-				clip_names = [f.name.split(".")[0] for f in os.scandir(f"clips/{channel_id}/{video_id}/{category.getType()}/") if not f.is_dir()]
-				for name in clip_names:
-					start, end = name.split("_")
-					downloaded_video_clips.append(f"{start}-{end}")
-		results["downloaded"] = downloaded_video_clips
-	else:
-		results["downloaded"] = []
-	results["downloadedVOD"] = os.path.exists(f"vods/{video_id}.mp4")
-	return results
+def valid_bot():
+    global bot
+    return True if bot.has_channels and bot.oauth_configured else False
+
+
+"""
+    Deal with the Twitch API credentials     
+"""
+
 
 @eel.expose
-def getProcessingVideos():
-	global bot
-	return bot.getProcessingVideos()
+def check_credentials():
+    cfg = configparser.ConfigParser()
+    cfg.read("config/config.ini")
+    if cfg:
+        if cfg.has_section("settings"):
+            if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
+                return True
+        else:
+            return False
+    else:
+        return False
+
 
 @eel.expose
-def csvExport(video_id, data):
-	print(data)
-	with open(f"{path}/web/exported/{video_id}_groups.csv", "w") as ofile:
-		for group in data:
-			line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
-			print(line)
-			ofile.write(line)
-	return {"status": 200}
+def enter_credentials(client_id, client_secret):
+    if not os.path.exists(f"{path}/config/"):
+        os.makedirs(f"{path}/config/")
+    cfg = configparser.ConfigParser()
+    cfg["settings"] = {}
+    cfg["settings"]["client_id"] = client_id
+    cfg["settings"]["secret"] = client_secret
+    with open("config/config.ini", "w") as config_file:
+        cfg.write(config_file)
+
+
+"""
+    Handle a specific channel or channels
+"""
+
 
 @eel.expose
-def getGraph(graph_data):
-	df = pd.DataFrame(graph_data, columns=["category", "time", "instances"])
-	fig = px.scatter(df, x="time", y="instances", color="category",
-					 labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
-					 width=450, height=350)
-	fig.update_layout(
-		margin=dict(l=0,r=0,t=0,b=0)
-	)
-	img_bytes = fig.to_image(format="png")
-	return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
+def add_channel(channel_id):
+    if not os.path.exists(f"{path}/config"):
+        os.makedirs(f"{path}/config")
+    try:
+        cfg = configparser.RawConfigParser()
+        cfg.read(f"{path}/config/channels.ini")
+        global bot
+        if bot.get_channel(int(channel_id)):
+            print("Channel already exists.")
+            raise Exception("Channel already exists.")
+        new_channel = Channel(int(channel_id), bot.get_helix(), bot)
+        bot.add_channel(new_channel)
+        cfg.add_section(channel_id)
+        with open(f"{path}/config/channels.ini", "w") as config_file:
+            cfg.write(config_file)
+        return ""
+    except Exception as exception:
+        traceback.print_exc()
+        return exception.args
+
 
 @eel.expose
-def resetNotificationCount():
-	global notification
-	notification = False
-	eel.videoHandler(notification)
+def remove_channels(channels):
+    if not os.path.exists(f"{path}/config/"):
+        return "Config file not found."
+    try:
+        cfg = configparser.RawConfigParser()
+        cfg.read(f"{path}/config/channels.ini")
+        global bot
+        for channel in channels:
+            cfg.remove_section(channel)
+            bot.remove_channel(int(channel))
+        with open(f"{path}/config/channels.ini", "w") as config_file:
+            cfg.write(config_file)
+        return ""
+    except Exception as exception:
+        return exception.args
+
 
 @eel.expose
-def downloadClip(channel_id, video_id, category, start, end):
-	if end <= start:
-		print("Invalid clip params.")
-		return {"status": "400"}
-	download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, channel_id, category, start, end), daemon=True)
-	download_thread.start()
+def get_channels():
+    global bot
+    return bot.get_channels()
+
 
 @eel.expose
-def downloadVod(video_id):
-	print(video_id)
-	download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, None, None), daemon=True)
-	download_thread.start()
+def get_channel(channel_id, info=True):
+    global bot
+    return bot.get_channel(channel_id, info)
+
+
+@eel.expose
+def get_channel_emotes(channel_id):
+    global bot
+    return bot.get_channel(channel_id, False).get_emotes()
+
+
+@eel.expose
+def search_channel(channel_name):
+    global bot
+    return bot.search_for_channel(channel_name)
+
+
+"""
+    For a channel setting, deal with a category or categories
+"""
+
+
+@eel.expose
+def add_category(channel_id, name, emotes):
+    if not os.path.exists("config"):
+        return "Can't find config file."
+    try:
+        name = name.lower()
+        global bot
+        channel = bot.get_channel(channel_id, False)
+        channel.add_category(name, True, channel_id)
+        channel.add_emotes_to_category(name, emotes)
+        cfg = configparser.RawConfigParser()
+        cfg.read(f"{path}/config/channels.ini")
+        cfg.set(str(channel_id), name, ",".join(emotes))
+        with open(f"{path}/config/channels.ini", "w") as config_file:
+            cfg.write(config_file)
+        return ""
+    except Exception as exception:
+        return exception.args
+
+
+@eel.expose
+def edit_category(channel_id, name, emotes_add, emotes_left):
+    if not os.path.exists(f"{path}/config"):
+        return "Can't find config file."
+    try:
+        cfg = configparser.RawConfigParser()
+        cfg.read(f"{path}/config/channels.ini")
+        name = name.lower()
+        global bot
+        channel = bot.get_channel(channel_id, False)
+        emotes_to_add = set(emotes_add)
+        emotes_left = set(emotes_left)
+        print("Emotes to Add", emotes_to_add)
+        print("Emotes Left to set", emotes_left)
+        channel.rmv_emotes_from_category(name, set(emotes_left))
+        channel.add_emotes_to_category(name, set(emotes_add))
+        cfg.set(str(channel_id), name, ",".join(list(emotes_to_add.union(emotes_left))))
+        with open(f"{path}/config/channels.ini", "w") as config_file:
+            cfg.write(config_file)
+        return ""
+    except Exception as exception:
+        return exception.args
+
+
+@eel.expose
+def delete_category(channel_id, names):
+    if not os.path.exists(f"{path}/config"):
+        return
+    try:
+        cfg = configparser.RawConfigParser()
+        cfg.read(f"{path}/config/channels.ini")
+        global bot
+        channel = bot.get_channel(channel_id, False)
+        for name in names:
+            name = name.lower()
+            channel.remove_category(name)
+            cfg.remove_option(str(channel_id), name)
+        with open(f"{path}/config/channels.ini", "w") as config_file:
+            cfg.write(config_file)
+        return ""
+    except Exception as exception:
+        return exception.args
+
+
+@eel.expose
+def get_recommended_emotes(channel_id, category_type, is_list=False):
+    if os.path.exists(f"{path}/data/channels/{channel_id}/recommendation_data.json"):
+        with open(f"data/channels/{channel_id}/recommendation_data.json") as ifile:
+            channel = get_channel(channel_id, False)
+            category = category_type if is_list else channel.get_category(category_type)
+            chain = json.load(ifile)
+            emotes_in_category = set(category_type) if is_list else category.get_emotes(True)
+            top_5_emotes = set()
+            chain_indices = {emote: 0 for emote in emotes_in_category}
+            emote_fully_checked = {emote: False for emote in emotes_in_category}
+            done = False
+            start = time.time()
+            print(f"Beginning process of generating recommended emotes at {start}")
+            for emote in emotes_in_category:
+                chain[emote] = [(k, v / float(chain["totalEmotes"])) for k, v in
+                                sorted(chain[emote].items(), key=lambda item: item[1] / chain["totalEmotes"],
+                                       reverse=True)]
+            while len(top_5_emotes) < 5 and not done:
+                candidate_emote = None
+                candidate_percentage = 0
+                parent_emote = None
+                for emote in emotes_in_category:
+                    if all(is_checked for is_checked in emote_fully_checked.values()):
+                        done = True
+                        break
+                    while chain_indices[emote] < len(chain[emote]) \
+                            and chain[emote][chain_indices[emote]][0] in top_5_emotes:
+                        chain_indices[emote] += 1
+                    if chain_indices[emote] >= len(chain[emote]):
+                        emote_fully_checked[emote] = True
+                        continue
+                    while chain[emote][chain_indices[emote]][0] in emotes_in_category:
+                        chain_indices[emote] += 1
+                    if chain[emote][chain_indices[emote]][1] > candidate_percentage \
+                            and chain[emote][chain_indices[emote]][0] not in top_5_emotes:
+                        candidate_percentage = chain[emote][chain_indices[emote]][1]
+                        candidate_emote = chain[emote][chain_indices[emote]][0]
+                        parent_emote = emote
+                if parent_emote is not None:
+                    chain_indices[parent_emote] += 1
+                if candidate_emote is not None:
+                    top_5_emotes.add(candidate_emote)
+            end = time.time()
+            print(f"Finished process of generating recommended emotes at {end}. Process took {end - start}s")
+            print(top_5_emotes)
+            return list(top_5_emotes)
+    else:
+        return []
+
+
+@eel.expose
+def get_categories(channel_id):
+    global bot
+    channel = bot.get_channel(channel_id, False)
+    categories = channel.get_categories()
+    result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
+    return result
+
+
+"""
+    Handle a channel's videos or the user's processed/processing videos    
+"""
+
+
+@eel.expose
+def get_videos(channel_id, videos=None):
+    global bot
+    channel = bot.get_channel(channel_id, False)
+    return channel.get_videos(videos)
+
+
+@eel.expose
+def get_user_videos(channel_id=None):
+    if channel_id:
+        try:
+            print(f"data/channels/{channel_id}")
+            if os.path.exists(f"data/channels/{channel_id}"):
+                video_ids = [int(f.name) for f in os.scandir(f"{path}/data/channels/{channel_id}") if f.is_dir()]
+                print(video_ids)
+                return video_ids
+            else:
+                print("Channel folder not found")
+                return []
+        except Exception as exception:
+            print(exception.args)
+            return []
+    else:
+        try:
+            if os.path.exists("data/channels/"):
+                channel_ids = [f.name for f in os.scandir("data/channels/") if f.is_dir()]
+                response = {}
+                for channel_id in channel_ids:
+                    response[channel_id] = [int(f.name) for f in os.scandir(f"{path}/data/channels/{channel_id}") if
+                                            f.is_dir()]
+                return response
+            else:
+                print("Channel folder not found")
+                return []
+        except Exception as exception:
+            print(exception.args)
+            return []
+
+
+@eel.expose
+def get_processing_videos():
+    global bot
+    return bot.get_processing_videos()
+
+
+@eel.expose
+def remove_video(channel_id, video_id):
+    video_id.strip()
+    try:
+        if os.path.exists(f"{path}/data/channels/{channel_id}/{video_id}"):
+            shutil.rmtree(f"{path}/data/channels/{channel_id}/{video_id}")
+            return {"success": "Video was successfully deleted"}
+        else:
+            print("Video file not found")
+            return {"error": "Video file not found"}
+    except Exception as exception:
+        print(exception.args)
+        return {"error": exception.args}
+
+
+@eel.expose
+def reset_notification_count():
+    global notification
+    notification = False
+    eel.videoHandler(notification)
+
+
+"""
+    Process a video
+"""
+
+
+@eel.expose
+def clip_video(channel_id, video_id=None):
+    video_thread = threading.Thread(target=clip_video_helper, args=(channel_id, video_id), daemon=True)
+    video_thread.start()
+
+
+def clip_video_helper(channel_id, video_id=None):
+    bot.clip_video(channel_id, video_id)
+    print("Finished clipping video")
+    print("###########################")
+    global notification
+    notification = True
+    eel.videoHandler(notification)
+
+
+"""
+    Handle processed video results
+"""
+
+
+@eel.expose
+def get_video_results(channel_id, video_id):
+    if not video_id or not channel_id:
+        return {"error": "Unable to process request"}
+    global bot
+    channel = bot.get_channel(channel_id, False)
+    if not os.path.exists(f"{channel._path_name}/{video_id}"):
+        return {"error": "Video was not processed"}
+    results = {}
+    for category in channel.get_categories():
+        try:
+            if os.path.exists(f"{channel._path_name}/{video_id}/data.json"):
+                with open(f"{channel._path_name}/{video_id}/data.json") as ifile:
+                    results = json.load(ifile)
+            else:
+                results[category.get_type()] = {}
+        except Exception as exception:
+            print(exception.args)
+            print("Exception!")
+            return {"error": "Unable to read file"}
+    if os.path.exists(f"clips/{channel_id}/{video_id}/"):
+        downloaded_video_clips = []
+        for category in channel.get_categories():
+            if os.path.exists(f"clips/{channel_id}/{video_id}/{category.get_type()}/"):
+                clip_names = [f.name.split(".")[0] for f in
+                              os.scandir(f"clips/{channel_id}/{video_id}/{category.get_type()}/") if not f.is_dir()]
+                for name in clip_names:
+                    start, end = name.split("_")
+                    downloaded_video_clips.append(f"{start}-{end}")
+        results["downloaded"] = downloaded_video_clips
+    else:
+        results["downloaded"] = []
+    results["downloadedVOD"] = os.path.exists(f"vods/{video_id}.mp4")
+    return results
+
+
+@eel.expose
+def get_graph(graph_data):
+    df = pd.DataFrame(graph_data, columns=["category", "time", "instances"])
+    fig = px.scatter(df, x="time", y="instances", color="category",
+                     labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
+                     width=450, height=350)
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0)
+    )
+    img_bytes = fig.to_image(format="png")
+    return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
+
+
+"""
+    Download a clip/vod/csv file
+"""
+
+
+@eel.expose
+def csv_export(video_id, data):
+    print(data)
+    with open(f"{path}/web/exported/{video_id}_groups.csv", "w") as ofile:
+        for group in data:
+            line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
+            print(line)
+            ofile.write(line)
+    return {"status": 200}
+
 
 def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
-	print(start, end, video_id, channel_id)
-	response = {"start": start, "end": end, "video_id": video_id, "channel_id": channel_id, "category": category}
-	if start == -1 and end == 0:
-		response["isVOD"] = True
-	elif not category:
-		response["isOther"] = True
-	cmd = ["python3", "twitchdl/console.py", "download", video_id, "--overwrite", "--format", "mp4"]
-	if channel_id is not None:
-		cmd.extend(["--channel", str(channel_id)])
-	if start >= 0:
-		cmd.extend(["--start", str(start)])
-	if end > 0:
-		cmd.extend(["--end", str(end)])
-	if category is not None:
-		cmd.extend(["--category", category])
-	print(cmd)
-	return_val = subprocess.run(cmd, stderr=subprocess.STDOUT, universal_newlines=True)
-	if return_val.returncode != 0:
-		msg = f"Download failed for clip at {start} to {end} for video {video_id}"
-		print(msg)
-		response["status"] = 500
-		response["msg"] = msg
-	else:
-		msg = f"Successfully downloaded clip at {start} to {end} for video {video_id}"
-		print(msg)
-		response["status"] = 200
-		response["msg"] = msg
-	print(f"download response: {response}")
-	eel.downloadHandler(response)
+    print(start, end, video_id, channel_id)
+    response = {"start": start, "end": end, "video_id": video_id, "channel_id": channel_id, "category": category}
+    if start == -1 and end == 0:
+        response["isVOD"] = True
+    elif not category:
+        response["isOther"] = True
+    cmd = ["python3", "twitchdl/console.py", "download", video_id, "--overwrite", "--format", "mp4"]
+    if channel_id is not None:
+        cmd.extend(["--channel", str(channel_id)])
+    if start >= 0:
+        cmd.extend(["--start", str(start)])
+    if end > 0:
+        cmd.extend(["--end", str(end)])
+    if category is not None:
+        cmd.extend(["--category", category])
+    print(cmd)
+    return_val = subprocess.run(cmd, stderr=subprocess.STDOUT, universal_newlines=True)
+    if return_val.returncode != 0:
+        msg = f"Download failed for clip at {start} to {end} for video {video_id}"
+        print(msg)
+        response["status"] = 500
+        response["msg"] = msg
+    else:
+        msg = f"Successfully downloaded clip at {start} to {end} for video {video_id}"
+        print(msg)
+        response["status"] = 200
+        response["msg"] = msg
+    print(f"download response: {response}")
+    eel.downloadHandler(response)
+
+
+@eel.expose
+def download_clip(channel_id, video_id, category, start, end):
+    if end <= start:
+        print("Invalid clip params.")
+        return {"status": "400"}
+    download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, channel_id, category, start, end),
+                                       daemon=True)
+    download_thread.start()
+
+
+@eel.expose
+def download_vod(video_id):
+    download_thread = threading.Thread(target=invoke_twitchdl, args=(video_id, None, None), daemon=True)
+    download_thread.start()
+
+
+"""
+    Check what browser to open up on start
+"""
 
 
 def get_preferred_mode():
-	if eel.chrome.find_path():
-		return 'chrome'
-	if eel.edge.find_path():
-		return 'edge'
+    if eel.chrome.find_path():
+        return 'chrome'
+    if eel.edge.find_path():
+        return 'edge'
 
-	return 'default'
+    return 'default'
+
 
 if __name__ == "__main__":
-	multiprocessing.freeze_support()
-	eel.init("web", allowed_extensions=[".js", ".html"])
-	try:
-		eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
-	except SystemExit as e:
-		print(e.code, e.args)
-		pass
-	except MemoryError as e:
-		print(e.args)
-		pass
-	except KeyboardInterrupt as e:
-		print(e.args)
-		pass
+    multiprocessing.freeze_support()
+    eel.init("web", allowed_extensions=[".js", ".html"])
+    try:
+        eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
+    except SystemExit as e:
+        print(e.code, e.args)
+        pass
+    except MemoryError as e:
+        print(e.args)
+        pass
+    except KeyboardInterrupt as e:
+        print(e.args)
+        pass

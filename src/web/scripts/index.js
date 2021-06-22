@@ -5,7 +5,7 @@ $("#credentialForm").submit(function (event) {
     }
     else {
         $("#error").hide();
-        eel.enterCredentials($("#clientId").val(), $("#clientSecret").val());
+        eel.enter_credentials($("#clientId").val(), $("#clientSecret").val());
         $("#successBlock").show();
     }
 });
@@ -19,4 +19,4 @@ function changeDisplay(valid) {
         $("#validBlock").show();
     }
 }
-eel.checkCredentials()(changeDisplay);
+eel.check_credentials()(changeDisplay);
