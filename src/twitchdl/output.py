@@ -7,7 +7,7 @@ import json
 import sys
 import re
 
-import src.twitchdl.utils as utils
+import utils
 
 
 START_CODES = {

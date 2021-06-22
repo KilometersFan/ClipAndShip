@@ -6,7 +6,7 @@ import requests.exceptions
 from json import dump, load
 from datetime import datetime
 from .Channel import Channel
-
+from .util import resource_path
 
 class ClipBotHelper(object):
     """
@@ -19,8 +19,7 @@ class ClipBotHelper(object):
             clip_bot.setup_config()
         self._channel = channel
         self._helix = clip_bot.get_helix()
-        path = os.getcwd()
-        self._path_name = f"{path}/data/channels/{self._channel.get_id()}"
+        self._path_name = resource_path(f"data/channels/{self._channel.get_id()}")
         self._start_time = None
         self._end_time = None
         self._processing_group = False

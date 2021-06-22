@@ -9,8 +9,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from functools import partial
 from requests.exceptions import RequestException
-from src.twitchdl.output import print_out
-from src.twitchdl.utils import format_size, format_duration
+from output import print_out
+from utils import format_size, format_duration
 
 
 CHUNK_SIZE = 1024

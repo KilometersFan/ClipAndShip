@@ -2,12 +2,14 @@ import configparser
 import twitch
 import requests
 import json
+import sys
 import shutil
 import os
 from multiprocessing import Process, Manager
 from .Channel import Channel
 from .Category import Category
 from .ClipBotHelper import ClipBotHelper
+from .util import resource_path
 
 
 class ClipBot:
@@ -28,7 +30,6 @@ class ClipBot:
         self._comment_processing = {}
         self._helpers = {}
         self._access_token = None
-        self._path = os.getcwd()
 
     # return twitch Helix object
     def get_helix(self):
@@ -37,7 +38,7 @@ class ClipBot:
     # set up helix and twitch related stuff
     def setup_config(self, refresh=False):
         cfg = configparser.ConfigParser()
-        cfg.read(f"{self._path}/config/config.ini")
+        cfg.read(resource_path("config.ini"))
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -66,7 +67,7 @@ class ClipBot:
     # refresh access token when needed
     def refresh_token(self):
         cfg = configparser.ConfigParser()
-        cfg.read(f"{self._path}/config/config.ini")
+        cfg.read(resource_path("config.ini"))
         settings = cfg["settings"]
         client_id = settings["client_id"]
         secret = settings["secret"]
@@ -89,7 +90,7 @@ class ClipBot:
     # read from channls.ini all the info from user's channels
     def setup_channels(self):
         cfg = configparser.ConfigParser()
-        cfg.read("config/channels.ini")
+        cfg.read(resource_path("channels.ini"))
         for section in cfg.sections():
             valid_token = False
             while not valid_token:
@@ -130,8 +131,8 @@ class ClipBot:
     def remove_channel(self, channel_id):
         if self._channels.get(channel_id, None):
             del self._channels[channel_id]
-            if os.path.exists(f"{self._path}/data/channels/{channel_id}"):
-                shutil.rmtree(f"{self._path}/data/channels/{channel_id}")
+            if os.path.exists(resource_path(f"data/channels/{channel_id}")):
+                shutil.rmtree(resource_path(f"data/channels/{channel_id}"))
         else:
             print("Channel doesn't exist.")
             raise Exception("Channel doesn't exist.")

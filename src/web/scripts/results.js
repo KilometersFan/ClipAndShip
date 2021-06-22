@@ -173,10 +173,14 @@ $("#playSelected").click(function () {
     $("#vod").attr("src", src);
 });
 $("#downloadVod").click(function (){
+    $("#downloadErr").text("");
+    $("#downloadSuccess").text("");
     eel.download_vod(videoId);
     $(this).prop("disabled", true);
 });
 $("#downloadOther").click(function () {
+    $("#downloadErr").text("");
+    $("#downloadSuccess").text("");
     $("#downloadOther").prop("disabled", true);
     const start = $("#downloadOtherInputStart").val();
     const end = $("#downloadOtherInputEnd").val();
@@ -287,7 +291,9 @@ function populateTable (defaultFilteredResults=null) {
                 downloadBtn.addClass("btn-secondary");
             }
             else {
-                downloadBtn.click(function() {
+                downloadBtn.click(function(e) {
+                    $("#downloadErr").text("");
+                    $("#downloadSuccess").text("");
                     eel.download_clip(channelId, videoId, categories, group["start"], group["end"]);
                     downloadBtn.empty()
                     downloadBtn.append($("<i>", {"class": "fa fa-spinner"}));

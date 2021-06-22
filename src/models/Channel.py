@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from dateutil import tz
 from .Category import Category
+from .util import resource_path
 
 
 class Channel(object):
@@ -23,13 +24,12 @@ class Channel(object):
         self._twitch_sub_url = "https://api.twitchemotes.com/api/v4/channels/"
         self._clip_bot = clip_bot
         valid_helix = False
-        path = os.getcwd()
         # reset helix if access token is invalid
         while not valid_helix:
             try:
                 if helix is not None:
                     self._name = helix.user(channel_id).display_name
-                    self._path_name = f"{path}/data/channels/{self._id}"
+                    self._path_name = f"data/channels/{self._id}"
                     self._desc = helix.user(channel_id).description
                     self._img = helix.user(channel_id).profile_image_url
                     self._franker_face_z_url = "https://api.frankerfacez.com/v1/room/" + self._name.lower()
@@ -163,7 +163,7 @@ class Channel(object):
                         to_zone = tz.tzlocal()
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
-                        clipped = os.path.exists(self._path_name + "/" + video.id)
+                        clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
                         processing = self._clip_bot._processing.get(self.get_id(), None)
                         if processing and video.id in processing:
                             processing = True
@@ -195,7 +195,7 @@ class Channel(object):
                         to_zone = tz.tzlocal()
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
-                        clipped = os.path.exists(self._path_name + "/" + video.id)
+                        clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
                         processing = self._clip_bot._processing.get(self.get_id(), None)
                         if processing and video.id in processing:
                             processing = True

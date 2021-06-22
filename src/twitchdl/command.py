@@ -8,16 +8,23 @@ import requests
 import shutil
 import subprocess
 import tempfile
-
+import sys
 from os import path, makedirs
 from pathlib import Path
 from urllib.parse import urlparse, urlencode
 
-import src.twitchdl.twitch as twitch
-import src.twitchdl.utils as utils
-from src.twitchdl.download import download_files
-from src.twitchdl.exceptions import ConsoleError
-from src.twitchdl.output import print_out
+import twitch
+import utils
+import download
+import exceptions
+import output
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', path.dirname(path.abspath(__file__)))
+    parent_path = path.join(base_path, "..")
+    return path.join(parent_path, relative_path)
 
 
 def _parse_playlists(playlists_m3u8):
@@ -49,10 +56,10 @@ def _join_vods(playlist_path, target, overwrite):
     if overwrite:
         command.append("-y")
 
-    print_out("<dim>{}</dim>".format(" ".join(command)))
+    output.print_out("<dim>{}</dim>".format(" ".join(command)))
     result = subprocess.run(command)
     if result.returncode != 0:
-        raise ConsoleError("Joining files failed")
+        raise exceptions.ConsoleError("Joining files failed")
 
 
 def _video_target_filename(video, channel_id, format, category, start=None, end=None):
@@ -63,24 +70,24 @@ def _video_target_filename(video, channel_id, format, category, start=None, end=
         parts.append(video['id'])
     name = "_".join(parts)
     if start and end:
-        if not path.exists("clips/"):
-            makedirs("clips/")
-        if not path.exists(f"clips/{channel_id}/"):
-            makedirs(f"clips/{channel_id}/")
-        if not path.exists(f"clips/{channel_id}/{video['id']}/"):
-            makedirs(f"clips/{channel_id}/{video['id']}/")
+        if not path.exists(resource_path("clips/")):
+            makedirs(resource_path("clips/"))
+        if not path.exists(resource_path(f"clips/{channel_id}/")):
+            makedirs(resource_path(f"clips/{channel_id}/"))
+        if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/")):
+            makedirs(resource_path(f"clips/{channel_id}/{video['id']}/"))
         if category is not None:
-            filepath = f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}"
-            if not path.exists(f"clips/{channel_id}/{video['id']}/{category}/"):
-                makedirs(f"clips/{channel_id}/{video['id']}/{category}/")
+            filepath = resource_path(f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}")
+            if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/{category}/")):
+                makedirs(resource_path(f"clips/{channel_id}/{video['id']}/{category}/"))
         else:
-            filepath = f"clips/{channel_id}/{video['id']}/other_clips/{name}.{format}"
-            if not path.exists(f"clips/{channel_id}/{video['id']}/other_clips/"):
-                makedirs(f"clips/{channel_id}/{video['id']}/other_clips/")
+            filepath = resource_path(f"clips/{channel_id}/{video['id']}/other_clips/{name}.{format}")
+            if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/")):
+                makedirs(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/"))
     else:
-        if not path.exists("vods/"):
-            makedirs("vods/")
-        filepath = f"vods/{name}.{format}"
+        if not path.exists(resource_path("vods/")):
+            makedirs(resource_path("vods/"))
+        filepath = resource_path(f"vods/{name}.{format}")
     return filepath
 
 
@@ -112,33 +119,33 @@ def _create_temp_dir(base_uri):
     return temp_dir
 
 
-def download(args):
+def download_video(args):
     video_id = utils.parse_video_identifier(args.video)
     if video_id:
         return _download_video(video_id, args)
 
-    raise ConsoleError("Invalid input: {}".format(args.video))
+    raise exceptions.ConsoleError("Invalid input: {}".format(args.video))
 
 
 def _download_video(video_id, args):
     if args.start and args.end and args.end <= args.start:
-        raise ConsoleError("End time must be greater than start time")
+        raise exceptions.ConsoleError("End time must be greater than start time")
 
-    print_out("<dim>Looking up video...</dim>")
+    output.print_out("<dim>Looking up video...</dim>")
     video = twitch.get_video(video_id)
 
-    print_out("Found: <blue>{}</blue> by <yellow>{}</yellow>".format(
+    output.print_out("Found: <blue>{}</blue> by <yellow>{}</yellow>".format(
         video['title'], video['creator']['displayName']))
 
-    print_out("<dim>Fetching access token...</dim>")
+    output.print_out("<dim>Fetching access token...</dim>")
     access_token = twitch.get_access_token(video_id)
 
-    print_out("<dim>Fetching playlists...</dim>")
+    output.print_out("<dim>Fetching playlists...</dim>")
     playlists_m3u8 = twitch.get_playlists(video_id, access_token)
     playlists = list(_parse_playlists(playlists_m3u8))
     playlist_uri = (_get_playlist_by_name(playlists))
 
-    print_out("<dim>Fetching playlist...</dim>")
+    output.print_out("<dim>Fetching playlist...</dim>")
     response = requests.get(playlist_uri)
     response.raise_for_status()
     playlist = m3u8.loads(response.text)
@@ -153,9 +160,9 @@ def _download_video(video_id, args):
     with open(path.join(target_dir, "playlist.m3u8"), "w") as f:
         f.write(response.text)
 
-    print_out("\nDownloading {} VODs using {} workers to {}".format(
+    output.print_out("\nDownloading {} VODs using {} workers to {}".format(
         len(vod_paths), args.max_workers, target_dir))
-    path_map = download_files(base_uri, target_dir, vod_paths, args.max_workers)
+    path_map = download.download_files(base_uri, target_dir, vod_paths, args.max_workers)
 
     # Make a modified playlist which references downloaded VODs
     # Keep only the downloaded segments and skip the rest
@@ -170,18 +177,18 @@ def _download_video(video_id, args):
     playlist.dump(playlist_path)
 
     if args.no_join:
-        print_out("\n\n<dim>Skipping joining files...</dim>")
-        print_out("VODs downloaded to:\n<blue>{}</blue>".format(target_dir))
+        output.print_out("\n\n<dim>Skipping joining files...</dim>")
+        output.print_out("VODs downloaded to:\n<blue>{}</blue>".format(target_dir))
         return
 
-    print_out("\n\nJoining files...")
+    output.print_out("\n\nJoining files...")
     target = _video_target_filename(video, args.channel, args.format, args.category, args.start, args.end)
     _join_vods(playlist_path, target, args.overwrite)
 
     if args.keep:
-        print_out("\n<dim>Temporary files not deleted: {}</dim>".format(target_dir))
+        output.print_out("\n<dim>Temporary files not deleted: {}</dim>".format(target_dir))
     else:
-        print_out("\n<dim>Deleting temporary files...</dim>")
+        output.print_out("\n<dim>Deleting temporary files...</dim>")
         shutil.rmtree(target_dir)
 
-    print_out("\nDownloaded: <green>{}</green>".format(target))
+    output.print_out("\nDownloaded: <green>{}</green>".format(target))
