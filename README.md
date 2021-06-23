@@ -39,6 +39,8 @@ Additionally, there are some features for data scientists who may want to analyz
 ## Local Development
 Install the required libraries. To run the main program change directory to ```src``` and run ```python3 clipnship.py```. To run the data_exporter program, run ```python3 data_exporter.py``` in the same directory. The upsampler will only work if the you processed at least one video for the specified channel.
 
+To build the executable run ```pyinstaller clipnship.spec``` in the ```src``` directory. Add the ```--noconfirm``` flag to skip the confirmation prompt that asks if you want to delete the ```dist``` folder's contents.
+
 ## Example
 ### Setup
 <img width="1276" alt="Screen Shot 2021-06-22 at 7 39 17 PM" src="https://user-images.githubusercontent.com/35278719/123026749-89c46400-d391-11eb-90fe-6c6351768da6.png">
@@ -69,11 +71,17 @@ Install the required libraries. To run the main program change directory to ```s
 <img width="1242" alt="Screen Shot 2021-06-22 at 7 54 30 PM" src="https://user-images.githubusercontent.com/35278719/123028057-a9f52280-d393-11eb-8776-7c86c973449c.png">
 
 
+## Questions & Concerns (Updated as needed)
+1. **Why do I have to download an .exe or .dmg? Why does my machine have to do the processing? Why not host a website?** Answer: Paying for storage of clips, vods, etc is expensive and currently I don't have to funds to pay for those services so the next best thing was a standalone app. Of course, downloading anything from the internet can be dangerous, especially an executable. For transparency's sake, Clip & Ship is publically available on GitHub.
+2. **I'm a developer and I want to contribute, how can I help?** Answer: Even though I am the author of Clip & Ship, I am open to new ideas and outside contributions. Feel free to fork the repo and create pull request with any new feature/improvement and I'll take a look. If you are a skilled front-end dev with experience in React + Electron, I will be very open to working with you to redo the UI.
+3. **Can I use this code for my own program?** You can't copy this code or build a spin off program for commercial purposes. Your code must be publically available and must give proper credit if it uses any piece of Clip & Ship.
+
+
 ## Limitations
 - The executable takes a while to start up, so please be patient when opening it (this is an issue with PyInstaller).
 - Everything is stored locally. All analysis, channel categories, and channel info is on your machine, not on the cloud. Make sure you have plenty of storage.
 - Similarly, analysis performance is based on your machine. A computer with more cores, and a fast processor will run analysis faster than a worse machine.
 - Reliance on third party technologies. This app uses BTTV, FrankerFaceZ, and Twitch APIs. If any of these companies change something to their API, the app may not work correctly. In that case, please report problems on the issues page.
-- The Clip & Ship works well with channels that have emote-heavy chats but performs poorly if the chat doesn't frequently use emotes.
+- Clip & Ship works well with channels that have emote-heavy chats but may perform poorly if the chat doesn't frequently use emotes.
 
 Feel free to ask questions or report bugs on the issues page.
