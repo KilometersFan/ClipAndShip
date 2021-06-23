@@ -30,7 +30,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   clips Clip & Ship generates as well as download specific timeframes or even the whole VOD. So you only
   download what you need. Clip & Ship is the future of content creation with Twitch.
 
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/ClipAndShip" # the subpath of your site, e.g. /blog
 url: "https:KilometersFan.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  KilometersFan
 repository: "KilometersFan/ClipAndShip"
