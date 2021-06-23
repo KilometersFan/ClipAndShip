@@ -90,7 +90,7 @@ $(document).ready(function () {
                     $("#addChannelForm").show();
                     let cardCol = createChannelCard(result.displayName, result.id, result.desc, result.imgURL, true)
                     $("#searchChannelResult").append(cardCol);
-                    $("#addChannelSubmit").val(result.id);
+                    $("#searchChannelSubmit").val(result.id);
                 }
                 else {
                     $("#notFound").show();
