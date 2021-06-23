@@ -356,5 +356,4 @@ clips/
 dist/
 dist/*
 build/
-TwitchAnalyzer.spec
 *egg-info/
