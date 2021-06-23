@@ -1,4 +1,5 @@
 # Clip & Ship
+![clipnship_](https://user-images.githubusercontent.com/35278719/123028171-dc9f1b00-d393-11eb-80ff-44aa4c559361.png)
 ## What is Clip & Ship?
 The Clip & Ship is a standalone program designed to find and display significant moments of a livestream broadcast. 
 
@@ -39,29 +40,34 @@ Additionally, there are some features for data scientists who may want to analyz
 Install the required libraries. To run the main program change directory to ```src``` and run ```python3 clipnship.py```. To run the data_exporter program, run ```python3 data_exporter.py``` in the same directory. The upsampler will only work if the you processed at least one video for the specified channel.
 
 ## Example
+### Setup
+<img width="1276" alt="Screen Shot 2021-06-22 at 7 39 17 PM" src="https://user-images.githubusercontent.com/35278719/123026749-89c46400-d391-11eb-90fe-6c6351768da6.png">
+
 ### Adding a Channel
-<img width="1278" alt="Screen Shot 2021-06-11 at 1 17 02 PM" src="https://user-images.githubusercontent.com/35278719/121744151-517e7500-cab7-11eb-8246-0bab0c54d0f0.png">
+<img width="1277" alt="Screen Shot 2021-06-22 at 7 40 20 PM" src="https://user-images.githubusercontent.com/35278719/123026826-aeb8d700-d391-11eb-99ca-dead0b9656f3.png">
+
 
 ### Viewing the Channel Settings
-<img width="1258" alt="Screen Shot 2021-06-11 at 1 17 32 PM" src="https://user-images.githubusercontent.com/35278719/121744182-622eeb00-cab7-11eb-83b1-3a622da7f713.png">
+<img width="1257" alt="Screen Shot 2021-06-22 at 7 47 13 PM" src="https://user-images.githubusercontent.com/35278719/123027414-a614d080-d392-11eb-85ee-ce1d54a3ee7b.png">
 
 ### Adding a Category
-<img width="1257" alt="Screen Shot 2021-06-11 at 1 18 21 PM" src="https://user-images.githubusercontent.com/35278719/121744267-7f63b980-cab7-11eb-8cbc-f4c08b6de3e7.png">
+<img width="1279" alt="Screen Shot 2021-06-22 at 7 47 31 PM" src="https://user-images.githubusercontent.com/35278719/123027436-b167fc00-d392-11eb-8f50-50e0ff21bcfe.png">
 
 ### Viewing a Channel's VODs
-<img width="1262" alt="Screen Shot 2021-06-11 at 1 18 41 PM" src="https://user-images.githubusercontent.com/35278719/121744305-8b4f7b80-cab7-11eb-88ab-e38a9fd5f932.png">
+<img width="1260" alt="Screen Shot 2021-06-22 at 7 48 06 PM" src="https://user-images.githubusercontent.com/35278719/123027489-c47acc00-d392-11eb-8c38-5faa6c96755a.png">
 
 ### Processing a VOD
-<img width="1279" alt="Screen Shot 2021-06-11 at 1 18 56 PM" src="https://user-images.githubusercontent.com/35278719/121744331-94404d00-cab7-11eb-9e8e-0a13f94b75f7.png">
+<img width="1273" alt="Screen Shot 2021-06-22 at 7 48 44 PM" src="https://user-images.githubusercontent.com/35278719/123027548-dc525000-d392-11eb-82e8-6aa998452ff3.png">
 
 ### Finishing VOD Processing
-<img width="1278" alt="Screen Shot 2021-06-11 at 1 23 13 PM" src="https://user-images.githubusercontent.com/35278719/121744735-2d6f6380-cab8-11eb-8ba9-2904290ecaa0.png">
+<img width="1277" alt="Screen Shot 2021-06-22 at 7 50 32 PM" src="https://user-images.githubusercontent.com/35278719/123027675-1ae80a80-d393-11eb-8bac-86419ec4e81e.png">
 
 ### Viewing VOD Results
-<img width="1259" alt="Screen Shot 2021-06-11 at 1 23 25 PM" src="https://user-images.githubusercontent.com/35278719/121744759-34967180-cab8-11eb-9842-0dcc5c5ad3b4.png">
+<img width="1258" alt="Screen Shot 2021-06-22 at 7 53 22 PM" src="https://user-images.githubusercontent.com/35278719/123027980-829e5580-d393-11eb-9ad0-e4e3c29659ad.png">
 
-### Inspecting a Clip
-<img width="1262" alt="Screen Shot 2021-06-11 at 1 24 02 PM" src="https://user-images.githubusercontent.com/35278719/121744797-4aa43200-cab8-11eb-88de-5e2a4d9ecf2b.png">
+### Downloading a Clip
+<img width="1242" alt="Screen Shot 2021-06-22 at 7 54 30 PM" src="https://user-images.githubusercontent.com/35278719/123028057-a9f52280-d393-11eb-8776-7c86c973449c.png">
+
 
 ## Limitations
 - The executable takes a while to start up, so please be patient when opening it (this is an issue with PyInstaller).
