@@ -148,6 +148,15 @@ def search_channel(channel_name):
 
 
 @eel.expose
+def get_categories(channel_id):
+    global bot
+    channel = bot.get_channel(channel_id, False)
+    categories = channel.get_categories()
+    result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
+    return result
+
+
+@eel.expose
 def add_category(channel_id, name, emotes):
     if not os.path.exists(resource_path("channels.ini")):
         return "Can't find config file."
@@ -263,12 +272,10 @@ def get_recommended_emotes(channel_id, category_type, is_list=False):
 
 
 @eel.expose
-def get_categories(channel_id):
+def get_twitch_global_emotes():
     global bot
-    channel = bot.get_channel(channel_id, False)
-    categories = channel.get_categories()
-    result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
-    return result
+    global_emotes = bot.get_global_emotes()
+    return global_emotes
 
 
 """

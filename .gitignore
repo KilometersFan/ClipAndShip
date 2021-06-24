@@ -340,12 +340,11 @@ ASALocalRun/
 healthchecksdb
 
 # Repo specific
-*.png
 *.mp4
 *.pyo
 .DS_Store
 src/*.ini
-twitch-app/
+cns/
 src/config/
 src/config/*
 data/
@@ -356,4 +355,4 @@ clips/
 dist/
 dist/*
 build/
-*egg-info/
+tca.egg-info/

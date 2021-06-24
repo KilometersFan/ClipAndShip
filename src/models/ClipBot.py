@@ -30,6 +30,7 @@ class ClipBot:
         self._comment_processing = {}
         self._helpers = {}
         self._access_token = None
+        self._client_id = None
 
     # return twitch Helix object
     def get_helix(self):
@@ -45,6 +46,7 @@ class ClipBot:
         if not client_id or not secret:
             print("Unable to find credentials")
         else:
+            self._client_id = client_id
             try:
                 if refresh:
                     authorize_request = requests.post(self._oauth_url + "token",
@@ -175,6 +177,30 @@ class ClipBot:
             except Exception:
                 found = True
                 return {"status", 404}
+
+    def get_global_emotes(self):
+        twitch_success = False
+        twitch_global_url = "https://api.twitch.tv/helix/chat/emotes/global"
+        emotes = []
+        while not twitch_success:
+            try:
+                headers = {"Authorization": f"Bearer {self._access_token}",
+                           "Client-Id": self._client_id}
+                get_twitch_global_emotes = requests.get(twitch_global_url, headers=headers, timeout=1)
+                if get_twitch_global_emotes.status_code == requests.codes.ok:
+                    twitch_global_emotes = json.loads(get_twitch_global_emotes.text)
+                    for twitch_global_emote in twitch_global_emotes["data"]:
+                        emotes.append({"name": twitch_global_emote["name"],
+                                                    "imageUrl": twitch_global_emote["images"]["url_1x"]})
+                else:
+                    print("Unable to complete get request for Twitch Sub Emotes")
+                    print("Error code:", twitch_global_emotes.status_code)
+                twitch_success = True
+            except requests.exceptions.Timeout as e:
+                print("Twitch Sub Emotes Request timed out")
+                print(e.args)
+        emotes = sorted(emotes, key=lambda emote: emote["name"])
+        return emotes
 
     # run clip video function for channel in a new process
     def clip_video(self, channel_id, video_id):
