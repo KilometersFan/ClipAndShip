@@ -21,7 +21,7 @@ class Channel(object):
         self._name_to_emotes_map = {}
         self._bttv_url = "https://api.betterttv.net/3/cached/users/twitch/"
         self._bttv_img_url = "https://cdn.betterttv.net/emote/"
-        self._twitch_sub_url = "https://api.twitchemotes.com/api/v4/channels/"
+        self._twitch_sub_url = "https://api.twitch.tv/helix/chat/emotes?broadcaster_id="
         self._clip_bot = clip_bot
         valid_helix = False
         # reset helix if access token is invalid
@@ -241,13 +241,17 @@ class Channel(object):
                 print(e.args)
         while not twitch_success:
             try:
-                get_twitch_sub_emotes = requests.get(self._twitch_sub_url + str(self._id), timeout=1)
+                headers = {"Authorization": f"Bearer {self._clip_bot._access_token}",
+                           "Client-Id": self._clip_bot._client_id}
+                get_twitch_sub_emotes = requests.get(self._twitch_sub_url + str(self._id),
+                                                     headers=headers, timeout=1)
                 if get_twitch_sub_emotes.status_code == requests.codes.ok:
                     twitch_sub_emotes = json.loads(get_twitch_sub_emotes.text)
-                    for twitch_sub_emote in twitch_sub_emotes["emotes"]:
-                        self._twitch_emotes.append({"name": twitch_sub_emote["code"],
-                                                    "imageUrl": "../error-placeholder.png"})
-                        self._name_to_emotes_map[twitch_sub_emote["code"].lower()] = twitch_sub_emote["code"]
+                    for twitch_sub_emote in twitch_sub_emotes["data"]:
+                        if twitch_sub_emote["emote_type"] == "subscriptions":
+                            self._twitch_emotes.append({"name": twitch_sub_emote["name"],
+                                                        "imageUrl": twitch_sub_emote["images"]["url_1x"]})
+                            self._name_to_emotes_map[twitch_sub_emote["name"].lower()] = twitch_sub_emote["name"]
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
                     print("Error code:", get_twitch_sub_emotes.status_code)

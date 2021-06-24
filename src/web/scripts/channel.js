@@ -3,6 +3,8 @@ let emoteMap;
 let twitchEmotes;
 let bttvEmotes;
 let ffEmotes;
+let globalTwitchEmotes;
+let globalBTTVEmotes;
 let userCategories = [];
 let globalData;
 function hasWhiteSpace(s) {
@@ -81,6 +83,14 @@ function populateEmotes(type, data) {
         emotes = twitchEmotes;
         typeUpper = "Twitch";
     }
+    else if (type == "globalTwitchEmotes") {
+        emotes = globalTwitchEmotes;
+        typeUpper = "GlobalTwitch";
+    }
+    else if (type == "globalBTTVEmotes") {
+        emotes = globalBTTVEmotes;
+        typeUpper = "GlobalBTTV";
+    }
     for (let i = 0; i < emotes.length; i++) {
         //Create Emote Box from emotes
         let emoteBox = createEmoteBox(emotes[i]["imageUrl"], emotes[i]["name"]);
@@ -151,6 +161,8 @@ function populateCategoryEmotes(data) {
             let bttvRes = bttvEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             let twitchRes = twitchEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             let ffRes = ffEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
+            let globalTwitchRes = globalTwitchEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
+            let globalBTTVRes = globalBTTVEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             if (bttvRes) {
                 result = bttvRes;
             }
@@ -160,12 +172,19 @@ function populateCategoryEmotes(data) {
             else if (ffRes) {
                 result = ffRes;
             }
+            else if (globalTwitchRes) {
+                result = globalTwitchRes;
+            }
+            else if (globalBTTVRes) {
+                result = globalBTTVRes;
+            }
             else {
                 result = { imageUrl: "../error-placeholder.png" };
             }
             let emoteBox = createEmoteBox(result["imageUrl"], emoteMap[name] || name )
             div.append(emoteBox);
             // for modal category display
+            console.log(emoteMap[name]);
             let editEmoteBox = createEmoteBoxInput(result["imageUrl"], emoteMap[name] || name, "emoteBoxChecked", "emoteBoxRemove", "EditInput", type + "EmotesToRmv", true);
             editCategoryRow.append(editEmoteBox);
         }
@@ -187,6 +206,8 @@ function populateCategoryEmotes(data) {
                     let bttvRes = bttvEmotes.find(x => x.name.toLowerCase() === response[i]);
                     let twitchRes = twitchEmotes.find(x => x.name.toLowerCase() === response[i]);
                     let ffRes = ffEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    let globalTwitchRes = globalTwitchEmotes.find(x => x.name.toLowerCase() === response[i]);
+                    let globalBTTVRes = globalBTTVEmotes.find(x => x.name.toLowerCase() === response[i]);
                     if (bttvRes) {
                         result = bttvRes;
                     }
@@ -195,6 +216,12 @@ function populateCategoryEmotes(data) {
                     }
                     else if (ffRes) {
                         result = ffRes;
+                    }
+                    else if (globalTwitchRes) {
+                        result = globalTwitchRes;
+                    }
+                    else if (globalBTTVRes) {
+                        result = globalBTTVRes;
                     }
                     else {
                         result = { imageUrl: "../error-placeholder.png" };
@@ -222,7 +249,7 @@ function populateCategoryEmotes(data) {
         editFormGroup.append(emoteAddTitle);
         editFormGroup.append(editFormRecommendedContainer);
         //Create Twitch, FFZ, BTTV emote sections
-        let emoteTypes = ["Other", "Twitch", "FF", "BTTV"];
+        let emoteTypes = ["Other", "Twitch", "FF", "BTTV", "GlobalTwitch", "GlobalBTTV"];
         emoteTypes.forEach((emoteType) => {
             let emoteTitle = $("<h3>", { "class": "mt-2 mb-2" });
             emoteTitle.text(emoteType + " Emotes");
@@ -303,12 +330,13 @@ function populateCategoryEmotes(data) {
     populateEmotes("twitchEmotes", globalData);
     populateEmotes("ffEmotes", globalData);
     populateEmotes("bttvEmotes", globalData);
-
+    populateEmotes("globalTwitchEmotes", globalData);
+    populateEmotes("globalBTTVEmotes", globalData);
 }
-function setEmotes(emotes) {
-    twitchEmotes = emotes["twitchEmotes"];
-    ffEmotes = emotes["ffEmotes"];
-    bttvEmotes = emotes["bttvEmotes"];
+function setEmotes(channel_emotes) {
+    twitchEmotes = channel_emotes["twitchEmotes"];
+    ffEmotes = channel_emotes["ffEmotes"];
+    bttvEmotes = channel_emotes["bttvEmotes"];
     if (bttvEmotes.length == 0) {
         $("#BTTVEmpty").show()
     }
@@ -327,10 +355,35 @@ function setEmotes(emotes) {
     else {
         $("#TwitchEmpty").hide()
     }
+    if (globalTwitchEmotes.length == 0) {
+        $("#globalTwitchEmpty").show()
+    }
+    else {
+        $("#globalTwitchEmpty").hide()
+    }
+    if (globalBTTVEmotes.length == 0) {
+        $("#globalBTTVEmpty").show()
+    }
+    else {
+        $("#globalBTTVEmpty").hide()
+    }
     eel.get_categories(channelId)(populateCategoryEmotes);
 }
 function populateCategories(id) {
-    eel.get_channel_emotes(id)(setEmotes);
+    eel.get_channel_emotes(id)(function (channel_emotes) {
+        eel.get_twitch_global_emotes()(function (twitch_global_emotes) {
+            globalTwitchEmotes = twitch_global_emotes["emotes"];
+            eel.get_bttv_global_emotes()(function (bttv_global_emotes) {
+                globalBTTVEmotes = bttv_global_emotes["emotes"];
+                emoteMap = {
+                    ...emoteMap,
+                    ...twitch_global_emotes["emoteMap"],
+                    ...bttv_global_emotes["emoteMap"],
+                }
+                setEmotes(channel_emotes);
+            });
+        });
+    });
 }
 $(document).ready(function () {
     eel.valid_bot()(function (valid) {
@@ -524,6 +577,28 @@ $(document).ready(function () {
             $(this).children('i').eq(0).addClass("fa-toggle-on");
         }
     });
+    $("#globalTwitchEmotesBtn").click(function () {
+        $("#globalTwitchEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
+    $("#globalBTTVEmotesBtn").click(function () {
+        $("#globalBTTVEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
     $("#twitchEmotesModalBtn").click(function () {
         $("#twitchEmotesModal").slideToggle();
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
@@ -550,6 +625,28 @@ $(document).ready(function () {
         $("#bttvEmotesModal").slideToggle();
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
             $(this).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
+    $("#globalTwitchEmotesModalBtn").click(function () {
+        $("#globalTwitchEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
+    $("#globalBTTVEmotesModalBtn").click(function () {
+        $("#globalBTTVEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
             $(this).children('i').eq(0).addClass("fa-toggle-off");
         }
         else {

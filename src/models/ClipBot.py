@@ -2,7 +2,6 @@ import configparser
 import twitch
 import requests
 import json
-import sys
 import shutil
 import os
 from multiprocessing import Process, Manager
@@ -30,6 +29,7 @@ class ClipBot:
         self._comment_processing = {}
         self._helpers = {}
         self._access_token = None
+        self._client_id = None
 
     # return twitch Helix object
     def get_helix(self):
@@ -45,6 +45,7 @@ class ClipBot:
         if not client_id or not secret:
             print("Unable to find credentials")
         else:
+            self._client_id = client_id
             try:
                 if refresh:
                     authorize_request = requests.post(self._oauth_url + "token",
@@ -175,6 +176,42 @@ class ClipBot:
             except Exception:
                 found = True
                 return {"status", 404}
+
+    def get_global_emotes(self, source):
+        success = False
+        emotes = []
+        emotes_map = {}
+        headers = {"Authorization": f"Bearer {self._access_token}",
+                   "Client-Id": self._client_id}
+        bttv_image_url = "https://cdn.betterttv.net/emote/"
+        if source == "twitch":
+            global_url = "https://api.twitch.tv/helix/chat/emotes/global"
+        elif source == "bttv":
+            global_url = "https://api.betterttv.net/3/cached/emotes/global"
+        while not success:
+            try:
+                get_global_emotes = requests.get(global_url, headers=headers, timeout=1)
+                if get_global_emotes.status_code == requests.codes.ok:
+                    global_emotes = json.loads(get_global_emotes.text)
+                    if source == "twitch":
+                        for twitch_global_emote in global_emotes["data"]:
+                            emotes.append({"name": twitch_global_emote["name"],
+                                          "imageUrl": twitch_global_emote["images"]["url_1x"]})
+                            emotes_map[twitch_global_emote["name"].lower()] = twitch_global_emote["name"]
+                    elif source == "bttv":
+                        for bttv_global_emote in global_emotes:
+                            emotes.append({"name": bttv_global_emote["code"],
+                                           "imageUrl": bttv_image_url + bttv_global_emote["id"] + "/1x"})
+                            emotes_map[bttv_global_emote["code"].lower()] = bttv_global_emote["code"]
+                else:
+                    print("Unable to complete get request for Twitch Sub Emotes")
+                    print("Error code:", global_emotes.status_code)
+                success = True
+            except requests.exceptions.Timeout as e:
+                print(f"{source} Global Emotes Request timed out")
+                print(e.args)
+        emotes = sorted(emotes, key=lambda emote: emote["name"])
+        return {"emotes": emotes, "emotesMap": emotes_map}
 
     # run clip video function for channel in a new process
     def clip_video(self, channel_id, video_id):
