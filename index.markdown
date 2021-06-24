@@ -31,6 +31,9 @@ With Clip & Ship you can:
 - Download the whole VOD.
 - Export the list of processed moments to a CSV file.
 
+## Install
+Download the zip file provided at the top of the page. Run the exe/dmg file and start clipping!
+
 ## Why Clip & Ship?
 
 ### It's Free
@@ -87,3 +90,9 @@ Found a bug and want to report it? Like the project and want to contribute?
 Head over to the [GitHub](https://github.com/KilometersFan/ClipAndShip) page.
 Create new issues for bugs and fork the repo and create a pull request for
 contributions.
+
+## Local Development
+
+Install the required libraries. To run the main program change directory to `src` and run `python3 clipnship.py`. To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if the you processed at least one video for the specified channel.
+
+To build the executable run `pyinstaller clipnship.spec` in the src directory. Add the `--noconfirm` flag to skip the confirmation prompt that asks if you want to delete the dist folder's contents.
