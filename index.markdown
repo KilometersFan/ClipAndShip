@@ -88,4 +88,8 @@ contributions.
 
 Install the required libraries. To run the main program change directory to `src` and run `python3 clipnship.py`. To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if the you processed at least one video for the specified channel.
 
-To build the executable run `pyinstaller clipnship.spec` in the src directory. Add the `--noconfirm` flag to skip the confirmation prompt that asks if you want to delete the dist folder's contents.
+To build everything into one folder use the `clipnship.spec` file. First must change the second value in the `pathex` array to the absolute path of the `src` directory of the repo and the first value of the first tuple in the `datas` array to the location of the `eel.js` file (which is probably in your python `site-packages` directory), Run `pyinstaller clipnship.spec` in the src directory. 
+
+To build everything into one file (just the `clipnship.exe` file), repeat the same steps above but with the `clipnship_file.spec` file.
+
+Add the `--noconfirm` flag to skip the confirmation prompt that asks if you want to delete the dist folder's contents. 
