@@ -69,13 +69,6 @@ for this project to pay for those services. So, Clip & Ship runs entirely
 on your machine and uses up your storage. But, that Clip & Ship is running 
 locally is why it is free and open source.
 
-### No Twitch Emote Images
-The Twitch API doesn't have an easy way to get streamer emote images. Currently,
-I can only download all emotes across the entire site, which is **a lot** of data. Because Clip & Ship
-is a standalone app, each distributed copy would have to have this huge amount 
-of data. Needless to say, the app size would balloon to a crazy amount. So for now,
-you can't see any Twitch emote (but they will be available to use).
-
 ### Reliance on APIs and third-party packages
 Clip & Ship heavily relies on outside tech to function. The APIs used are
 Twitch, BTTV, and FFZ to grab emote data for a channel. If **any** of these
