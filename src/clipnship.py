@@ -82,8 +82,6 @@ def enter_credentials(client_id, client_secret):
 
 @eel.expose
 def add_channel(channel_id):
-    if not os.path.exists(resource_path("channels.ini")):
-        os.makedirs(resource_path("channels.ini"))
     try:
         cfg = configparser.RawConfigParser()
         cfg.read(resource_path("channels.ini"))
