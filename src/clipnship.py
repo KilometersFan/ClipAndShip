@@ -274,7 +274,13 @@ def get_recommended_emotes(channel_id, category_type, is_list=False):
 @eel.expose
 def get_twitch_global_emotes():
     global bot
-    global_emotes = bot.get_global_emotes()
+    global_emotes = bot.get_global_emotes("twitch")
+    return global_emotes
+
+@eel.expose
+def get_bttv_global_emotes():
+    global bot
+    global_emotes = bot.get_global_emotes("bttv")
     return global_emotes
 
 
