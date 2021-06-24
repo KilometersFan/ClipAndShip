@@ -106,7 +106,7 @@ def get_parser():
 def main():
     parser = get_parser()
     args = parser.parse_args()
-    print(args)
+
     if "func" not in args:
         parser.print_help()
         return
