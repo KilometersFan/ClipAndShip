@@ -22,9 +22,14 @@ import output
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', path.dirname(path.abspath(__file__)))
-    parent_path = path.join(base_path, "..")
-    return path.join(parent_path, relative_path)
+    # for onedir
+    if getattr(sys, 'frozen', False):
+        base_path = path.dirname(sys.executable)
+        base_path = path.join(base_path, "..")
+    elif __file__:
+        base_path = getattr(sys, '_MEIPASS', path.dirname(path.abspath(__file__)))
+        base_path = path.join(base_path, "..")
+    return path.join(base_path, relative_path)
 
 
 def _parse_playlists(playlists_m3u8):
