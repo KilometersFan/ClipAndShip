@@ -123,6 +123,11 @@
                     $("#downloadOther").prop("disabled", false);
                 }
                 $("#downloadErr").text("Download failed");
+                const btn = $(`#start-${response["start"]}-end-${response["end"]}-btn`);
+                btn.empty();
+                btn.append($("<i>", {"class": "fa fa-download"}));
+                btn.addClass("btn-primary");
+                btn.removeClass("btn-secondary");
             }
         }
     </script>

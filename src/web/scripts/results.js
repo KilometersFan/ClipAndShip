@@ -296,7 +296,8 @@ function populateTable (defaultFilteredResults=null) {
                     $("#downloadSuccess").text("");
                     eel.download_clip(channelId, videoId, categories, group["start"], group["end"]);
                     downloadBtn.empty()
-                    downloadBtn.append($("<i>", {"class": "fa fa-spinner"}));
+                    downloadBtn.append($("<span>",
+                        {"class": "spinner-border spinner-border-sm", "role": "status", "aria-hidden": "true"}));
                 });
             }
             downloadCol.append(downloadBtn);

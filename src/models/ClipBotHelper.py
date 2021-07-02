@@ -91,6 +91,8 @@ class ClipBotHelper(object):
             print(words)
 
             for i in range(len(words) - 1):
+                if words[i] not in chain:
+                    chain[words[i]] = {}
                 if words[i + 1] not in chain[words[i]]:
                     chain[words[i]][words[i + 1]] = 1
                 else:
@@ -151,6 +153,8 @@ class ClipBotHelper(object):
                             group["end"] = self._end_time + (self._end_time - self._start_time) / 2
                             group["emoteRate"] = group["totalFrequency"] / (group["end"] - group["start"])
                             groups.append(group.copy())
+                            for i in range(len(group["graph_x"])):
+                                group["graph_x"][i] += (self._end_time - self._start_time) / 2
                         self._processing_group = False
                         group.clear()
                     # create a new group if none is present

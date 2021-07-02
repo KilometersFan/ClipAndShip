@@ -432,7 +432,7 @@ def get_graph(graph_data):
                      labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
                      width=450, height=350)
     fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0)
+        margin=dict(l=0, r=0, t=0, b=0),
     )
     img_bytes = fig.to_image(format="png")
     return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
