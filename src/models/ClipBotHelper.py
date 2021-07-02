@@ -88,7 +88,6 @@ class ClipBotHelper(object):
         # update markov chain for recommendations
         for comment in processed_comments:
             words = list(comment["emoteSet"])
-            print(words)
 
             for i in range(len(words) - 1):
                 if words[i] not in chain:

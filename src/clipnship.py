@@ -302,7 +302,6 @@ def get_videos(channel_id, videos=None):
 def get_user_videos(channel_id=None):
     if channel_id:
         try:
-            print(resource_path(f"data/channels/{channel_id}"))
             if os.path.exists(resource_path(f"data/channels/{channel_id}")):
                 video_ids = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir()]
                 print(video_ids)

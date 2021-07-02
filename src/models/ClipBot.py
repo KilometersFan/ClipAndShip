@@ -217,7 +217,6 @@ class ClipBot:
     def clip_video(self, channel_id, video_id):
         if self._helix:
             channel = self._channels[channel_id]
-            print(channel.get_emote_names())
             print(f"Channel id: {channel_id}")
             print(f"Starting video processing of video {video_id} for {channel.get_name()}")
             helper = ClipBotHelper(channel, self)
