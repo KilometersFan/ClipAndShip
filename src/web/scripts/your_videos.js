@@ -10,7 +10,7 @@ function createVideoCard(data, processing=true, channelId=null) {
     p.text(data["desc"]);
     let date = $("<p>", { "class": "card-text" });
     date.text(data["date"]);
-    let container = $("<div>", { "class": "d-flex justify-content-between", "style": "display: block; width: 100%" });
+    let container = $("<div>", { "class": "d-flex justify-content-between", "id": data["id"] + "Container", "style": "display: block; width: 100%" });
     let btn;
     if (!processing) {
         btn = $("<button>", {
@@ -18,8 +18,9 @@ function createVideoCard(data, processing=true, channelId=null) {
         });
         btn.text("Process");
         btn.click(async function () {
+            $(`#${data["id"]}Div`).remove();
             eel.clip_video(parseInt(channelId), parseInt(data["id"]));
-            setTimeout(updateVideos, 200);
+            setTimeout(updateProcessingVideos, 200);
         });
         let removeBtn = $("<button>", {
             "class": "btn delete-btn mr-1", "type": "button", "value": data["id"], "data-toggle": "modal", "data-target": "#videoRemoveModal"
@@ -34,9 +35,7 @@ function createVideoCard(data, processing=true, channelId=null) {
                 else {
                     $("#rmvBody").text("Unable to remove video from your list.")
                 }
-                eel.get_user_videos()(function (data) {
-                    populateUserVideos(data);
-                });
+                $(`#${data["id"]}Div`).remove();
             });
         });
         container.append(removeBtn);
@@ -69,7 +68,6 @@ function populateProcessingVideos(data) {
     }
     $(".loading").hide();
 }
-
 function populateUserVideos(data) {
     let row = $("#yourVideoRow");
     console.log(data);
@@ -85,7 +83,7 @@ function populateUserVideos(data) {
             eel.get_channel(parseInt(channelId))(function (info) {
                 console.log(info);
                 let channelCol = $("<div>", {"class": "col-sm-12"});
-                let channelRow = $("<div>", {"class": "row"});
+                let channelRow = $("<div>", {"class": "row", "id": info["id"] + "Row"});
                 let channelContainer = $("<div>", {"class": "col-sm-12 d-flex align-items-center"});
                 let channelName = $("<h3>", {"class": "p-2 mr-auto"});
                 channelName.text(info["name"]);
@@ -112,16 +110,31 @@ function populateUserVideos(data) {
     }
     $(".loading").hide();
 }
-
-function updateVideos() {
+function updateProcessingVideos() {
     eel.get_processing_videos()(function (data) {
         populateProcessingVideos(data);
     });
-    eel.get_user_videos()(function (data) {
-        populateUserVideos(data);
-    });
 }
-
+function addVideoCard(videoId, channelId) {
+    processingRow = $("#processingVideoRow");
+    if (processingRow.children().length == 0 ) {
+        processingRow.empty();
+    }
+    eel.get_videos(parseInt(channelId), [videoId])(function (response) {
+        channelRow = $(`#${channelId}Row`);
+        let newVideoCard = createVideoCard(response[0], false, channelId);
+        channelRow.append(newVideoCard);
+    });
+};
+function removeVideoCard(videoId) {
+    $(`#${videoId}Div`).remove();
+    processingRow = $("#processingVideoRow");
+    if (processingRow.children().length == 0 ) {
+        let noVideos = $("<p>", {"style": "padding-left: 15px"})
+        noVideos.text("No processing videos found.");
+        processingRow.append(noVideos);
+    }
+}
 $(document).ready(function () {
     eel.valid_bot()(function (valid) {
         invalid = true;

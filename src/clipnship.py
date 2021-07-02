@@ -374,7 +374,12 @@ def clip_video_helper(channel_id, video_id=None):
     print("###########################")
     global notification
     notification = True
-    eel.videoHandler(notification)
+    response = {
+        "status": 200 if notification else 400,
+        "channelId": channel_id,
+        "videoId": video_id,
+    }
+    eel.videoHandler(response)
 
 
 """

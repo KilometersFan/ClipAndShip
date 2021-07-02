@@ -199,7 +199,7 @@ function populateCategoryEmotes(data) {
                 if (response.length === 0) {
                     let emptyRecommendations = $("<p>");
                     emptyRecommendations.text("Recommendations are only available after a video is processed.");
-                    editRecommendedRow.append()
+                    editRecommendedRow.append(emptyRecommendations);
                 }
                 for (let i = 0; i < response.length; i++) {
                     let result;

@@ -11,9 +11,7 @@ function populateVideos() {
         $(".loading").hide();
     });
 }
-function updateVideos() {
-    populateVideos();
-}
+
 function createVideoCard(data, search = false, remove = false, results = false) {
     let col = $("<div>", { "class": "mb-2 mt-2", "id": data["id"] + "Div" });
     if (search) {
@@ -46,8 +44,8 @@ function createVideoCard(data, search = false, remove = false, results = false) 
             });
         }
         clipBtn.click(function () {
+            col.remove();
             eel.clip_video(channelId, data["id"]);
-            setTimeout(updateVideos, 100);
         });
         container.append(clipBtn);
         if (remove) {
@@ -57,6 +55,7 @@ function createVideoCard(data, search = false, remove = false, results = false) 
             removeBtn.text("Remove");
             removeBtn.click(function () {
                 let videoToRmv = removeBtn.val();
+                col.remove();
                 eel.remove_video(channelId, videoToRmv)(function (response) {
                     if (response.success) {
                         $("#rmvBody").text("Successfully removed video from your list.")
@@ -64,7 +63,6 @@ function createVideoCard(data, search = false, remove = false, results = false) 
                     else {
                         $("#rmvBody").text("Unable to remove video from your list.")
                     }
-                    setTimeout(updateVideos, 100);
                 });
             });
             container.append(removeBtn);
@@ -89,6 +87,13 @@ function createVideoCard(data, search = false, remove = false, results = false) 
     col.append(card);
     return col;
 }
+function addVideoCard(videoId) {
+    eel.get_videos(parseInt(channelId), [videoId])(function (response) {
+        channelRow = $("#videoRow");
+        let newVideoCard = createVideoCard(response[0], false, false, true);
+        channelRow.prepend(newVideoCard);
+    });
+};
 $(document).ready(function () {
     eel.valid_bot()(function (valid) {
         invalid = true;
