@@ -149,10 +149,10 @@ def search_channel(channel_name):
 
 
 @eel.expose
-def get_categories(channel_id):
+def get_categories(channel_id, category=None):
     global bot
     channel = bot.get_channel(channel_id, False)
-    categories = channel.get_categories()
+    categories = [category] if category else channel.get_categories()
     result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
     return result
 
@@ -223,7 +223,7 @@ def delete_category(channel_id, names):
 
 @eel.expose
 def get_recommended_emotes(channel_id, category_type, is_list=False):
-    if os.path.exists(resource_path(f"/data/channels/{channel_id}/recommendation_data.json")):
+    if os.path.exists(resource_path(f"data/channels/{channel_id}/recommendation_data.json")):
         with open(resource_path(f"data/channels/{channel_id}/recommendation_data.json")) as ifile:
             channel = get_channel(channel_id, False)
             category = category_type if is_list else channel.get_category(category_type)
@@ -269,6 +269,7 @@ def get_recommended_emotes(channel_id, category_type, is_list=False):
             print(top_5_emotes)
             return list(top_5_emotes)
     else:
+        print("Path not found")
         return []
 
 

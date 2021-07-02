@@ -227,11 +227,14 @@ class Channel(object):
             try:
                 get_bttv_emotes_request = requests.get(self._bttv_url + str(self._id), timeout=1)
                 if get_bttv_emotes_request.status_code == requests.codes.ok:
+                    emote_types = ["sharedEmotes", "channelEmotes"]
                     bttv_emotes = json.loads(get_bttv_emotes_request.text)
-                    for bttv_emote in bttv_emotes["sharedEmotes"]:
-                        self._bttv_emotes.append({"name": bttv_emote["code"],
-                                                  "imageUrl": self._bttv_img_url + bttv_emote["id"] + "/1x"})
-                        self._name_to_emotes_map[bttv_emote["code"].lower()] = bttv_emote["code"]
+                    for emote_type in emote_types:
+                        for bttv_emote in bttv_emotes[emote_type]:
+                            self._bttv_emotes.append({"name": bttv_emote["code"],
+                                                      "imageUrl": self._bttv_img_url + bttv_emote["id"] + "/1x"})
+                            self._name_to_emotes_map[bttv_emote["code"].lower()] = bttv_emote["code"]
+
                 else:
                     print("Unable to complete get request for BTTV Emotes")
                     print("Error code:", get_bttv_emotes_request.status_code)

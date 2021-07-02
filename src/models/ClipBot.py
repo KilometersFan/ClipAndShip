@@ -211,7 +211,7 @@ class ClipBot:
                 print(f"{source} Global Emotes Request timed out")
                 print(e.args)
         emotes = sorted(emotes, key=lambda emote: emote["name"])
-        return {"emotes": emotes, "emotesMap": emotes_map}
+        return {"emotes": emotes, "emoteMap": emotes_map}
 
     # run clip video function for channel in a new process
     def clip_video(self, channel_id, video_id):
