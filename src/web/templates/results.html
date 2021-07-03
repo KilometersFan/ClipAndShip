@@ -74,7 +74,7 @@
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                         <a class="dropdown-item" id="length" href="#">Length</a>
                         <a class="dropdown-item" id="start" href="#">Start Time</a>
-                        <a class="dropdown-item" id="similarity" href="#">Similarity</a>
+                        <a class="dropdown-item" id="similarity" href="#">Similarity Score</a>
                     </div>
                 </div>
             </div>
@@ -102,12 +102,42 @@
         <table class="mb-2 mt-2 table table-hover table-dark">
             <thead>
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Length (s)</th>
-                    <th scope="col">Start Time</th>
-                    <th scope="col">End Time</th>
-                    <th scope="col">Categories/Similarity</th>
-                    <th scope="col">Download</th>
+                    <th scope="col">
+                        #
+                        <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="Only clips that have high similarity scores are shown here.">
+                            <i class="fa fa-info-circle" style="color: white"></i>
+                        </button>
+                    </th>
+                    <th scope="col">
+                        Length(s)
+                        <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="Final clip lengths are twice the size of the original clip.">
+                            <i class="fa fa-info-circle" style="color: white"></i>
+                        </button>
+                    </th>
+                    <th scope="col">
+                        Start Time
+                        <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="Start times are pushed back by 1/2 of original clip length.">
+                            <i class="fa fa-info-circle" style="color: white"></i>
+                        </button>
+                    </th>
+                    <th scope="col">
+                        End Time
+                        <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="End times are extended by 1/2 of original clip length.">
+                            <i class="fa fa-info-circle" style="color: white"></i>
+                        </button>
+                    </th>
+                    <th scope="col">
+                        Similarity Score
+                        <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="Similarity scores for categories are relative within the clip itself, not between other clips.">
+                            <i class="fa fa-info-circle" style="color: white"></i>
+                        </button>
+                    </th>
+                    <th scope="col">
+                        Download
+                        <button type="button" class="btn" data-toggle="tooltip" data-placement="top" title="Downloaded clips can be found under clips/<channel id>/<video id>/<category>/.">
+                            <i class="fa fa-info-circle" style="color: white"></i>
+                        </button>
+                    </th>
                 </tr>
             </thead>
             <tbody id="resultBody">
