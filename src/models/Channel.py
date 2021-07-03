@@ -169,9 +169,10 @@ class Channel(object):
                             processing = True
                         else:
                             processing = False
-                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description, 
-                                     "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                     "channelId": self.get_id(), "processing": processing})
+                        if not processing:
+                            data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                         "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                         "channelId": self.get_id(), "processing": processing})
                     valid_helix = True
                 except requests.exceptions.HTTPError as e:
                     print(e.args)
@@ -201,9 +202,10 @@ class Channel(object):
                             processing = True
                         else:
                             processing = False
-                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
-                                     "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                     "channelId": self.get_id(), "processing": processing})
+                        if not processing:
+                            data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                         "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                         "channelId": self.get_id(), "processing": processing})
                         valid_helix = True
                     except requests.exceptions.HTTPError as e:
                         print(e.args)

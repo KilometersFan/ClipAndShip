@@ -124,6 +124,7 @@ function addVideoCard(videoId, channelId) {
         channelRow = $(`#${channelId}Row`);
         let newVideoCard = createVideoCard(response[0], false, channelId);
         channelRow.append(newVideoCard);
+        $(`#${videoId}Body`).css("background-color", "#17a2b8");
     });
 };
 function removeVideoCard(videoId) {

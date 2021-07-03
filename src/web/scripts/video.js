@@ -91,7 +91,9 @@ function addVideoCard(videoId) {
     eel.get_videos(parseInt(channelId), [videoId])(function (response) {
         channelRow = $("#videoRow");
         let newVideoCard = createVideoCard(response[0], false, false, true);
-        channelRow.prepend(newVideoCard);
+        console.log(`#${videoId}Body`);
+        channelRow.append(newVideoCard);
+        $(`#${videoId}Body`).css("background-color", "#17a2b8");
     });
 };
 $(document).ready(function () {

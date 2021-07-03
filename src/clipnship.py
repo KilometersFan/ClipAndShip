@@ -300,11 +300,13 @@ def get_videos(channel_id, videos=None):
 
 @eel.expose
 def get_user_videos(channel_id=None):
+    global bot
     if channel_id:
         try:
             if os.path.exists(resource_path(f"data/channels/{channel_id}")):
-                video_ids = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir()]
-                print(video_ids)
+                video_ids = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir()
+                             and (not bot._processing or channel_id in bot._processing
+                                  and int(f.name) not in bot._processing.get(channel_id))]
                 return video_ids
             else:
                 print(f"Channel folder not found for id {channel_id}")
@@ -319,7 +321,8 @@ def get_user_videos(channel_id=None):
                 response = {}
                 for channel_id in channel_ids:
                     response[channel_id] = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}"))
-                                            if f.is_dir()]
+                                            if f.is_dir() and (not bot._processing or int(channel_id) in bot._processing
+                                            and int(f.name) not in bot._processing.get(int(channel_id)))]
                 return response
             else:
                 print("Channel folder not found (No ID specified).")
