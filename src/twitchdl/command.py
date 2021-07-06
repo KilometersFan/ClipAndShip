@@ -20,7 +20,7 @@ import exceptions
 import output
 
 
-def resource_path(relative_path):
+def resource_path(relative_path, is_clip=False):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     # for onedir
     if getattr(sys, 'frozen', False):
@@ -29,6 +29,9 @@ def resource_path(relative_path):
     elif __file__:
         base_path = getattr(sys, '_MEIPASS', path.dirname(path.abspath(__file__)))
         base_path = path.join(base_path, "..")
+    # if building as noconsole and onefile, uncomment these next lines
+    base_path = path.join(path.dirname(sys.executable), "../../../")
+
     return path.join(base_path, relative_path)
 
 

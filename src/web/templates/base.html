@@ -122,7 +122,7 @@
                 else if (response["isOther"]) {
                     $("#downloadOther").prop("disabled", false);
                 }
-                $("#downloadErr").text("Download failed");
+                $("#downloadErr").text(`Download failed. Error message: ${response["msg"]}`);
                 const btn = $(`#start-${response["start"]}-end-${response["end"]}-btn`);
                 btn.empty();
                 btn.append($("<i>", {"class": "fa fa-download"}));
