@@ -28,6 +28,8 @@ def resource_path(relative_path):
     elif __file__:
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
+
+
 """
     Set up the Bot and get everything ready
 """
@@ -295,7 +297,7 @@ def get_bttv_global_emotes():
 def get_videos(channel_id, videos=None):
     global bot
     channel = bot.get_channel(channel_id, False)
-    return channel.get_videos(videos)
+    return channel.get_videos(videos) if channel else []
 
 
 @eel.expose
@@ -321,8 +323,7 @@ def get_user_videos(channel_id=None):
                 response = {}
                 for channel_id in channel_ids:
                     response[channel_id] = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}"))
-                                            if f.is_dir() and (not bot._processing or int(channel_id) in bot._processing
-                                            and int(f.name) not in bot._processing.get(int(channel_id)))]
+                                            if f.is_dir()]
                 return response
             else:
                 print("Channel folder not found (No ID specified).")

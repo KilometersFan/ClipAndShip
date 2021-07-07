@@ -4,6 +4,7 @@ import re
 import os
 from datetime import datetime
 from dateutil import tz
+from pprint import pprint
 from .Category import Category
 from .util import resource_path
 
@@ -146,7 +147,7 @@ class Channel(object):
         return self._desc
 
     # return channel videos
-    def get_videos(self, videos=None):
+    def get_videos(self, videos=None, processing_check=False):
         data = []
         valid_helix = False
         while not valid_helix:
@@ -197,15 +198,15 @@ class Channel(object):
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
                         clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
-                        processing = self._clip_bot._processing.get(self.get_id(), None)
-                        if processing and video.id in processing:
-                            processing = True
+                        processing_videos = self._clip_bot._processing.get(self.get_id(), None)
+                        if processing_videos and (int(video.id) in processing_videos or str(video.id) in processing_videos):
+                            is_processing = True
                         else:
-                            processing = False
-                        if not processing:
+                            is_processing = False
+                        if processing_check == is_processing:
                             data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
                                          "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                         "channelId": self.get_id(), "processing": processing})
+                                         "channelId": self.get_id(), "processing": is_processing})
                         valid_helix = True
                     except requests.exceptions.HTTPError as e:
                         print(e.args)
