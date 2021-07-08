@@ -23,15 +23,21 @@ notification = False
 
 def resource_path(relative_path, is_download=False):
     """ Get absolute path to resource, works for dev and for PyInstaller """
+    # if running as script, uncomment this if-else block and comment the ones below
     if getattr(sys, 'frozen', False):
+        print("FIrst path")
         base_path = os.path.dirname(sys.executable)
     elif __file__:
+        print("second path")
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    # if building as noconsole and onefile, uncomment this if-else block
+    # if building as noconsole and onefile, uncomment this if-else block and comment the other blocks
     # if not is_download:
     #     base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
     # else:
     #     base_path = sys._MEIPASS
+    # if building as --console and --onefile uncomment this if-else block and comment the previous two
+    # if is_download:
+    #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
 
@@ -473,6 +479,8 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
         cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
         # if building using --noconsole and --onefile uncomment this next line
         # cmd.extend(["--path", f"{os.path.join(os.path.dirname(sys.executable), '../../../')}"])
+        # if building using --console and --onefile uncomment this next line
+        # cmd.extend(["--path", f"{os.path.dirname(sys.executable)}"])
         if channel_id is not None:
             cmd.extend(["--channel", str(channel_id)])
         if start >= 0:

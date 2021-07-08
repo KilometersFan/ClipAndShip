@@ -4,6 +4,8 @@ import sys
 
 def resource_path(relative_path, config_related=False):
     """ Get absolute path to resource, works for dev and for PyInstaller """
+    # if running as script or building as --console and --onefile, uncomment
+    # this if-else block and comment the one below
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     if getattr(sys, 'frozen', False):
         # for onedir

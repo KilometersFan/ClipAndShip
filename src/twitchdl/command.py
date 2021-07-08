@@ -22,7 +22,6 @@ import output
 
 def resource_path(relative_path, file_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
-    # for onedir
     if getattr(sys, 'frozen', False):
         base_path = path.dirname(sys.executable)
         base_path = path.join(base_path, "..")
