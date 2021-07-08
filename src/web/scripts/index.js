@@ -5,16 +5,13 @@ $("#credentialForm").submit(function (event) {
     }
     else {
         $("#error").hide();
-        eel.enter_credentials($("#clientId").val(), $("#clientSecret").val())(function (response) {
-            $("#successBlock").append(response);
-        });
+        eel.enter_credentials($("#clientId").val(), $("#clientSecret").val());
         $("#successBlock").show();
-        eel.check_credentials()(changeDisplay);
+        $("#credentialForm").hide();s
     }
 });
 function changeDisplay(response) {
-    if (response["success"] === false) {
-        console.log(response["msg"]);
+    if (response["status"] === 400) {
         $("#invalidBlock").show();
         $("#validBlock").hide();
         $("#invalidBlock").append(response["msg"]);

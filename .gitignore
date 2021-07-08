@@ -357,3 +357,4 @@ dist/*
 build/
 tca.egg-info/
 ffmpeg
+src/log.txt

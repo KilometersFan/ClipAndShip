@@ -66,11 +66,11 @@ def check_credentials():
     if cfg:
         if cfg.has_section("settings"):
             if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
-                return {"success": True}
+                return {"status": 200}
         else:
-            return {"success": False}
+            return {"status": 400}
     else:
-        return {"success": False, "msg": f"CFG not found path was {resource_path('config.ini')}"}
+        return {"status": 200, "msg": f"CFG not found path was {resource_path('config.ini')}"}
 
 
 @eel.expose
@@ -81,7 +81,6 @@ def enter_credentials(client_id, client_secret):
     cfg["settings"]["secret"] = client_secret
     with open(resource_path("config.ini"), "w") as config_file:
         cfg.write(config_file)
-    return resource_path("config.ini")
 
 
 """
