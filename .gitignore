@@ -8,3 +8,5 @@ vendor
 src/
 tca.egg-info/
 twitch-app/
+cns/
+ffmpeg
