@@ -68,12 +68,14 @@
             console.log("Updating videos");
             if (typeof addVideoCard !== "undefined") {
                 setTimeout(function () {
+                    console.log("Adding new card");
                     console.log(response);
                     addVideoCard(response["videoId"], response["channelId"]);
                 }, 1000);
             }
             if (typeof removeVideoCard !== "undefined") {
                 setTimeout(function () {
+                    console.log("Removing new card");
                     console.log(response);
                     removeVideoCard(response["videoId"]);
                 }, 1000);
