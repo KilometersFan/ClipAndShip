@@ -11,5 +11,5 @@ def resource_path(relative_path, config_related=False):
     elif __file__:
         base_path = os.path.join(base_path, "..")
     # if building as noconsole and onefile, uncomment these next lines
-    base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
+    # base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
     return os.path.join(base_path, relative_path)

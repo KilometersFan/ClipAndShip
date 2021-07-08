@@ -20,7 +20,7 @@ import exceptions
 import output
 
 
-def resource_path(relative_path, is_clip=False):
+def resource_path(relative_path, file_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     # for onedir
     if getattr(sys, 'frozen', False):
@@ -29,8 +29,9 @@ def resource_path(relative_path, is_clip=False):
     elif __file__:
         base_path = getattr(sys, '_MEIPASS', path.dirname(path.abspath(__file__)))
         base_path = path.join(base_path, "..")
-    # if building as noconsole and onefile, uncomment these next lines
-    base_path = path.join(path.dirname(sys.executable), "../../../")
+    if file_path:
+        print(f"FILE PATH SET: {file_path}")
+        base_path = file_path
 
     return path.join(base_path, relative_path)
 
@@ -51,9 +52,11 @@ def _get_playlist_by_name(playlists):
     raise ConsoleError(msg)
 
 
-def _join_vods(playlist_path, target, overwrite):
+def _join_vods(playlist_path, target, overwrite, file_path):
     command = [
         "ffmpeg",
+        # if building with --noconsole and --onefile uncomment this line and comment the previous line
+        # resource_path("ffmpeg", file_path=file_path),
         "-i", playlist_path,
         "-c", "copy",
         target,
@@ -70,7 +73,7 @@ def _join_vods(playlist_path, target, overwrite):
         raise exceptions.ConsoleError("Joining files failed")
 
 
-def _video_target_filename(video, channel_id, format, category, start=None, end=None):
+def _video_target_filename(video, channel_id, format, category, file_path, start=None, end=None):
     parts = []
     if start and end:
         parts.extend([str(start), str(end)])
@@ -78,24 +81,24 @@ def _video_target_filename(video, channel_id, format, category, start=None, end=
         parts.append(video['id'])
     name = "_".join(parts)
     if start and end:
-        if not path.exists(resource_path("clips/")):
-            makedirs(resource_path("clips/"))
-        if not path.exists(resource_path(f"clips/{channel_id}/")):
-            makedirs(resource_path(f"clips/{channel_id}/"))
-        if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/")):
-            makedirs(resource_path(f"clips/{channel_id}/{video['id']}/"))
+        if not path.exists(resource_path("clips/", file_path=file_path)):
+            makedirs(resource_path("clips/", file_path=file_path))
+        if not path.exists(resource_path(f"clips/{channel_id}/", file_path=file_path)):
+            makedirs(resource_path(f"clips/{channel_id}/", file_path=file_path))
+        if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/", file_path=file_path)):
+            makedirs(resource_path(f"clips/{channel_id}/{video['id']}/", file_path=file_path))
         if category is not None:
-            filepath = resource_path(f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}")
-            if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/{category}/")):
-                makedirs(resource_path(f"clips/{channel_id}/{video['id']}/{category}/"))
+            filepath = resource_path(f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}", file_path=file_path)
+            if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/{category}/", file_path=file_path)):
+                makedirs(resource_path(f"clips/{channel_id}/{video['id']}/{category}/", file_path=file_path))
         else:
-            filepath = resource_path(f"clips/{channel_id}/{video['id']}/other_clips/{name}.{format}")
-            if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/")):
-                makedirs(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/"))
+            filepath = resource_path(f"clips/{channel_id}/{video['id']}/other_clips/{name}.{format}", file_path=file_path)
+            if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/", file_path=file_path)):
+                makedirs(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/", file_path=file_path))
     else:
-        if not path.exists(resource_path("vods/")):
-            makedirs(resource_path("vods/"))
-        filepath = resource_path(f"vods/{name}.{format}")
+        if not path.exists(resource_path("vods/", file_path=file_path)):
+            makedirs(resource_path("vods/", file_path=file_path))
+        filepath = resource_path(f"vods/{name}.{format}", file_path=file_path)
     return filepath
 
 
@@ -190,8 +193,8 @@ def _download_video(video_id, args):
         return
 
     output.print_out("\n\nJoining files...")
-    target = _video_target_filename(video, args.channel, args.format, args.category, args.start, args.end)
-    _join_vods(playlist_path, target, args.overwrite)
+    target = _video_target_filename(video, args.channel, args.format, args.category, args.path, args.start, args.end)
+    _join_vods(playlist_path, target, args.overwrite, args.path)
 
     if args.keep:
         output.print_out("\n<dim>Temporary files not deleted: {}</dim>".format(target_dir))

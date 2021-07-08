@@ -27,12 +27,11 @@ def resource_path(relative_path, is_download=False):
         base_path = os.path.dirname(sys.executable)
     elif __file__:
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    # if building as noconsole and onefile, uncomment these next lines
-    if not is_download:
-        base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
-    else:
-        base_path = sys._MEIPASS
-        # base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    # if building as noconsole and onefile, uncomment this if-else block
+    # if not is_download:
+    #     base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
+    # else:
+    #     base_path = sys._MEIPASS
     return os.path.join(base_path, relative_path)
 
 
@@ -67,9 +66,7 @@ def check_credentials():
     if cfg:
         if cfg.has_section("settings"):
             if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
-                contents = os.listdir(resource_path("", is_download=True))
-                contents_str = " ".join(contents)
-                return {"success": True, "msg": f"contents is {contents_str}"}
+                return {"success": True}
         else:
             return {"success": False}
     else:
@@ -475,26 +472,24 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
             response["isVOD"] = True
         elif not category:
             response["isOther"] = True
-        cmd = ["python3", resource_path("twitch-dl.1.16.0.pyz"), "download", video_id, "--overwrite", "--format", "mp4"]
-        # if channel_id is not None:
-        #     cmd.extend(["--channel", str(channel_id)])
+        cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
+        # if building using --noconsole and --onefile uncomment this next line
+        # cmd.extend(["--path", f"{os.path.join(os.path.dirname(sys.executable), '../../../')}"])
+        if channel_id is not None:
+            cmd.extend(["--channel", str(channel_id)])
         if start >= 0:
             cmd.extend(["--start", str(start)])
         if end > 0:
             cmd.extend(["--end", str(end)])
         cmd.extend(["--quality", "source"])
-        # if category is not None:
-        #     cmd.extend(["--category", category])
-        print(cmd)
+        if category is not None:
+            cmd.extend(["--category", category])
         return_val = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output = return_val.stdout.decode('utf-8')
+        output = return_val.stderr.decode('utf-8').strip()
         with open(resource_path('log.txt'), 'w') as log:
             log.write(output)
         if return_val.returncode != 0:
-            # contents = os.listdir(sys._MEIPASS)
-            # contents = ", ".join(contents)
-
-            msg = f"Download failed for clip at {start} to {end} for video {video_id}. Error: {return_val.stdout.decode('utf-8')}"
+            msg = f"Download failed for clip at {start} to {end} for video {video_id}. Error: {return_val.stderr.decode('utf-8').strip()}"
             print(msg)
             response["status"] = 500
             response["msg"] = msg
