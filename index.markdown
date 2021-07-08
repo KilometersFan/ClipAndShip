@@ -44,7 +44,7 @@ You will also need to download and install [ffmpeg][4] in order to download clip
 
 When running as an executable with console or as a folder, you can install ffmpeg with [Homebrew][4]
 
-When running as an app, find the ffmpeg download in [here][https://evermeet.cx/ffmpeg/] 
+When running as an app, find the ffmpeg download in [here][5] 
 Make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the same folder as the Clip & Ship app.
 
 [1]:{{ site.url }}/downloads/app.zip
