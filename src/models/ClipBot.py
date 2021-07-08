@@ -247,5 +247,5 @@ class ClipBot:
             channel = self.get_channel(key, False)
             if len(list(value)) > 0:
                 print(f"Getting videos and processing")
-                results += channel.get_videos(list(value), processing=True)
+                results += channel.get_videos(list(value), processing_check=True)
         return results

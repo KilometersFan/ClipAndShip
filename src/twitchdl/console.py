@@ -69,6 +69,11 @@ download_cmd = (
             "help": "Overwrite the target file if it already exists without prompting.",
             "action": "store_true",
             "default": False,
+        }),
+        (["--path"], {
+            "help": "Path for clips/vods",
+            "type": str,
+            "default": "",
         })
     ]
 )

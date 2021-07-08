@@ -17,7 +17,8 @@ function createVideoCard(data, processing=true, channelId=null) {
             "class": "btn action-btn mx-0", "value": data["id"], "data-toggle": "modal", "data-target": "#videoMessageModal"
         });
         btn.text("Process");
-        btn.click(function () {
+        btn.click(async function () {
+            console.log("Process btn clicked");
             $(`#${data["id"]}Div`).remove();
             eel.clip_video(parseInt(channelId), parseInt(data["id"]));
             setTimeout(updateProcessingVideos, 500);
@@ -112,9 +113,10 @@ function populateUserVideos(data) {
                 }
             });
         });
+        console.log(`totalChannels = ${totalChannels}`);
         if (totalChannels == 0) {
             row.empty();
-            let noVideos = $("<p>", {"style": "padding-left: 15px"})
+            let noVideos = $("<p>", {"style": "padding-left: 15px", "id": "noUserVids"})
             noVideos.text("No user videos found.");
             row.append(noVideos);
         }
@@ -123,12 +125,13 @@ function populateUserVideos(data) {
 }
 function updateProcessingVideos() {
     eel.get_processing_videos()(function (data) {
-        console.log(data);
+        console.log("Updating processing videos now");
         populateProcessingVideos(data);
     });
 }
 function updateUserVideos() {
     eel.get_user_videos()(function (data) {
+        console.log("Updating user videos now");
         populateUserVideos(data);
     });
 }
@@ -142,8 +145,10 @@ function addVideoCard(videoId, channelId) {
         processingRow.empty();
     }
     eel.get_videos(parseInt(channelId), [videoId])(function (response) {
-        if (!$(`#${channelId}Row`).length) {
+        if ($("#noUserVids").length > 0) {
             row.empty();
+        }
+        if (!$(`#${channelId}Row`).length) {
             console.log("Channel row not found");
             eel.get_channel(parseInt(channelId))(function (info) {
                 let channelCol = $("<div>", {"class": "col-sm-12"});
