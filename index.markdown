@@ -33,15 +33,15 @@ With Clip & Ship you can:
 
 ## Install
 Clip & Ship currently is supported on Mac OS and can be downloaded as an app, as an executable with a console, and as a folder with an executable.
-The sizes for each bundle are 938.2 MB, 443.7 MB, and 169.8 MB respectively.
+The sizes for each bundle are 474.3 MB, 443.7 MB, and 169.8 MB respectively.
 
 These bundles are available to download at this [link][1]
 
 You will also need to download and install [ffmpeg][4] in order to download clips/vods. 
 
-When running as an executable with console or as a folder, you can install ffmpeg with [Homebrew][4]
+When running as an executable with console or as a folder, you can install ffmpeg with [Homebrew][2]
 
-When running as an app, find the ffmpeg download in [here][5] 
+When running as an app, find the ffmpeg download in [here][3] 
 Make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the same folder as the Clip & Ship app.
 
 [1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
