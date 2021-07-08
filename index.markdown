@@ -32,7 +32,26 @@ With Clip & Ship you can:
 - Export the list of processed moments to a CSV file.
 
 ## Install
-Download the zip file provided at the top of the page. Run the exe/dmg file and start clipping!
+Clip & Ship currently is supported on Mac OS and comes in several bundles.
+
+To download as an app (preferred method), click [here][1]
+
+To download as an executable with the console, click [here][2]
+
+To download as a folder (to see the code/bundled packages), click [here][3].
+
+You will also need to download and install [ffmpeg][4] in order to download clips/vods. 
+
+When running as an executable with console or as a folder, you can install ffmpeg with [Homebrew][4]
+
+When running as an app, find the ffmpeg download in [here][https://evermeet.cx/ffmpeg/] 
+Make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the same folder as the Clip & Ship app.
+
+[1]:downloads/app.zip
+[2]:downloads/console.zip
+[3]:downloads/folder.zip
+[4]:https://brew.sh/
+[5]:https://evermeet.cx/ffmpeg/
 
 ## Why Clip & Ship?
 
@@ -86,10 +105,14 @@ contributions.
 
 ## Local Development
 
-Install the required libraries. To run the main program change directory to `src` and run `python3 clipnship.py`. To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if the you processed at least one video for the specified channel.
+Install the required libraries listed in `requirements.txt`. 
 
-To build everything into one folder use the `clipnship.spec` file. First must change the second value in the `pathex` array to the absolute path of the `src` directory of the repo and the first value of the first tuple in the `datas` array to the location of the `eel.js` file (which is probably in your python `site-packages` directory), Run `pyinstaller clipnship.spec` in the src directory. 
+To build everything as a script change directory to `src` and run `python3 clipnship.py`. To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if you processed at least one video for the specified channel.
 
-To build everything into one file (just the `clipnship.exe` file), repeat the same steps above but with the `clipnship_file.spec` file.
+To build everything into one folder use the `clip&ship_dir.spec` file. First you must change the second value in the `pathex` array to the absolute path of the `src` directory of the repo, and the first value of the first tuple in the `datas` array to the location of the `eel.js` file (which is probably in your python `site-packages` directory), Run `pyinstaller clip&ship_dir.spec` in the src directory. 
+
+To build everything into an executable with a console (just the `clipnship.exe` file), repeat the same steps above but with the `clip&ship_console.spec` file.
+
+To build everything into an app, repeat the same steps above but with the `clip&ship_app.spec` file.
 
 Add the `--noconfirm` flag to skip the confirmation prompt that asks if you want to delete the dist folder's contents. 
