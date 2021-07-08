@@ -211,13 +211,12 @@ class ClipBot:
                 print(f"{source} Global Emotes Request timed out")
                 print(e.args)
         emotes = sorted(emotes, key=lambda emote: emote["name"])
-        return {"emotes": emotes, "emotesMap": emotes_map}
+        return {"emotes": emotes, "emoteMap": emotes_map}
 
     # run clip video function for channel in a new process
     def clip_video(self, channel_id, video_id):
         if self._helix:
             channel = self._channels[channel_id]
-            print(channel.get_emote_names())
             print(f"Channel id: {channel_id}")
             print(f"Starting video processing of video {video_id} for {channel.get_name()}")
             helper = ClipBotHelper(channel, self)
@@ -247,5 +246,6 @@ class ClipBot:
         for key, value in self._processing.items():
             channel = self.get_channel(key, False)
             if len(list(value)) > 0:
-                results += channel.get_videos(list(value))
+                print(f"Getting videos and processing")
+                results += channel.get_videos(list(value), processing_check=True)
         return results

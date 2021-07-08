@@ -57,19 +57,28 @@
     <script type="text/javascript">
         eel.expose(videoHandler);
         function videoHandler(response) {
+            console.log("Handler response");
             console.log(response);
-            if (response == true) {
+            if (response["status"] == 200) {
                 $("#notificationCount").text("New");
             }
             else {
                 $("#notificationCount").text();
             }
             console.log("Updating videos");
-            if (updateVideos) {
-                setTimeout(updateVideos, 1000);
+            if (typeof addVideoCard !== "undefined") {
+                setTimeout(function () {
+                    console.log("Adding new card");
+                    console.log(response);
+                    addVideoCard(response["videoId"], response["channelId"]);
+                }, 1000);
             }
-            else {
-                console.log("Can't update videos");
+            if (typeof removeVideoCard !== "undefined") {
+                setTimeout(function () {
+                    console.log("Removing new card");
+                    console.log(response);
+                    removeVideoCard(response["videoId"]);
+                }, 1000);
             }
         }
         eel.expose(downloadHandler)
@@ -115,7 +124,12 @@
                 else if (response["isOther"]) {
                     $("#downloadOther").prop("disabled", false);
                 }
-                $("#downloadErr").text("Download failed");
+                $("#downloadErr").text(`Download failed. Error message: ${response["msg"]}`);
+                const btn = $(`#start-${response["start"]}-end-${response["end"]}-btn`);
+                btn.empty();
+                btn.append($("<i>", {"class": "fa fa-download"}));
+                btn.addClass("btn-primary");
+                btn.removeClass("btn-secondary");
             }
         }
     </script>

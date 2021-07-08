@@ -100,12 +100,15 @@ function populateEmotes(type, data) {
         for (let j = 0; j < userCategories.length; j++) {
             if (!data[j].emotes.includes(emotes[i]["name"])) {
                 let editModalRow = $("#" + userCategories[j] + typeUpper + "EmotesEditModal");
-                let editEmoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"].toLowerCase(), "emoteInput", "emoteBoxChecked", "EmoteEdit", "editEmotesToAdd");
+                let editEmoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"], "emoteInput", "emoteBoxChecked", "EmoteEdit", "editEmotesToAdd");
                 editModalRow.append(editEmoteBoxInput);
             }
         }
     }
     $(".loading").hide();
+}
+function updateCategoryEmotes(category) {
+    let editCategoryRow = $(`#${category}EditCategoryRow`);
 }
 function populateCategoryEmotes(data) {
     userCategories = [];
@@ -184,7 +187,7 @@ function populateCategoryEmotes(data) {
             let emoteBox = createEmoteBox(result["imageUrl"], emoteMap[name] || name )
             div.append(emoteBox);
             // for modal category display
-            console.log(emoteMap[name]);
+            console.log(emoteMap[name] || name);
             let editEmoteBox = createEmoteBoxInput(result["imageUrl"], emoteMap[name] || name, "emoteBoxChecked", "emoteBoxRemove", "EditInput", type + "EmotesToRmv", true);
             editCategoryRow.append(editEmoteBox);
         }
@@ -199,7 +202,7 @@ function populateCategoryEmotes(data) {
                 if (response.length === 0) {
                     let emptyRecommendations = $("<p>");
                     emptyRecommendations.text("Recommendations are only available after a video is processed.");
-                    editRecommendedRow.append()
+                    editRecommendedRow.append(emptyRecommendations);
                 }
                 for (let i = 0; i < response.length; i++) {
                     let result;
@@ -375,6 +378,8 @@ function populateCategories(id) {
             globalTwitchEmotes = twitch_global_emotes["emotes"];
             eel.get_bttv_global_emotes()(function (bttv_global_emotes) {
                 globalBTTVEmotes = bttv_global_emotes["emotes"];
+                console.log(twitch_global_emotes["emoteMap"]);
+                console.log(bttv_global_emotes["emoteMap"]);
                 emoteMap = {
                     ...emoteMap,
                     ...twitch_global_emotes["emoteMap"],

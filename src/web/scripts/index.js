@@ -7,16 +7,19 @@ $("#credentialForm").submit(function (event) {
         $("#error").hide();
         eel.enter_credentials($("#clientId").val(), $("#clientSecret").val());
         $("#successBlock").show();
+        $("#credentialForm").hide();s
     }
 });
-function changeDisplay(valid) {
-    if (valid === false) {
+function changeDisplay(response) {
+    if (response["status"] === 400) {
         $("#invalidBlock").show();
         $("#validBlock").hide();
+        $("#invalidBlock").append(response["msg"]);
     }
     else {
         $("#invalidBlock").hide();
         $("#validBlock").show();
+        $("#validBlock").append(response["msg"]);
     }
 }
 eel.check_credentials()(changeDisplay);

@@ -4,6 +4,7 @@ import re
 import os
 from datetime import datetime
 from dateutil import tz
+from pprint import pprint
 from .Category import Category
 from .util import resource_path
 
@@ -146,7 +147,7 @@ class Channel(object):
         return self._desc
 
     # return channel videos
-    def get_videos(self, videos=None):
+    def get_videos(self, videos=None, processing_check=False):
         data = []
         valid_helix = False
         while not valid_helix:
@@ -155,7 +156,7 @@ class Channel(object):
                     for video in self._helix.user(self._name).videos():
                         thumbnail = video.thumbnail_url
                         if not thumbnail:
-                            thumbnail = "../NotFound.png"
+                            thumbnail = "../video_image_placeholder.png"
                         else:
                             thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
                         d = video.created_at
@@ -164,14 +165,15 @@ class Channel(object):
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
                         clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
-                        processing = self._clip_bot._processing.get(self.get_id(), None)
-                        if processing and video.id in processing:
-                            processing = True
+                        processing_videos = self._clip_bot._processing.get(self.get_id(), None)
+                        if processing_videos and (str(video.id) in processing_videos or int(video.id) in processing_videos):
+                            is_processing = True
                         else:
-                            processing = False
-                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description, 
-                                     "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                     "channelId": self.get_id(), "processing": processing})
+                            is_processing = False
+                        if processing_check == is_processing:
+                            data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                         "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                         "channelId": self.get_id(), "processing": is_processing})
                     valid_helix = True
                 except requests.exceptions.HTTPError as e:
                     print(e.args)
@@ -187,7 +189,7 @@ class Channel(object):
                         video = self._helix.video(video_id)
                         thumbnail = video.thumbnail_url
                         if not thumbnail:
-                            thumbnail = "../NotFound.png"
+                            thumbnail = "../video_image_placeholder.png"
                         else:
                             thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
                         d = video.created_at
@@ -196,14 +198,15 @@ class Channel(object):
                         date = date.astimezone(to_zone)
                         date = date.strftime("%Y-%m-%d") 
                         clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
-                        processing = self._clip_bot._processing.get(self.get_id(), None)
-                        if processing and video.id in processing:
-                            processing = True
+                        processing_videos = self._clip_bot._processing.get(self.get_id(), None)
+                        if processing_videos and (int(video.id) in processing_videos or str(video.id) in processing_videos):
+                            is_processing = True
                         else:
-                            processing = False
-                        data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
-                                     "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                     "channelId": self.get_id(), "processing": processing})
+                            is_processing = False
+                        if processing_check == is_processing:
+                            data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                         "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                         "channelId": self.get_id(), "processing": is_processing})
                         valid_helix = True
                     except requests.exceptions.HTTPError as e:
                         print(e.args)
@@ -227,11 +230,14 @@ class Channel(object):
             try:
                 get_bttv_emotes_request = requests.get(self._bttv_url + str(self._id), timeout=1)
                 if get_bttv_emotes_request.status_code == requests.codes.ok:
+                    emote_types = ["sharedEmotes", "channelEmotes"]
                     bttv_emotes = json.loads(get_bttv_emotes_request.text)
-                    for bttv_emote in bttv_emotes["sharedEmotes"]:
-                        self._bttv_emotes.append({"name": bttv_emote["code"],
-                                                  "imageUrl": self._bttv_img_url + bttv_emote["id"] + "/1x"})
-                        self._name_to_emotes_map[bttv_emote["code"].lower()] = bttv_emote["code"]
+                    for emote_type in emote_types:
+                        for bttv_emote in bttv_emotes[emote_type]:
+                            self._bttv_emotes.append({"name": bttv_emote["code"],
+                                                      "imageUrl": self._bttv_img_url + bttv_emote["id"] + "/1x"})
+                            self._name_to_emotes_map[bttv_emote["code"].lower()] = bttv_emote["code"]
+
                 else:
                     print("Unable to complete get request for BTTV Emotes")
                     print("Error code:", get_bttv_emotes_request.status_code)

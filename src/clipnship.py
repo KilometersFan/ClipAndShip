@@ -21,13 +21,26 @@ videoThreads = {}
 notification = False
 
 
-def resource_path(relative_path):
+def resource_path(relative_path, is_download=False):
     """ Get absolute path to resource, works for dev and for PyInstaller """
+    # if running as script, uncomment this if-else block and comment the ones below
     if getattr(sys, 'frozen', False):
+        print("FIrst path")
         base_path = os.path.dirname(sys.executable)
     elif __file__:
+        print("second path")
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    # if building as noconsole and onefile, uncomment this if-else block and comment the other blocks
+    # if not is_download:
+    #     base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
+    # else:
+    #     base_path = sys._MEIPASS
+    # if building as --console and --onefile uncomment this if-else block and comment the previous two
+    # if is_download:
+    #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
+
+
 """
     Set up the Bot and get everything ready
 """
@@ -59,11 +72,11 @@ def check_credentials():
     if cfg:
         if cfg.has_section("settings"):
             if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
-                return True
+                return {"status": 200}
         else:
-            return False
+            return {"status": 400}
     else:
-        return False
+        return {"status": 200, "msg": f"CFG not found path was {resource_path('config.ini')}"}
 
 
 @eel.expose
@@ -149,10 +162,10 @@ def search_channel(channel_name):
 
 
 @eel.expose
-def get_categories(channel_id):
+def get_categories(channel_id, category=None):
     global bot
     channel = bot.get_channel(channel_id, False)
-    categories = channel.get_categories()
+    categories = [category] if category else channel.get_categories()
     result = [{"type": category.get_type(), "emotes": category.get_emotes(True)} for category in categories]
     return result
 
@@ -223,7 +236,7 @@ def delete_category(channel_id, names):
 
 @eel.expose
 def get_recommended_emotes(channel_id, category_type, is_list=False):
-    if os.path.exists(resource_path(f"/data/channels/{channel_id}/recommendation_data.json")):
+    if os.path.exists(resource_path(f"data/channels/{channel_id}/recommendation_data.json")):
         with open(resource_path(f"data/channels/{channel_id}/recommendation_data.json")) as ifile:
             channel = get_channel(channel_id, False)
             category = category_type if is_list else channel.get_category(category_type)
@@ -269,6 +282,7 @@ def get_recommended_emotes(channel_id, category_type, is_list=False):
             print(top_5_emotes)
             return list(top_5_emotes)
     else:
+        print("Path not found")
         return []
 
 
@@ -294,17 +308,18 @@ def get_bttv_global_emotes():
 def get_videos(channel_id, videos=None):
     global bot
     channel = bot.get_channel(channel_id, False)
-    return channel.get_videos(videos)
+    return channel.get_videos(videos) if channel else []
 
 
 @eel.expose
 def get_user_videos(channel_id=None):
+    global bot
     if channel_id:
         try:
-            print(resource_path(f"data/channels/{channel_id}"))
             if os.path.exists(resource_path(f"data/channels/{channel_id}")):
-                video_ids = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir()]
-                print(video_ids)
+                video_ids = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir()
+                             and (not bot._processing or channel_id in bot._processing
+                                  and int(f.name) not in bot._processing.get(channel_id))]
                 return video_ids
             else:
                 print(f"Channel folder not found for id {channel_id}")
@@ -374,7 +389,12 @@ def clip_video_helper(channel_id, video_id=None):
     print("###########################")
     global notification
     notification = True
-    eel.videoHandler(notification)
+    response = {
+        "status": 200 if notification else 400,
+        "channelId": channel_id,
+        "videoId": video_id,
+    }
+    eel.videoHandler(response)
 
 
 """
@@ -426,7 +446,7 @@ def get_graph(graph_data):
                      labels=dict(time="Time (s)", instances="Category emote usage per comment", category="Category"),
                      width=450, height=350)
     fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0)
+        margin=dict(l=0, r=0, t=0, b=0),
     )
     img_bytes = fig.to_image(format="png")
     return base64.encodebytes(img_bytes).decode("utf-8").replace("\n", "")
@@ -449,34 +469,50 @@ def csv_export(video_id, data):
 
 
 def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
-    print(start, end, video_id, channel_id)
-    response = {"start": start, "end": end, "video_id": video_id, "channel_id": channel_id, "category": category}
-    if start == -1 and end == 0:
-        response["isVOD"] = True
-    elif not category:
-        response["isOther"] = True
-    cmd = ["python3", resource_path("twitchdl/console.py"), "download", video_id, "--overwrite", "--format", "mp4"]
-    if channel_id is not None:
-        cmd.extend(["--channel", str(channel_id)])
-    if start >= 0:
-        cmd.extend(["--start", str(start)])
-    if end > 0:
-        cmd.extend(["--end", str(end)])
-    if category is not None:
-        cmd.extend(["--category", category])
-    print(cmd)
-    return_val = subprocess.run(cmd, stderr=subprocess.STDOUT, universal_newlines=True)
-    if return_val.returncode != 0:
-        msg = f"Download failed for clip at {start} to {end} for video {video_id}"
+    try:
+        print(start, end, video_id, channel_id)
+        response = {"start": start, "end": end, "video_id": video_id, "channel_id": channel_id, "category": category}
+        if start == -1 and end == 0:
+            response["isVOD"] = True
+        elif not category:
+            response["isOther"] = True
+        cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
+        # if building using --noconsole and --onefile uncomment this next line
+        # cmd.extend(["--path", f"{os.path.join(os.path.dirname(sys.executable), '../../../')}"])
+        # if building using --console and --onefile uncomment this next line
+        # cmd.extend(["--path", f"{os.path.dirname(sys.executable)}"])
+        if channel_id is not None:
+            cmd.extend(["--channel", str(channel_id)])
+        if start >= 0:
+            cmd.extend(["--start", str(start)])
+        if end > 0:
+            cmd.extend(["--end", str(end)])
+        cmd.extend(["--quality", "source"])
+        if category is not None:
+            cmd.extend(["--category", category])
+        return_val = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = return_val.stderr.decode('utf-8').strip()
+        with open(resource_path('log.txt'), 'w') as log:
+            log.write(output)
+        if return_val.returncode != 0:
+            msg = f"Download failed for clip at {start} to {end} for video {video_id}. Error: {return_val.stderr.decode('utf-8').strip()}"
+            print(msg)
+            response["status"] = 500
+            response["msg"] = msg
+        else:
+            msg = f"Successfully downloaded clip at {start} to {end} for video {video_id}"
+            print(msg)
+            response["status"] = 200
+            response["msg"] = msg
+        response["type"] = "console"
+        # if running as nonconsole and onefile uncomment this line
+        response["type"] = "noconsole"
+        print(f"download response: {response}")
+    except Exception as e:
+        msg = f"Download failed for clip at {start} to {end} for video {video_id} Exception msg: {str(e)}"
         print(msg)
         response["status"] = 500
         response["msg"] = msg
-    else:
-        msg = f"Successfully downloaded clip at {start} to {end} for video {video_id}"
-        print(msg)
-        response["status"] = 200
-        response["msg"] = msg
-    print(f"download response: {response}")
     eel.downloadHandler(response)
 
 
