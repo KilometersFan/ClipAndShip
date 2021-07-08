@@ -32,13 +32,10 @@ With Clip & Ship you can:
 - Export the list of processed moments to a CSV file.
 
 ## Install
-Clip & Ship currently is supported on Mac OS and comes in several bundles.
+Clip & Ship currently is supported on Mac OS and can be downloaded as an app, as an executable with a console, and as a folder with an executable.
+The sizes for each bundle are 938.2 MB, 443.7 MB, and 169.8 MB respectively.
 
-To download as an app (preferred method), click [here][1]
-
-To download as an executable with the console, click [here][2]
-
-To download as a folder (to see the code/bundled packages), click [here][3].
+These bundles are available to download at this [link][1]
 
 You will also need to download and install [ffmpeg][4] in order to download clips/vods. 
 
@@ -47,11 +44,10 @@ When running as an executable with console or as a folder, you can install ffmpe
 When running as an app, find the ffmpeg download in [here][5] 
 Make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the same folder as the Clip & Ship app.
 
-[1]:downloads/app.zip
-[2]:downloads/console.zip
-[3]:downloads/folder.zip
-[4]:https://brew.sh/
-[5]:https://evermeet.cx/ffmpeg/
+[1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
+[2]:https://brew.sh/
+[3]:https://evermeet.cx/ffmpeg/
+[4]:https://ffmpeg.org/
 
 ## Why Clip & Ship?
 
