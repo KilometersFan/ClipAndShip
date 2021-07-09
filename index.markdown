@@ -79,11 +79,18 @@ improvements to maintain Clip & Ship's integrity and efficiency.
 
 ## Tradeoffs
 
+### More Initial Setup
+Unlike a website or other standalone desktop applications, 
+Clip & Ship can't be run out of the box; Users must get 
+their own Twitch API credentials and download/install/give
+permission to ffmepg. 
+
+
 ### Everything's Local
-Server costs and cloud storage is expensive, and I didn't receive funding 
-for this project to pay for those services. So, Clip & Ship runs entirely 
-on your machine and uses up your storage. But, that Clip & Ship is running 
-locally is why it is free and open source.
+Servers and cloud storage are expensive, and I decided to develop this project
+free of charge. So, Clip & Ship runs entirely on your machine and uses up
+your storage. But that Clip & Ship is running locally is why it is free 
+and open source.
 
 ### Reliance on APIs and third-party packages
 Clip & Ship heavily relies on outside tech to function. The APIs used are
@@ -110,6 +117,11 @@ To build everything into one folder use the `clip&ship_folder.spec` file. First 
 
 To build everything into an executable with a console (just the `clipnship.exe` file), repeat the same steps above but with the `clip&ship_console.spec` file.
 
-To build everything into an app, repeat the same steps above but with the `clip&ship_app.spec` file.
+To build everything into an app, repeat the same steps above but with the `clip&ship_app.spec` file. You will also need to uncomment and comment some lines of code regarding file paths. 
+The changes are described on:
 
-Add the `--noconfirm` flag to skip the confirmation prompt that asks if you want to delete the dist folder's contents. 
+1. src/twitchdl/command.py line 54
+2. src/clipnship.py lines 31-34, 476
+3. src/models/util.py line 14
+
+Add the `--noconfirm` flag to skip the confirmation prompt that asks if you want to delete the `dist/` folder's contents. 
