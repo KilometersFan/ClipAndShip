@@ -35,7 +35,7 @@ def resource_path(relative_path, is_download=False):
     #     base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
     # else:
     #     base_path = sys._MEIPASS
-    # if building as folder.spec uncomment this if-else block and comment the previous two
+    # if building as folder.spec or console.spec uncomment this if-else block and comment the previous one
     # if is_download:
     #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
