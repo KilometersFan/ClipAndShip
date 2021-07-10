@@ -53,8 +53,10 @@ def _get_playlist_by_name(playlists):
 
 def _join_vods(playlist_path, target, overwrite, file_path):
     command = [
+        # for local development, if you installed ffmpeg with Homebrew, uncomment this next line and comment out the
+        # one after
         "ffmpeg",
-        # if building with --noconsole and --onefile uncomment this line and comment the previous line
+        # if building with the app.spec or the folder.spec uncomment this line and comment the previous line
         # resource_path("ffmpeg", file_path=file_path),
         "-i", playlist_path,
         "-c", "copy",

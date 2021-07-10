@@ -30,12 +30,12 @@ def resource_path(relative_path, is_download=False):
     elif __file__:
         print("second path")
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    # if building as noconsole and onefile, uncomment this if-else block and comment the other blocks
+    # if building the app.spec, uncomment this if-else block and comment the other blocks
     # if not is_download:
     #     base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
     # else:
     #     base_path = sys._MEIPASS
-    # if building as --console and --onefile uncomment this if-else block and comment the previous two
+    # if building as folder.spec uncomment this if-else block and comment the previous two
     # if is_download:
     #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
@@ -477,9 +477,9 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
         elif not category:
             response["isOther"] = True
         cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
-        # if building using --noconsole and --onefile uncomment this next line
+        # if building using the app.spec uncomment this next line
         # cmd.extend(["--path", f"{os.path.join(os.path.dirname(sys.executable), '../../../')}"])
-        # if building using --console and --onefile uncomment this next line
+        # if building using the console.spec or the folder.spec uncomment this next line
         # cmd.extend(["--path", f"{os.path.dirname(sys.executable)}"])
         if channel_id is not None:
             cmd.extend(["--channel", str(channel_id)])

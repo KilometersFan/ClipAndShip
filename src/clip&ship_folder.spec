@@ -7,8 +7,8 @@ block_cipher = None
 a = Analysis(['clipnship.py'],
              pathex=['../cns/lib/python3.8/site-packages', '/Users/milesphan/Projects/TwitchClipAnalyzer/src'],
              binaries=[],
-             datas=[('/Users/milesphan/Projects/TwitchClipAnalyzer/cns/lib/python3.8/site-packages/eel/eel.js', 'eel'), ('web', 'web'), ('clips', 'clips'), ('data', 'data'), ('models/*', 'models/'), ('twitchdl/*', 'twitchdl/'), ('vods', 'vods'), ('__init__.py', '__init__.py'), ('config.ini', '.'), ('channels.ini', '.'), ('../cns/lib/python3.8/site-packages/kaleido', 'kaleido')],
-             hiddenimports=['bottle_websocket', 'wheel', 'twine'],
+             datas=[('/Users/milesphan/Projects/TwitchClipAnalyzer/cns/lib/python3.8/site-packages/eel/eel.js', 'eel'), ('web', 'web'), ('clips', 'clips'), ('data', 'data'), ('models/*', 'models/'), ('twitchdl/*', 'twitchdl/'), ('vods', 'vods'), ('__init__.py', '__init__.py'), ('config.ini', '.'), ('channels.ini', '.'), ('../cns/lib/python3.8/site-packages/kaleido', 'kaleido'), ('../cns/lib/python3.8/site-packages/m3u8', 'm3u8')],
+             hiddenimports=['bottle_websocket', 'wheel', 'twine', 'm3u8'],
              hookspath=['hooks'],
              runtime_hooks=[],
              excludes=[],
@@ -27,7 +27,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=False , icon='web/logo.png')
+          console=True , icon='web/logo.png')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -36,7 +36,3 @@ coll = COLLECT(exe,
                upx=True,
                upx_exclude=[],
                name='clipnship')
-app = BUNDLE(coll,
-             name='clipnship.app',
-             icon='web/logo.png',
-             bundle_identifier=None)
