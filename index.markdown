@@ -37,13 +37,12 @@ The sizes for each bundle are 493.5 MB, 443.7 MB, and 169.8 MB respectively.
 
 These bundles are available to download at this [link][1]. The `app.zip` file is the preferred method of install.
 
-You will also need to download and install [ffmpeg][4] in order to download clips/vods. How you download it depends on which bundle you choose.
+You will also need [ffmpeg][4] in order to download clips/vods. Each bundle comes with an `ffmpeg` executable, but if you want to download it from the source click [here][3]
 
-When running as an executable with console or as a folder with `console.zip` or `folder.zip` respectively, you can install ffmpeg with [Homebrew][2]
+If downloading it, make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the ***same*** folder as the Clip & Ship app/executable.
+You will also need to give permission to your `ffmpeg` executable to be run since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in corresponding the prompt.
 
-When running as an app with `app.zip`, use the ffmpeg executable provided or download it [here][3].
-If downloading it, make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the same folder as the Clip & Ship app.
-You will also need to give permission to your `ffmpeg` executable to be run since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip&ShipLocation/ffmpeg` or by clicking the exe and giving permission in corresponding the prompt.
+For local development, install `ffmpeg` with [Homebrew][2]
 
 [1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
 [2]:https://brew.sh/
