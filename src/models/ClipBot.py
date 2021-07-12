@@ -30,6 +30,7 @@ class ClipBot:
         self._helpers = {}
         self._access_token = None
         self._client_id = None
+        self.MAX_RETRIES = 5
 
     # return twitch Helix object
     def get_helix(self):
@@ -157,7 +158,11 @@ class ClipBot:
     # search twitch for channel
     def search_for_channel(self, channel_name):
         found = False
+        num_retries = 0
         while not found:
+            if num_retries >= self.MAX_RETRIES:
+                print("Unable to connect to Twitch API. Quitting...")
+                return {"status", 500}
             try:
                 if self._helix:
                     user = self._helix.user(channel_name)
@@ -170,11 +175,12 @@ class ClipBot:
                 else:
                     print("Helix creation failed")
                     self.setup_config()
+                    num_retries += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 401:
                     self.setup_config()
+                    num_retries += 1
             except Exception:
-                found = True
                 return {"status", 404}
 
     def get_global_emotes(self, source):
@@ -188,7 +194,11 @@ class ClipBot:
             global_url = "https://api.twitch.tv/helix/chat/emotes/global"
         elif source == "bttv":
             global_url = "https://api.betterttv.net/3/cached/emotes/global"
+        num_retries = 0
         while not success:
+            if num_retries >= self.MAX_RETRIES:
+                print(f"Unable to connect to {global_url}. Quitting...")
+                break
             try:
                 get_global_emotes = requests.get(global_url, headers=headers, timeout=1)
                 if get_global_emotes.status_code == requests.codes.ok:
@@ -203,42 +213,53 @@ class ClipBot:
                             emotes.append({"name": bttv_global_emote["code"],
                                            "imageUrl": bttv_image_url + bttv_global_emote["id"] + "/1x"})
                             emotes_map[bttv_global_emote["code"].lower()] = bttv_global_emote["code"]
+                    success = True
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
                     print("Error code:", global_emotes.status_code)
-                success = True
+                    num_retries += 1
             except requests.exceptions.Timeout as e:
                 print(f"{source} Global Emotes Request timed out")
                 print(e.args)
-        emotes = sorted(emotes, key=lambda emote: emote["name"])
+                num_retries += 1
+        if emotes:
+            emotes = sorted(emotes, key=lambda emote: emote["name"])
         return {"emotes": emotes, "emoteMap": emotes_map}
 
     # run clip video function for channel in a new process
     def clip_video(self, channel_id, video_id):
-        if self._helix:
-            channel = self._channels[channel_id]
-            print(f"Channel id: {channel_id}")
-            print(f"Starting video processing of video {video_id} for {channel.get_name()}")
-            helper = ClipBotHelper(channel, self)
+        num_retries = 0
+        success = False
+        while not success:
+            if num_retries >= self.MAX_RETRIES:
+                print(f"Unable to connect to Twitch API. Quitting...")
+                break
+            if self._helix:
+                channel = self._channels[channel_id]
+                print(f"Channel id: {channel_id}")
+                print(f"Starting video processing of video {video_id} for {channel.get_name()}")
+                helper = ClipBotHelper(channel, self)
 
-            if channel_id not in self._processing:
-                self._processing[channel_id] = set()
-            self._processing[channel_id].add(video_id)
-            if channel_id not in self._helpers:
-                self._helpers[channel_id] = {video_id: helper}
+                if channel_id not in self._processing:
+                    self._processing[channel_id] = set()
+                self._processing[channel_id].add(video_id)
+                if channel_id not in self._helpers:
+                    self._helpers[channel_id] = {video_id: helper}
+                else:
+                    self._helpers[channel_id][video_id] = helper
+                print("Added", video_id, "to set of videos owned by", channel_id)
+                success = True
+                manager = Manager()
+                response = manager.dict()
+                p = Process(target=helper.process_video, args=(response, video_id))
+                p.start()
+                p.join()
+                print("&&&&&&&&&&&&&&&&&&&&&&&&&")
+                self._processing[channel_id].remove(video_id)
             else:
-                self._helpers[channel_id][video_id] = helper
-            print("Added", video_id, "to set of videos owned by", channel_id)
-            manager = Manager()
-            response = manager.dict()
-            p = Process(target=helper.process_video, args=(response, video_id))
-            p.start()
-            p.join()
-            print("&&&&&&&&&&&&&&&&&&&&&&&&&")
-            self._processing[channel_id].remove(video_id)
-        else:
-            print("Helix creation failed")
-            self.setup_config()
+                print("Helix creation failed. Trying again...")
+                self.setup_config()
+                num_retries += 1
 
     # return all videos that are currently processing
     def get_processing_videos(self):

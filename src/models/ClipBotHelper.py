@@ -8,6 +8,7 @@ from datetime import datetime
 from .Channel import Channel
 from .util import resource_path
 
+
 class ClipBotHelper(object):
     """
         ClipBotHelper that handles individual channels and processing their videos
