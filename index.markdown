@@ -76,7 +76,17 @@ The Clip & Ship source code is publicly available, meaning anyone can
 analyze the workflow, verify no malicious code is present, and suggest
 improvements to maintain Clip & Ship's integrity and efficiency. 
 
+### It's Honest
+Clip & Ship isn't secretly selling your data, using your clicks for advertisement fraud, 
+or doing anything other than what's listed above.
+
 ## Tradeoffs
+
+### Not a Website
+As mentioned previously, Clip & Ship was built as a standalone app because
+of the lack of funds to properly build and maintain a website. Downloading anything
+from the internet can be dangerous, which is why the source code is available and 
+the app can be verified independently by other programmers and cybersecurity experts.
 
 ### More Initial Setup
 Unlike a website or other standalone desktop applications, 
@@ -84,12 +94,11 @@ Clip & Ship can't be run out of the box; Users must get
 their own Twitch API credentials and download/install/give
 permission to ffmepg. 
 
-
 ### Everything's Local
 Servers and cloud storage are expensive, and I decided to develop this project
-free of charge. So, Clip & Ship runs entirely on your machine and uses up
-your storage. But that Clip & Ship is running locally is why it is free 
-and open source.
+free of charge. So, how fast Clip & Ship runs is entirely up to your machine and 
+as you will fill up your storage as process videos and download clips.  
+But that Clip & Ship is running locally is why it is free and open source.
 
 ### Reliance on APIs and third-party packages
 Clip & Ship heavily relies on outside tech to function. The APIs used are
@@ -114,7 +123,7 @@ To build everything as a script change directory to `src` and run `python3 clipn
 
 To build everything into one folder use the `clip&ship_folder.spec` file. First you must change the second value in the `pathex` array to the absolute path of the `src` directory of the repo, and the first value of the first tuple in the `datas` array to the location of the `eel.js` file (which is probably in your python `site-packages` directory), Run `pyinstaller clip&ship_folder.spec` in the src directory. 
 
-To build everything into an executable with a console (just the `clipnship.exe` file), repeat the same steps above but with the `clip&ship_console.spec` file.
+To build everything into an executable with a console (just the `clipnship` executable file), repeat the same steps above but with the `clip&ship_console.spec` file.
 
 To build everything into an app, repeat the same steps above but with the `clip&ship_app.spec` file. You will also need to uncomment and comment some lines of code regarding file paths. 
 The changes are described on:
