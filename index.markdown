@@ -23,12 +23,12 @@ With Clip & Ship you can:
 - Create/Edit/Remove categories based on a streamers Twitch/BTTV/FFZ/other emotes.
   (ex: a "funny" category might include emotes like ![LULW](https://cdn.frankerfacez.com/emoticon/139407/1), 
   ![OMEGALUL](https://cdn.frankerfacez.com/emoticon/128054/1), 
-  ![peepoGiggles](https://cdn.betterttv.net/emote/5e0bcf69031ec77bab473476/1x), etc).
+  ![peepoGiggle](https://cdn.betterttv.net/emote/5e0bcf69031ec77bab473476/1x), etc).
 - Process a streamer's VOD to find the best moments for each category.
-- View processed moments in the app VOD player and see detailed statistics on emote usage during the moment.
-- Download any of the moments found during processing.
+- View processed moments in the app VOD player and see detailed statistics on emote usage during each moment.
+- Download moments found during processing.
 - Download other moments by specifying the start & end time.
-- Download the whole VOD.
+- Download an entire VOD.
 - Export the list of processed moments to a CSV file.
 
 ## Install
@@ -40,9 +40,9 @@ These bundles are available to download at this [link][1]. The `app.zip` file is
 You will also need [ffmpeg][4] in order to download clips/vods. Each bundle comes with an `ffmpeg` executable, but if you want to download it from the source click [here][3]
 
 If downloading it, make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the ***same*** folder as the Clip & Ship app/executable.
-You will also need to give permission to your `ffmpeg` executable to be run since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in corresponding the prompt.
+You will also need to give permission to your `ffmpeg` executable to be run since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in the corresponding prompt.
 
-For local development, install `ffmpeg` with [Homebrew][2]
+For local development, install `ffmpeg` with [Homebrew][2] and refer to the "Local Development" section below for additional info.
 
 [1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
 [2]:https://brew.sh/
@@ -82,6 +82,12 @@ or doing anything other than what's listed above.
 
 ## Tradeoffs
 
+### Everything's Local
+Servers and cloud storage are expensive, and I decided to develop this project
+free of charge. So, how fast Clip & Ship runs is entirely up to your machine and 
+as you will fill up your storage as process videos and download clips.  
+But that Clip & Ship is running locally is why it is free and open source.
+
 ### Not a Website
 As mentioned previously, Clip & Ship was built as a standalone app because
 of the lack of funds to properly build and maintain a website. Downloading anything
@@ -93,12 +99,6 @@ Unlike a website or other standalone desktop applications,
 Clip & Ship can't be run out of the box; Users must get 
 their own Twitch API credentials and download/install/give
 permission to ffmepg. 
-
-### Everything's Local
-Servers and cloud storage are expensive, and I decided to develop this project
-free of charge. So, how fast Clip & Ship runs is entirely up to your machine and 
-as you will fill up your storage as process videos and download clips.  
-But that Clip & Ship is running locally is why it is free and open source.
 
 ### Reliance on APIs and third-party packages
 Clip & Ship heavily relies on outside tech to function. The APIs used are
