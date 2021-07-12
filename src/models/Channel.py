@@ -13,6 +13,10 @@ class Channel(object):
     """Twitch channel, stores categories set by channel"""
     def __init__(self, channel_id: int, helix, clip_bot):
         self._id = channel_id
+        self._name = ""
+        self._path_name = ""
+        self._desc = ""
+        self._img = ""
         self._helix = helix
         self._categories = {}
         self._emotes = set()
@@ -23,20 +27,29 @@ class Channel(object):
         self._bttv_url = "https://api.betterttv.net/3/cached/users/twitch/"
         self._bttv_img_url = "https://cdn.betterttv.net/emote/"
         self._twitch_sub_url = "https://api.twitch.tv/helix/chat/emotes?broadcaster_id="
+        self._franker_face_z_url = "https://api.frankerfacez.com/v1/room/"
         self._clip_bot = clip_bot
+        self._is_setup = False
         valid_helix = False
         # reset helix if access token is invalid
+        num_retries = 0
         while not valid_helix:
+            if num_retries >= clip_bot.MAX_RETRIES:
+                print("Unable to connect to Twitch API. Quitting...")
+                break
             try:
                 if helix is not None:
                     self._name = helix.user(channel_id).display_name
                     self._path_name = f"data/channels/{self._id}"
                     self._desc = helix.user(channel_id).description
                     self._img = helix.user(channel_id).profile_image_url
-                    self._franker_face_z_url = "https://api.frankerfacez.com/v1/room/" + self._name.lower()
+                    self._franker_face_z_url += self._name.lower()
                     valid_helix = True
                 else:
                     print("Helix doesn't exist")
+                    num_retries += 1
+                    clip_bot.setup_config()
+                    self._helix = clip_bot.get_helix()
             except requests.exceptions.HTTPError as http_err:
                 status_code = http_err.response.status_code
                 if status_code == 401:
@@ -46,6 +59,8 @@ class Channel(object):
                     print("Finished")
                 else:
                     print("Other error received:", status_code)
+                num_retries += 1
+        self._is_setup = True
 
     # add emote to channel
     def add_emote(self, emote):
@@ -150,83 +165,106 @@ class Channel(object):
     def get_videos(self, videos=None, processing_check=False):
         data = []
         valid_helix = False
+        num_retries = 0
         while not valid_helix:
             if not videos:
-                try:
-                    for video in self._helix.user(self._name).videos():
-                        thumbnail = video.thumbnail_url
-                        if not thumbnail:
-                            thumbnail = "../video_image_placeholder.png"
-                        else:
-                            thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
-                        d = video.created_at
-                        date = datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
-                        to_zone = tz.tzlocal()
-                        date = date.astimezone(to_zone)
-                        date = date.strftime("%Y-%m-%d") 
-                        clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
-                        processing_videos = self._clip_bot._processing.get(self.get_id(), None)
-                        if processing_videos and (str(video.id) in processing_videos or int(video.id) in processing_videos):
-                            is_processing = True
-                        else:
-                            is_processing = False
-                        if processing_check == is_processing:
-                            data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
-                                         "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                         "channelId": self.get_id(), "processing": is_processing})
-                    valid_helix = True
-                except requests.exceptions.HTTPError as e:
-                    print(e.args)
-                    status_code = e.response.status_code
-                    if status_code == 401:
-                        print("Helix is out of date, refreshing.")
-                        self._helix = self._clip_bot.get_helix()
-                    else:
-                        return {"error": "An unexpected error occurred."}
-            else:
-                for video_id in videos:
+                if self._helix is not None:
+                    if num_retries >= self._clip_bot.MAX_RETRIES:
+                        print("Unable to connect to Twitch API. Quitting...")
+                        break
                     try:
-                        video = self._helix.video(video_id)
-                        thumbnail = video.thumbnail_url
-                        if not thumbnail:
-                            thumbnail = "../video_image_placeholder.png"
-                        else:
-                            thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
-                        d = video.created_at
-                        date = datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
-                        to_zone = tz.tzlocal()
-                        date = date.astimezone(to_zone)
-                        date = date.strftime("%Y-%m-%d") 
-                        clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
-                        processing_videos = self._clip_bot._processing.get(self.get_id(), None)
-                        if processing_videos and (int(video.id) in processing_videos or str(video.id) in processing_videos):
-                            is_processing = True
-                        else:
-                            is_processing = False
-                        if processing_check == is_processing:
-                            data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
-                                         "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
-                                         "channelId": self.get_id(), "processing": is_processing})
+                        for video in self._helix.user(self._name).videos():
+                            thumbnail = video.thumbnail_url
+                            if not thumbnail:
+                                thumbnail = "../video_image_placeholder.png"
+                            else:
+                                thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
+                            d = video.created_at
+                            date = datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
+                            to_zone = tz.tzlocal()
+                            date = date.astimezone(to_zone)
+                            date = date.strftime("%Y-%m-%d")
+                            clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
+                            processing_videos = self._clip_bot._processing.get(self.get_id(), None)
+                            if processing_videos and (str(video.id) in processing_videos or int(video.id) in processing_videos):
+                                is_processing = True
+                            else:
+                                is_processing = False
+                            if processing_check == is_processing:
+                                data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                             "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                             "channelId": self.get_id(), "processing": is_processing})
                         valid_helix = True
                     except requests.exceptions.HTTPError as e:
                         print(e.args)
                         status_code = e.response.status_code
-                        if status_code == 400:
-                            print("Video not found.")
-                            valid_helix = True
-                        elif status_code == 401:
+                        if status_code == 401:
                             print("Helix is out of date, refreshing.")
+                            self._clip_bot.refresh_token()
                             self._helix = self._clip_bot.get_helix()
+                            num_retries += 1
                         else:
                             return {"error": "An unexpected error occurred."}
+                else:
+                    self._clip_bot.setup_config()
+                    self._helix = self._clip_bot.get_helix()
+                    num_retries += 1
+            else:
+                if self._helix is not None:
+                    if num_retries >= self._clip_bot.MAX_RETRIES:
+                        print("Unable to connect to Twitch API. Quitting...")
+                        break
+                    for video_id in videos:
+                        try:
+                            video = self._helix.video(video_id)
+                            thumbnail = video.thumbnail_url
+                            if not thumbnail:
+                                thumbnail = "../video_image_placeholder.png"
+                            else:
+                                thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
+                            d = video.created_at
+                            date = datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
+                            to_zone = tz.tzlocal()
+                            date = date.astimezone(to_zone)
+                            date = date.strftime("%Y-%m-%d")
+                            clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
+                            processing_videos = self._clip_bot._processing.get(self.get_id(), None)
+                            if processing_videos and (int(video.id) in processing_videos or str(video.id) in processing_videos):
+                                is_processing = True
+                            else:
+                                is_processing = False
+                            if processing_check == is_processing:
+                                data.append({"id": video.id, "title": video.title, "date": date, "desc": video.description,
+                                             "thumbnail": thumbnail, "url": video.url, "clipped": clipped,
+                                             "channelId": self.get_id(), "processing": is_processing})
+                            valid_helix = True
+                        except requests.exceptions.HTTPError as e:
+                            print(e.args)
+                            status_code = e.response.status_code
+                            if status_code == 400:
+                                print("Video not found.")
+                                valid_helix = True
+                            elif status_code == 401:
+                                print("Helix is out of date, refreshing.")
+                                self._clip_bot.refresh_token()
+                                self._helix = self._clip_bot.get_helix()
+                                num_retries += 1
+                            else:
+                                return {"error": "An unexpected error occurred."}
+                else:
+                    self._clip_bot.setup_config()
+                    self._helix = self._clip_bot.get_helix()
+                    num_retries += 1
         return data
 
     # Grab Twitch SUb, BTTV, FrankerFaceZ emotes and add to channel object
     def populate_emotes(self):
-        bttv_success = False
-        twitch_success = False
-        ffz_success = False
+        bttv_success, twitch_success, ffz_success = False, False, False
+        bttv_retries, twitch_retries, ffz_retries = 0, 0, 0
         while not bttv_success:
+            if bttv_retries >= self._clip_bot.MAX_RETRIES:
+                print("Unable to connect to BTTV API. Quitting...")
+                break
             try:
                 get_bttv_emotes_request = requests.get(self._bttv_url + str(self._id), timeout=1)
                 if get_bttv_emotes_request.status_code == requests.codes.ok:
@@ -237,15 +275,19 @@ class Channel(object):
                             self._bttv_emotes.append({"name": bttv_emote["code"],
                                                       "imageUrl": self._bttv_img_url + bttv_emote["id"] + "/1x"})
                             self._name_to_emotes_map[bttv_emote["code"].lower()] = bttv_emote["code"]
-
+                    bttv_success = True
                 else:
                     print("Unable to complete get request for BTTV Emotes")
                     print("Error code:", get_bttv_emotes_request.status_code)
-                bttv_success = True
+                    bttv_retries += 1
             except requests.exceptions.Timeout as e:
                 print("BTTV Request timed out")
                 print(e.args)
+                bttv_retries += 1
         while not twitch_success:
+            if twitch_retries >= self._clip_bot.MAX_RETRIES:
+                print("Unable to connect to Twitch Emote API. Quitting...")
+                break
             try:
                 headers = {"Authorization": f"Bearer {self._clip_bot._access_token}",
                            "Client-Id": self._clip_bot._client_id}
@@ -258,14 +300,19 @@ class Channel(object):
                             self._twitch_emotes.append({"name": twitch_sub_emote["name"],
                                                         "imageUrl": twitch_sub_emote["images"]["url_1x"]})
                             self._name_to_emotes_map[twitch_sub_emote["name"].lower()] = twitch_sub_emote["name"]
+                    twitch_success = True
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
                     print("Error code:", get_twitch_sub_emotes.status_code)
-                twitch_success = True
+                    twitch_retries += 1
             except requests.exceptions.Timeout as e:
                 print("Twitch Sub Emotes Request timed out")
                 print(e.args)
+                twitch_retries += 1
         while not ffz_success:
+            if ffz_retries >= self._clip_bot.MAX_RETRIES:
+                print("Unable to connect to FFZ API. Quitting...")
+                break
             try:
                 get_franker_face_z_emotes = requests.get(self._franker_face_z_url, timeout=1)
                 if get_franker_face_z_emotes.status_code == requests.codes.ok:
@@ -275,10 +322,12 @@ class Channel(object):
                         self._ffz_emotes.append({"name": franker_face_z_emote["name"],
                                                  "imageUrl": franker_face_z_emote["urls"]["1"]})
                         self._name_to_emotes_map[franker_face_z_emote["name"].lower()] = franker_face_z_emote["name"]
+                    ffz_success = True
                 else:
                     print("Unable to complete get request for FrankerFaceZ Emotes")
                     print("Error code:", get_franker_face_z_emotes.status_code)
-                ffz_success = True
+                    ffz_retries += 1
             except requests.exceptions.Timeout as e:
                 print("FFZ Emotes Request timed out")
                 print(e.args)
+                ffz_retries += 1
