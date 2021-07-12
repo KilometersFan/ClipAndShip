@@ -90,8 +90,8 @@ and/or chats that don't use emotes will not get accurate results.
 ### Everything's Local
 Servers and cloud storage are expensive, and I decided to develop this project
 free of charge. So, how fast Clip & Ship runs is entirely up to your machine and 
-as you will fill up your storage as process videos and download clips.  
-But that Clip & Ship is running locally is why it is free and open source.
+as you will fill up your storage as process videos and download clips. But that 
+Clip & Ship is running locally is why it is free and open source.
 
 ### Not a Website
 As mentioned previously, Clip & Ship was built as a standalone app because
