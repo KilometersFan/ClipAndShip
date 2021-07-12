@@ -44,7 +44,7 @@ plugins:
 
 author:
   name     : "Miles Phan"
-  bio      : "Incoming Software Engineer @ Amazon, USC undergrad '21 in CECS, loves playing CIV VI"
+  bio      : "Software Engineer, USC undergrad '21 in CECS, loves playing CIV VI."
   location : "Seattle WA, USA"
   avatar: "assets/images/portrait.jpg"
   links:
