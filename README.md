@@ -82,6 +82,11 @@ or doing anything other than what's listed above.
 
 ## Tradeoffs
 
+### Chat Based Algorithm
+To detect moments during a broadcast, Clip & Ship analyzes the chat for higher than
+average comment rate and emote usage. VODs that have nonactive chats
+and/or chats that don't use emotes will not get accurate results.
+
 ### Everything's Local
 Servers and cloud storage are expensive, and I decided to develop this project
 free of charge. So, how fast Clip & Ship runs is entirely up to your machine and 
@@ -144,11 +149,6 @@ Clip & Ship.
 ### Downloading a Clip
 <img width="1242" alt="Screen Shot 2021-06-22 at 7 54 30 PM" src="https://user-images.githubusercontent.com/35278719/123028057-a9f52280-d393-11eb-8776-7c86c973449c.png">
 
-
-## Questions & Concerns (Updated as needed)
-
-1. **Why do I have to download an .exe or .dmg? Why does my machine have to do the processing? Why not host a website?** Answer: Paying for storage of clips, vods, etc is expensive and currently I don't have to funds to pay for those services so the next best thing was a standalone app. Of course, downloading anything from the internet can be dangerous, especially an executable. For transparency's sake, Clip & Ship is publically available on GitHub.
-2. **I'm a developer and I want to contribute, how can I help?** Answer: Even though I am the author of Clip & Ship, I am open to new ideas and outside contributions. Feel free to fork the repo and create pull request with any new feature/improvement and I'll take a look. If you are a skilled front-end dev with experience in React + Electron, I will be very open to working with you to redo the UI.
 
 ## Bug Reports & Contributions
 
