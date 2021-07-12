@@ -94,6 +94,13 @@ of the lack of funds to properly build and maintain a website. Downloading anyth
 from the internet can be dangerous, which is why the source code is available and 
 the app can be verified independently by other programmers and cybersecurity experts.
 
+### WIP Codebase
+Clip & Ship was started early on in my programming career when I was experimenting with new
+technologies and methodologies. Even though I spent the summer of 2021 refactoring and cleaning up
+a lot of the code, there is still much I would like to improve (mostly the front end). As such,
+there may be some workflows or functions that are messy or can be improved on. If you see any,
+feel free to make a new issue and/or make a pull request with a fix!
+
 ### More Initial Setup
 Unlike a website or other standalone desktop applications, 
 Clip & Ship can't be run out of the box; Users must get 
