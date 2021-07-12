@@ -82,6 +82,11 @@ or doing anything other than what's listed above.
 
 ## Tradeoffs
 
+### Chat Based Algorithm
+To detect moments during a broadcast, Clip & Ship analyzes the chat for higher than
+average comment rate and emote usage. VODs that have nonactive chats
+and/or chats that don't use emotes will not get accurate results.
+
 ### Everything's Local
 Servers and cloud storage are expensive, and I decided to develop this project
 free of charge. So, how fast Clip & Ship runs is entirely up to your machine and 
