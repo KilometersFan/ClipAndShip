@@ -8,6 +8,7 @@ let filteredResults;
 let currentTimeStamp;
 let dirChoice = 1;
 let sortChoice = "start";
+let player;
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })
@@ -27,8 +28,13 @@ $(document).ready(function () {
                     $("#channelVideoTitle").text(`Video ID: ${videoId}`);
                     $("#channelBtn").prop("href", `channel.html?id=${channelId}`);
                     $("#videoBtn").prop("href", `video.html?id=${channelId}`);
-                    $("#vod").attr("src", `https://player.twitch.tv/?video=${video}&parent=localhost&time=0h0m0s&autoplay=false`);
-                    $("#vod").attr("width", $("#currentCategory").width())
+                    let options = {
+                        width: "100%",
+                        height: 650,
+                        video: `${videoId}`,
+                        autoplay: false,
+                    };
+                    player = new Twitch.Player("player", options);
                     eel.get_channel(channel)(function (info) {
                         categories = info["categories"];
                         categories.forEach((category) => {
@@ -159,18 +165,12 @@ $("#prev").click(function () {
 });
 $("#playSelected").click(function () {
     if (!selectedRow) {
-        return
+        return;
     }
     currentTimeStamp = $(`#${selectedRow.attr("id")} td:nth-child(3)`).text();
-    let src = $("#vod").attr("src");
-    let timeIndex = src.indexOf("&time=");
-    if (timeIndex >= 0) {
-        src = `${src.substring(0, timeIndex)}&time=${currentTimeStamp}&autoplay=true`;
-    }
-    else {
-        src += `&time=${currentTimeStamp}&autoplay=true`;
-    }
-    $("#vod").attr("src", src);
+    console.log(currentTimeStamp);
+    player.seek(parseSeconds(currentTimeStamp, true));
+    player.play()
 });
 $("#downloadVod").click(function (){
     $("#downloadErr").text("");
@@ -203,8 +203,19 @@ $("#downloadOther").click(function () {
         $("#downloadErr").text("Start and End times must both be specified");
     }
 });
-function parseSeconds(timestamp) {
-    const parts = timestamp.split(":");
+function parseSeconds(timestamp, isTwitchFormat=false) {
+    let parts = [];
+    if (!isTwitchFormat) {
+        parts = timestamp.split(":");
+    }
+    else {
+        let hoursIndex = timestamp.indexOf("h");
+        let minutesIndex = timestamp.indexOf("m");
+        let secondsIndex = timestamp.indexOf("s");
+        parts.push(parseInt(timestamp.substring(0, hoursIndex)))
+        parts.push(parseInt(timestamp.substring(hoursIndex + 1, minutesIndex)))
+        parts.push(parseInt(timestamp.substring(minutesIndex + 1, secondsIndex)))
+    }
     if (parts.length !== 3) {
         return -1;
     }
@@ -223,7 +234,7 @@ function createTimestamp(seconds) {
     let hours = (seconds/3600>>0);
     let min = ((seconds/60) % 60 >>0)
     let sec = seconds % 60;
-    timeStamp = `${hours}h${min}m${sec}s`;
+    let timeStamp = `${hours}h${min}m${sec}s`;
     return timeStamp
 }
 

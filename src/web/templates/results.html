@@ -5,6 +5,9 @@
         white-space: pre
     }
 </style>
+{% block head_scripts %}
+<script src="https://embed.twitch.tv/embed/v1.js"></script>
+{% endblock %}
 {% block content %}
 <h2 id="channelVideoTitle"></h2>
 <div class="row" id="notifications"></div>
@@ -19,15 +22,7 @@
             <a class="btn btn-primary mr-2" id="channelBtn">Channel Page <span class="sr-only">(current)</span></a>
             <a class="btn btn-primary" id="videoBtn">Channel Videos</a>
         </div>
-        <iframe id="vod"
-                height="700"
-                frameborder="0"
-                scrolling="no"
-                allowfullscreen="true"
-                class="mx-auto d-block"
-                style="width: 100%"
-        >
-        </iframe>
+        <div id="player"></div>
         <div class="d-flex flex-row justify-content-center">
             <form class="mx-auto">
                 <div class="btn-group" role="group" aria-label="Video Control">
