@@ -32,7 +32,7 @@ With Clip & Ship you can:
 - Upsample the data to even out category weights if imbalance occurs with the data_exporter.py file.
 
 ## Install
-Clip & Ship currently is supported on Mac OS and can be downloaded as an app, as an executable with a console, and as a folder with an executable.
+Clip & Ship currently is supported on macOS and can be downloaded as an app, as an executable with a console, and as a folder with an executable.
 The sizes for each bundle are 493.5 MB, 443.7 MB, and 169.8 MB respectively.
 
 These bundles are available to download at this [link][1]. The `app.zip` file is the preferred method of install.
