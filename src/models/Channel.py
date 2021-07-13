@@ -40,7 +40,7 @@ class Channel(object):
             try:
                 if helix is not None:
                     self._name = helix.user(channel_id).display_name
-                    self._path_name = f"data/channels/{self._id}"
+                    self._path_name = f"data\\channels\\{self._id}"
                     self._desc = helix.user(channel_id).description
                     self._img = helix.user(channel_id).profile_image_url
                     self._franker_face_z_url += self._name.lower()
@@ -176,7 +176,7 @@ class Channel(object):
                         for video in self._helix.user(self._name).videos():
                             thumbnail = video.thumbnail_url
                             if not thumbnail:
-                                thumbnail = "../video_image_placeholder.png"
+                                thumbnail = "..\\video_image_placeholder.png"
                             else:
                                 thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
                             d = video.created_at
@@ -184,7 +184,7 @@ class Channel(object):
                             to_zone = tz.tzlocal()
                             date = date.astimezone(to_zone)
                             date = date.strftime("%Y-%m-%d")
-                            clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
+                            clipped = os.path.exists(resource_path(f"{self._path_name}\\{video.id}"))
                             processing_videos = self._clip_bot._processing.get(self.get_id(), None)
                             if processing_videos and (str(video.id) in processing_videos or int(video.id) in processing_videos):
                                 is_processing = True
@@ -219,7 +219,7 @@ class Channel(object):
                             video = self._helix.video(video_id)
                             thumbnail = video.thumbnail_url
                             if not thumbnail:
-                                thumbnail = "../video_image_placeholder.png"
+                                thumbnail = "..\\video_image_placeholder.png"
                             else:
                                 thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
                             d = video.created_at
@@ -227,7 +227,7 @@ class Channel(object):
                             to_zone = tz.tzlocal()
                             date = date.astimezone(to_zone)
                             date = date.strftime("%Y-%m-%d")
-                            clipped = os.path.exists(resource_path(f"{self._path_name}/{video.id}"))
+                            clipped = os.path.exists(resource_path(f"{self._path_name}\\{video.id}"))
                             processing_videos = self._clip_bot._processing.get(self.get_id(), None)
                             if processing_videos and (int(video.id) in processing_videos or str(video.id) in processing_videos):
                                 is_processing = True
