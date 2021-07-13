@@ -133,8 +133,8 @@ class ClipBot:
     def remove_channel(self, channel_id):
         if self._channels.get(channel_id, None):
             del self._channels[channel_id]
-            if os.path.exists(resource_path(f"data\\channels\\{channel_id}")):
-                shutil.rmtree(resource_path(f"data\\channels\\{channel_id}"))
+            if os.path.exists(resource_path(f"data/channels/{channel_id}")):
+                shutil.rmtree(resource_path(f"data/channels/{channel_id}"))
         else:
             print("Channel doesn't exist.")
             raise Exception("Channel doesn't exist.")

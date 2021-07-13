@@ -24,21 +24,19 @@ notification = False
 def resource_path(relative_path, is_download=False):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     # if running as script, uncomment this if-else block and comment the ones below
-    # if getattr(sys, 'frozen', False):
-    #     print("FIrst path")
-    #     base_path = os.path.dirname(sys.executable)
-    # elif __file__:
-    #     print("second path")
-    #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    elif __file__:
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     # if building the app.spec, uncomment this if-else block and comment the other blocks
-    if not is_download:
-        base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
-    else:
-        base_path = sys._MEIPASS
+    # if not is_download:
+    #     base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
+    # else:
+    #     base_path = sys._MEIPASS
     # if building as folder.spec or console.spec uncomment this if-else block and comment the previous one
     # if is_download:
     #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+    return os.path.normpath(os.path.join(base_path, relative_path))
 
 
 """
@@ -236,8 +234,8 @@ def delete_category(channel_id, names):
 
 @eel.expose
 def get_recommended_emotes(channel_id, category_type, is_list=False):
-    if os.path.exists(resource_path(f"data\\channels\\{channel_id}\\recommendation_data.json")):
-        with open(resource_path(f"data\\channels\\{channel_id}\\recommendation_data.json")) as ifile:
+    if os.path.exists(resource_path(f"data/channels/{channel_id}/recommendation_data.json")):
+        with open(resource_path(f"data/channels/{channel_id}/recommendation_data.json")) as ifile:
             channel = get_channel(channel_id, False)
             category = category_type if is_list else channel.get_category(category_type)
             chain = json.load(ifile)
@@ -316,8 +314,8 @@ def get_user_videos(channel_id=None):
     global bot
     if channel_id:
         try:
-            if os.path.exists(resource_path(f"data\\channels\\{channel_id}")):
-                video_ids = [int(f.name) for f in os.scandir(resource_path(f"data\\channels\\{channel_id}")) if f.is_dir()
+            if os.path.exists(resource_path(f"data/channels/{channel_id}")):
+                video_ids = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}")) if f.is_dir()
                              and (not bot._processing or channel_id in bot._processing
                                   and int(f.name) not in bot._processing.get(channel_id))]
                 return video_ids
@@ -329,11 +327,11 @@ def get_user_videos(channel_id=None):
             return []
     else:
         try:
-            if os.path.exists(resource_path("data\\channels\\")):
-                channel_ids = [f.name for f in os.scandir(resource_path("data\\channels\\")) if f.is_dir()]
+            if os.path.exists(resource_path("data/channels/")):
+                channel_ids = [f.name for f in os.scandir(resource_path("data/channels/")) if f.is_dir()]
                 response = {}
                 for channel_id in channel_ids:
-                    response[channel_id] = [int(f.name) for f in os.scandir(resource_path(f"data\\channels\\{channel_id}"))
+                    response[channel_id] = [int(f.name) for f in os.scandir(resource_path(f"data/channels/{channel_id}"))
                                             if f.is_dir()]
                 return response
             else:
@@ -354,8 +352,8 @@ def get_processing_videos():
 def remove_video(channel_id, video_id):
     video_id.strip()
     try:
-        if os.path.exists(resource_path(f"data\\channels\\{channel_id}\\{video_id}")):
-            shutil.rmtree(resource_path(f"data\\channels\\{channel_id}\\{video_id}"))
+        if os.path.exists(resource_path(f"data/channels/{channel_id}/{video_id}")):
+            shutil.rmtree(resource_path(f"data/channels/{channel_id}/{video_id}"))
             return {"success": "Video was successfully deleted"}
         else:
             print("Video file not found")
@@ -408,13 +406,13 @@ def get_video_results(channel_id, video_id):
         return {"error": "Unable to process request"}
     global bot
     channel = bot.get_channel(channel_id, False)
-    if not os.path.exists(resource_path(f"{channel._path_name}\\{video_id}")):
+    if not os.path.exists(resource_path(f"{channel._path_name}/{video_id}")):
         return {"error": "Video was not processed"}
     results = {}
     for category in channel.get_categories():
         try:
-            if os.path.exists(resource_path(f"{channel._path_name}\\{video_id}\\data.json")):
-                with open(resource_path(f"{channel._path_name}\\{video_id}\\data.json")) as ifile:
+            if os.path.exists(resource_path(f"{channel._path_name}/{video_id}/data.json")):
+                with open(resource_path(f"{channel._path_name}/{video_id}/data.json")) as ifile:
                     results = json.load(ifile)
             else:
                 results[category.get_type()] = {}
@@ -422,12 +420,12 @@ def get_video_results(channel_id, video_id):
             print(exception.args)
             print("Exception!")
             return {"error": "Unable to read file"}
-    if os.path.exists(resource_path(f"clips\\{channel_id}\\{video_id}\\")):
+    if os.path.exists(resource_path(f"clips/{channel_id}/{video_id}/")):
         downloaded_video_clips = []
         for category in channel.get_categories():
-            if os.path.exists(resource_path(f"clips\\{channel_id}\\{video_id}\\{category.get_type()}\\")):
+            if os.path.exists(resource_path(f"clips/{channel_id}/{video_id}/{category.get_type()}/")):
                 clip_names = [f.name.split(".")[0] for f in
-                              os.scandir(resource_path(f"clips\\{channel_id}\\{video_id}\\{category.get_type()}\\"))
+                              os.scandir(resource_path(f"clips/{channel_id}/{video_id}/{category.get_type()}/"))
                               if not f.is_dir()]
                 for name in clip_names:
                     start, end = name.split("_")
@@ -435,7 +433,7 @@ def get_video_results(channel_id, video_id):
         results["downloaded"] = downloaded_video_clips
     else:
         results["downloaded"] = []
-    results["downloadedVOD"] = os.path.exists(resource_path(f"vods\\{video_id}.mp4"))
+    results["downloadedVOD"] = os.path.exists(resource_path(f"vods/{video_id}.mp4"))
     return results
 
 
@@ -460,7 +458,7 @@ def get_graph(graph_data):
 @eel.expose
 def csv_export(video_id, data):
     print(data)
-    with open(resource_path(f"\\web\\exported\\{video_id}_groups.csv"), "w") as ofile:
+    with open(resource_path(f"/web/exported/{video_id}_groups.csv"), "w") as ofile:
         for group in data:
             line = f"{group['start']},{group['end']},{group['length']},{group['similarities']}\n"
             print(line)
@@ -476,11 +474,11 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
             response["isVOD"] = True
         elif not category:
             response["isOther"] = True
-        cmd = ["python", resource_path("twitchdl\\console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
+        cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
         # if building using the app.spec uncomment this next line
-        cmd.extend(["--path", f"{os.path.join(os.path.dirname(sys.executable), '../../../')}"])
+        # cmd.extend(["--path", f"{os.path.normpath(os.path.join(os.path.dirname(sys.executable), '../../../'))}"])
         # if building using the console.spec or the folder.spec uncomment this next line
-        # cmd.extend(["--path", f"{os.path.dirname(sys.executable)}"])
+        # cmd.extend(["--path", f"{os.path.normpath(os.path.dirname(sys.executable))}"])
         if channel_id is not None:
             cmd.extend(["--channel", str(channel_id)])
         if start >= 0:
@@ -538,8 +536,8 @@ def download_vod(video_id):
 
 
 def get_preferred_mode():
-    # if eel.chrome.find_path():
-    #     return 'chrome'
+    if eel.chrome.find_path():
+        return 'chrome'
     if eel.edge.find_path():
         return 'edge'
 
@@ -550,7 +548,7 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     eel.init("web", allowed_extensions=[".js", ".html"])
     try:
-        eel.start("templates\\index.html", jinja_templates="templates", mode=get_preferred_mode())
+        eel.start("templates/index.html", jinja_templates="templates", mode=get_preferred_mode())
     except SystemExit as e:
         print(e.code, e.args)
         pass

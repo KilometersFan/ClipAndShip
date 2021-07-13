@@ -35,7 +35,6 @@ class Category(object):
 
     # reset emotes and add the ones in emotes param
     def set_emotes(self, emotes):
-        print("Set emotes!")
         self.clear_emotes()
         for emote in emotes:
             self.add_emote(emote)
