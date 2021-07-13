@@ -91,12 +91,17 @@ class Channel(object):
 
     # add category to channel
     def add_category(self, category, is_string=False, channel_id=None):
+        # A category is being added by the user trhough the UI
         if is_string:
             if category not in self._categories:
                 self._categories[category] = Category(category, channel_id)
+                old_channel_info = self._clip_bot.get_channel(self._id)
+                old_channel_info["categories"].append(category)
+                self._clip_bot.update_channel_info(self._id, old_channel_info)
             else:
                 print("Type {} already exists!".format(category))
                 raise Exception("Category type is a duplicate.")
+        # A category is being added during app initialization
         else:
             if category.get_type() not in self._categories:
                 self._categories[category.get_type()] = category
@@ -108,6 +113,12 @@ class Channel(object):
     def remove_category(self, name):
         if name in self._categories:
             del self._categories[name]
+            old_channel_info = self._clip_bot.get_channel(self._id)
+            try:
+                old_channel_info["categories"].remove(name)
+                self._clip_bot.update_channel_info(self._id, old_channel_info)
+            except ValueError:
+                print(f"{name} is not in channel info. Cannot remove.")
         else:
             print("Type {} does not exist!".format(name))
             raise Exception("Category type does not exist.")
