@@ -159,11 +159,11 @@ contributions.
 
 ## Local Development
 
-Install the required libraries listed in `requirements.txt`. 
+Install the required libraries listed in `requirements.txt` (virtual environment recommended). 
 
 To build everything as a script change directory to `src` and run `python3 clipnship.py`. To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if you processed at least one video for the specified channel.
 
-To build everything into one folder use the `clip&ship_folder.spec` file. First you must change the second value in the `pathex` array to the absolute path of the `src` directory of the repo, and the first value of the first tuple in the `datas` array to the location of the `eel.js` file (which is probably in your python `site-packages` directory), Run `pyinstaller clip&ship_folder.spec` in the src directory. 
+To build everything into one folder use the `clip&ship_folder.spec` file. I used a virtual environment called `cns`, and you will see that in the `pathex` array that there are several tuples with the first value referencing some package in `cns`. If you use a virtual environment, I'd recommend also naming it `cns` so you don't have to change anything. If you don't use one, or call yours something else, you will have to replace all the values that look at `cns` to wherever your packages are stored. When you are finished, run `pyinstaller clip&ship_folder.spec` in the src directory. 
 
 To build everything into an executable with a console (just the `clipnship` executable file), repeat the same steps above but with the `clip&ship_console.spec` file.
 

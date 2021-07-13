@@ -8,7 +8,7 @@ a = Analysis(['clipnship.py'],
              pathex=['../cns/lib/python3.8/site-packages', '/Users/milesphan/Projects/TwitchClipAnalyzer/src'],
              binaries=[],
              datas=[
-                ('/Users/milesphan/Projects/TwitchClipAnalyzer/cns/lib/python3.8/site-packages/eel/eel.js', 'eel'),
+                ('../cns/lib/python3.8/site-packages/eel/eel.js', 'eel'),
                 ('web', 'web'),
                 ('clips', 'clips'),
                 ('data', 'data'),
