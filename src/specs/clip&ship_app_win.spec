@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['clipnship.py'],
-             pathex=['C:\\Users\\milop\\Projects\\ClipAndShip\\src'],
+             pathex=['..\\src'],
              binaries=[],
              datas=[
                 ('..\\cns\\Lib\\site-packages\\eel\\eel.js', 'eel'),
@@ -42,7 +42,7 @@ exe = EXE(pyz,
           a.scripts,
           a.binaries,
           a.zipfiles,
-          a.datas,  
+          a.datas,
           [],
           name='clipnship',
           debug=False,

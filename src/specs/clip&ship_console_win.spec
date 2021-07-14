@@ -5,18 +5,18 @@ block_cipher = None
 
 
 a = Analysis(['clipnship.py'],
-             pathex=['../cns/lib/python3.8/site-packages', '/Users/milesphan/Projects/TwitchClipAnalyzer/src'],
+             pathex=['..\\cns\\Lib\\site-packages\\', '..\\src'],
              binaries=[],
              datas=[
-                ('../cns/lib/python3.8/site-packages/eel/eel.js', 'eel'),
+                ('..\\cns\\Lib\\site-packages\\eel\\eel.js', 'eel'),
                 ('web', 'web'),
-                ('models/*', 'models/'),
-                ('twitchdl/*', 'twitchdl/'),
+                ('models\\*', 'models\\'),
+                ('twitchdl\\*', 'twitchdl\\'),
                 ('__init__.py', '__init__.py'),
                 ('config.ini', '.'),
                 ('channels.ini', '.'),
-                ('../cns/lib/python3.8/site-packages/kaleido', 'kaleido'),
-                ('../cns/lib/python3.8/site-packages/m3u8', 'm3u8')
+                ('..\\cns\\Lib\\site-packages\\kaleido', 'kaleido'),
+                ('..\\cns\\Lib\\site-packages\\m3u8', 'm3u8')
             ],
              hiddenimports=['bottle_websocket', 'wheel', 'twine', 'm3u8'],
              hookspath=['hooks'],
@@ -41,4 +41,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True , icon='web/logo.png')
+          console=True , icon='web\\favicon.ico')
