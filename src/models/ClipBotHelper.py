@@ -72,10 +72,10 @@ class ClipBotHelper(object):
         print(f"Finished preprocessing of comments at {datetime.now()}. Took {end - start} seconds")
         print(f"Total comments in processed comments: {total_comments}")
         # load markov chain or make one
-        if not os.path.exists(self._path_name):
-            os.makedirs(self._path_name)
-        if os.path.exists(f"{self._path_name}/recommendation_data.json"):
-            with open(f"{self._path_name}/recommendation_data.json", "r") as ifile:
+        if not os.path.exists(os.path.normpath(self._path_name)):
+            os.makedirs(os.path.normpath(self._path_name))
+        if os.path.exists(os.path.normpath(f"{self._path_name}/recommendation_data.json")):
+            with open(os.path.normpath(f"{self._path_name}/recommendation_data.json"), "r") as ifile:
                 chain = load(ifile)
         else:
             chain = {}
@@ -107,7 +107,7 @@ class ClipBotHelper(object):
                         else:
                             chain[prev_word][words[i]] += 2 if prev_word == words[i] else 1
             prev_words = words
-        with open(f"{self._path_name}/recommendation_data.json", "w") as ofile:
+        with open(os.path.normpath(f"{self._path_name}/recommendation_data.json"), "w") as ofile:
             dump(chain, ofile, separators=(",", ":"), indent=4)
         return processed_comments, rate
 
@@ -310,11 +310,11 @@ class ClipBotHelper(object):
                 # save group data to json file
                 if not os.path.exists(self._path_name):
                     os.makedirs(self._path_name)
-                if not os.path.exists(f"{self._path_name}/{video_id}"):
-                    os.makedirs(f"{self._path_name}/{video_id}")
-                with open(f"{self._path_name}/{video_id}/data.json", "w+") as ofile:
+                if not os.path.exists(os.path.normpath(f"{self._path_name}/{video_id}")):
+                    os.makedirs(os.path.normpath(f"{self._path_name}/{video_id}"))
+                with open(os.path.normpath(f"{self._path_name}/{video_id}/data.json"), "w+") as ofile:
                     dump(data, ofile, separators=(",", ":"), indent=4)
-                with open(f"{self._path_name}/{video_id}/data.csv", "w+") as ofile:
+                with open(os.path.normpath(f"{self._path_name}/{video_id}/data.csv"), "w+") as ofile:
                     ofile.write(f"text,{','.join(categories)}\n")
                     for group in filtered_groups:
                         labels = []

@@ -187,7 +187,7 @@ class Channel(object):
                         for video in self._helix.user(self._name).videos():
                             thumbnail = video.thumbnail_url
                             if not thumbnail:
-                                thumbnail = "../video_image_placeholder.png"
+                                thumbnail = os.path.normpath("../video_image_placeholder.png")
                             else:
                                 thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
                             d = video.created_at
@@ -230,7 +230,7 @@ class Channel(object):
                             video = self._helix.video(video_id)
                             thumbnail = video.thumbnail_url
                             if not thumbnail:
-                                thumbnail = "../video_image_placeholder.png"
+                                thumbnail = os.path.normpath("../video_image_placeholder.png")
                             else:
                                 thumbnail = re.sub(r"%{.*?}", "300", thumbnail)
                             d = video.created_at

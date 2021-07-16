@@ -14,4 +14,4 @@ def resource_path(relative_path, config_related=False):
         base_path = os.path.join(base_path, "..")
     # if building as app.spec, uncomment these next lines
     # base_path = os.path.join(os.path.dirname(sys.executable), "../../../")
-    return os.path.join(base_path, relative_path)
+    return os.path.normpath(os.path.join(base_path, relative_path))

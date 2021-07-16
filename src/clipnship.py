@@ -25,10 +25,8 @@ def resource_path(relative_path, is_download=False):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     # if running as script, uncomment this if-else block and comment the ones below
     if getattr(sys, 'frozen', False):
-        print("FIrst path")
         base_path = os.path.dirname(sys.executable)
     elif __file__:
-        print("second path")
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     # if building the app.spec, uncomment this if-else block and comment the other blocks
     # if not is_download:
@@ -38,7 +36,7 @@ def resource_path(relative_path, is_download=False):
     # if building as folder.spec or console.spec uncomment this if-else block and comment the previous one
     # if is_download:
     #     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+    return os.path.normpath(os.path.join(base_path, relative_path))
 
 
 """
@@ -72,7 +70,7 @@ def check_credentials():
     if cfg:
         if cfg.has_section("settings"):
             if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
-                return {"status": 200}
+                return {"status": 200, "msg" : f"Path for config: {resource_path('config.ini')}"}
         else:
             return {"status": 400}
     else:
@@ -476,11 +474,11 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
             response["isVOD"] = True
         elif not category:
             response["isOther"] = True
-        cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
+        cmd = ["python", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
         # if building using the app.spec uncomment this next line
-        # cmd.extend(["--path", f"{os.path.join(os.path.dirname(sys.executable), '../../../')}"])
+        # cmd.extend(["--path", f"{os.path.normpath(os.path.join(os.path.dirname(sys.executable), '../../../'))}"])
         # if building using the console.spec or the folder.spec uncomment this next line
-        # cmd.extend(["--path", f"{os.path.dirname(sys.executable)}"])
+        # cmd.extend(["--path", f"{os.path.normpath(os.path.dirname(sys.executable))}"])
         if channel_id is not None:
             cmd.extend(["--channel", str(channel_id)])
         if start >= 0:
@@ -538,8 +536,8 @@ def download_vod(video_id):
 
 
 def get_preferred_mode():
-    if eel.chrome.find_path():
-        return 'chrome'
+    # if eel.chrome.find_path():
+    #     return 'chrome'
     if eel.edge.find_path():
         return 'edge'
 

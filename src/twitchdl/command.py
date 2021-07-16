@@ -32,7 +32,7 @@ def resource_path(relative_path, file_path):
         print(f"FILE PATH SET: {file_path}")
         base_path = file_path
 
-    return path.join(base_path, relative_path)
+    return path.normpath(path.join(base_path, relative_path))
 
 
 def _parse_playlists(playlists_m3u8):
@@ -57,7 +57,7 @@ def _join_vods(playlist_path, target, overwrite, file_path):
         # one after
         "ffmpeg",
         # if building with the spec files uncomment this line and comment the previous line
-        # resource_path("ffmpeg", file_path=file_path),
+        # resource_path("ffmpeg.exe", file_path=file_path),
         "-i", playlist_path,
         "-c", "copy",
         target,

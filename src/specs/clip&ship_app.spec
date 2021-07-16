@@ -5,21 +5,26 @@ block_cipher = None
 
 
 a = Analysis(['clipnship.py'],
-             pathex=['../cns/lib/python3.8/site-packages', '/Users/milesphan/Projects/TwitchClipAnalyzer/src'],
+             pathex=['../cns/lib/python3.8/site-packages', '../src'],
              binaries=[],
              datas=[
                 ('../cns/lib/python3.8/site-packages/eel/eel.js', 'eel'),
                 ('web', 'web'),
-                ('clips', 'clips'),
-                ('data', 'data'),
                 ('models/*', 'models/'),
                 ('twitchdl/*', 'twitchdl/'),
-                ('vods', 'vods'),
                 ('__init__.py', '__init__.py'),
                 ('config.ini', '.'),
                 ('channels.ini', '.'),
                 ('../cns/lib/python3.8/site-packages/kaleido', 'kaleido'),
-                ('../cns/lib/python3.8/site-packages/m3u8', 'm3u8')
+                ('../cns/lib/python3.8/site-packages/m3u8', 'm3u8'),
+                ('../cns/lib/python3.8/site-packages/m3u8', 'twitchdl/m3u8'),
+                ('../cns/lib/python3.8/site-packages/iso8601/', 'twitchdl/iso8601/'),
+                ('../cns/lib/python3.8/site-packages/requests/', 'twitchdl/requests/'),
+                ('../cns/lib/python3.8/site-packages/urllib3/', 'twitchdl/urllib3/'),
+                ('../cns/lib/python3.8/site-packages/chardet/', 'twitchdl/chardet/'),
+                ('../cns/lib/python3.8/site-packages/certifi/', 'twitchdl/certifi/'),
+                ('../cns/lib/python3.8/site-packages/idna/', 'twitchdl/idna/'),
+                ('../ffmpeg', 'twitchdl/ffmpeg'),
             ],
              hiddenimports=['bottle_websocket', 'wheel', 'twine', 'm3u8'],
              hookspath=['hooks'],
@@ -44,4 +49,8 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True , icon='web/logo.png')
+          console=False , icon='web/logo.png')
+app = BUNDLE(exe,
+             name='clipnship.app',
+             icon='web/logo.png',
+             bundle_identifier=None)
