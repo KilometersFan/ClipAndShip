@@ -50,9 +50,8 @@ If downloading it, make sure to download the zip file under the "FFmpeg" section
 
 If on macOS you then need to give permission to your `ffmpeg` executable before you can run it since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in the corresponding prompt.
 
-For local development, install `ffmpeg` with [Homebrew][2] if on macOS or follow the instructions 
-[here](https://video.stackexchange.com/questions/20495/how-do-i-set-up-and-use-ffmpeg-in-windows) or install it through [Chocolatey](https://chocolatey.org/) if on Windows.
-and refer to the "Local Development" section below for additional info.
+For local development, you need to install `ffmpeg` with [Homebrew][2] if on macOS or if on Windows, follow the instructions 
+[here](https://video.stackexchange.com/questions/20495/how-do-i-set-up-and-use-ffmpeg-in-windows) or install it through [Chocolatey](https://chocolatey.org/).
 
 [1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
 [2]:https://brew.sh/
