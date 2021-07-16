@@ -32,17 +32,27 @@ With Clip & Ship you can:
 - Upsample the data to even out category weights if imbalance occurs with the data_exporter.py file.
 
 ## Install
-Clip & Ship currently is supported on macOS and can be downloaded as an app, as an executable with a console, and as a folder with an executable.
+
+### Requirements
+1. Supported web browser. For macOS users, you need Google Chrome. Windows users need Microsoft Edge.
+    - These broswers are required because `python-eel`, the tool used to build the UI, only officially supports these browsers.
+2. [ffmpeg][4] a framework that, among other things, allows users to download video streams. 
+
+### Instructions
+Clip & Ship currently is supported on macOS and Windows and can be downloaded as an app (macOS only, see [Tradeoffs](#tradeoffs)), as an executable with a console, and as a folder with an executable.
 The sizes for each bundle are 493.5 MB, 443.7 MB, and 169.8 MB respectively.
 
-These bundles are available to download at this [link][1]. The `app.zip` file is the preferred method of install.
+These bundles are available to download at this [link][1]. The `app.zip` file is the preferred method of install for macOS.
 
-You will also need [ffmpeg][4] in order to download clips/vods. Each bundle comes with an `ffmpeg` executable, but if you want to download it from the source click [here][3]
+You will also need [ffmpeg][4] in order to download clips/vods. Each bundle comes with an `ffmpeg` executable, but if you want to download it from the source click [here][3].
 
 If downloading it, make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the ***same*** folder as the Clip & Ship app/executable.
-You will also need to give permission to your `ffmpeg` executable to be run since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in the corresponding prompt.
 
-For local development, install `ffmpeg` with [Homebrew][2] and refer to the "Local Development" section below for additional info.
+If on macOS you then need to give permission to your `ffmpeg` executable before you can run it since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in the corresponding prompt.
+
+For local development, install `ffmpeg` with [Homebrew][2] if on macOS or follow the instructions 
+[here](https://video.stackexchange.com/questions/20495/how-do-i-set-up-and-use-ffmpeg-in-windows) or install it through [Chocolatey](https://chocolatey.org/) if on Windows.
+and refer to the "Local Development" section below for additional info.
 
 [1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
 [2]:https://brew.sh/
@@ -119,6 +129,10 @@ APIs change or fail, Clip & Ship may not work. Similarly, Clip & Ship uses
 the [twitch-python](https://github.com/PetterKraabol/Twitch-Python) package 
 to grab information about and videos of a channel. If that breaks, so does 
 Clip & Ship. 
+
+### Windows App Bug
+Currently, Clip & Ship **cannot** be run as an app on Windows due to a bug during the build process. A solution is ongoing
+but feel free to use Clip & Ship in the other two bundle types.
 
 ## Example
 ### Setup
