@@ -155,6 +155,9 @@ class ClipBot:
         else:
             return self._channels.get(channel_id, None)
 
+    def update_channel_info(self, channel_id, data):
+        self._channel_info[channel_id] = data
+
     # search twitch for channel
     def search_for_channel(self, channel_name):
         found = False
