@@ -29,7 +29,6 @@ def resource_path(relative_path, file_path):
         base_path = getattr(sys, '_MEIPASS', path.dirname(path.abspath(__file__)))
         base_path = path.join(base_path, "..")
     if file_path:
-        print(f"FILE PATH SET: {file_path}")
         base_path = file_path
 
     return path.normpath(path.join(base_path, relative_path))
@@ -55,9 +54,11 @@ def _join_vods(playlist_path, target, overwrite, file_path):
     command = [
         # for local development, if you installed ffmpeg with Homebrew, uncomment this next line and comment out the
         # one after
+        # if building on a Windows machine, replace "ffmpeg" with "ffmpeg.exe" or whatever
+        # your ffmpeg executable is called
         "ffmpeg",
         # if building with the spec files uncomment this line and comment the previous line
-        # resource_path("ffmpeg.exe", file_path=file_path),
+        # resource_path("ffmpeg", file_path=file_path),
         "-i", playlist_path,
         "-c", "copy",
         target,
@@ -74,7 +75,7 @@ def _join_vods(playlist_path, target, overwrite, file_path):
         raise exceptions.ConsoleError("Joining files failed")
 
 
-def _video_target_filename(video, channel_id, format, category, file_path, start=None, end=None):
+def _video_target_filename(video, channel_id, video_format, category, file_path, start=None, end=None):
     parts = []
     if start and end:
         parts.extend([str(start), str(end)])
@@ -89,17 +90,17 @@ def _video_target_filename(video, channel_id, format, category, file_path, start
         if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/", file_path=file_path)):
             makedirs(resource_path(f"clips/{channel_id}/{video['id']}/", file_path=file_path))
         if category is not None:
-            filepath = resource_path(f"clips/{channel_id}/{video['id']}/{category}/{name}.{format}", file_path=file_path)
+            filepath = resource_path(f"clips/{channel_id}/{video['id']}/{category}/{name}.{video_format}", file_path=file_path)
             if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/{category}/", file_path=file_path)):
                 makedirs(resource_path(f"clips/{channel_id}/{video['id']}/{category}/", file_path=file_path))
         else:
-            filepath = resource_path(f"clips/{channel_id}/{video['id']}/other_clips/{name}.{format}", file_path=file_path)
+            filepath = resource_path(f"clips/{channel_id}/{video['id']}/other_clips/{name}.{video_format}", file_path=file_path)
             if not path.exists(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/", file_path=file_path)):
                 makedirs(resource_path(f"clips/{channel_id}/{video['id']}/other_clips/", file_path=file_path))
     else:
         if not path.exists(resource_path("vods/", file_path=file_path)):
             makedirs(resource_path("vods/", file_path=file_path))
-        filepath = resource_path(f"vods/{name}.{format}", file_path=file_path)
+        filepath = resource_path(f"vods/{name}.{video_format}", file_path=file_path)
     return filepath
 
 

@@ -70,7 +70,7 @@ def check_credentials():
     if cfg:
         if cfg.has_section("settings"):
             if cfg.has_option("settings", "client_id") and cfg.has_option("settings", "secret"):
-                return {"status": 200, "msg" : f"Path for config: {resource_path('config.ini')}"}
+                return {"status": 200}
         else:
             return {"status": 400}
     else:
@@ -474,7 +474,8 @@ def invoke_twitchdl(video_id, channel_id=None, category=None, start=-1, end=0):
             response["isVOD"] = True
         elif not category:
             response["isOther"] = True
-        cmd = ["python", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
+        # if building as app you may use the explicit "python3" command
+        cmd = ["python3", resource_path("twitchdl/console.py", True), "download", video_id, "--overwrite", "--format", "mp4"]
         # if building using the app.spec uncomment this next line
         # cmd.extend(["--path", f"{os.path.normpath(os.path.join(os.path.dirname(sys.executable), '../../../'))}"])
         # if building using the console.spec or the folder.spec uncomment this next line
@@ -536,8 +537,8 @@ def download_vod(video_id):
 
 
 def get_preferred_mode():
-    # if eel.chrome.find_path():
-    #     return 'chrome'
+    if eel.chrome.find_path():
+        return 'chrome'
     if eel.edge.find_path():
         return 'edge'
 
