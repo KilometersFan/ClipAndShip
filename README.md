@@ -132,32 +132,35 @@ but feel free to use Clip & Ship in the other two bundle types (signified by the
 
 ## Example
 ### Setup
-<img width="1276" alt="Screen Shot 2021-06-22 at 7 39 17 PM" src="https://user-images.githubusercontent.com/35278719/123026749-89c46400-d391-11eb-90fe-6c6351768da6.png">
+<img width="1273" alt="Screen Shot 2021-07-18 at 3 02 56 PM" src="https://user-images.githubusercontent.com/35278719/126083421-0885c6ea-30c7-43a3-b5b4-53aab5d65344.png">
 
 ### Adding a Channel
-<img width="1277" alt="Screen Shot 2021-06-22 at 7 40 20 PM" src="https://user-images.githubusercontent.com/35278719/123026826-aeb8d700-d391-11eb-99ca-dead0b9656f3.png">
-
+<img width="1273" alt="Screen Shot 2021-07-18 at 3 03 27 PM" src="https://user-images.githubusercontent.com/35278719/126083434-93de4d48-a36b-4f94-b9d7-6d125699a689.png">
 
 ### Viewing the Channel Settings
-<img width="1257" alt="Screen Shot 2021-06-22 at 7 47 13 PM" src="https://user-images.githubusercontent.com/35278719/123027414-a614d080-d392-11eb-85ee-ce1d54a3ee7b.png">
+<img width="1273" alt="Screen Shot 2021-07-18 at 3 04 00 PM" src="https://user-images.githubusercontent.com/35278719/126083455-e7c8fd02-b8f4-4d54-a01b-26c110fba321.png">
 
 ### Adding a Category
-<img width="1279" alt="Screen Shot 2021-06-22 at 7 47 31 PM" src="https://user-images.githubusercontent.com/35278719/123027436-b167fc00-d392-11eb-8f50-50e0ff21bcfe.png">
+<img width="1274" alt="Screen Shot 2021-07-18 at 3 04 36 PM" src="https://user-images.githubusercontent.com/35278719/126083471-033ab71e-c684-4327-861d-4aa6a47aa94f.png">
+<img width="1274" alt="Screen Shot 2021-07-18 at 3 05 09 PM" src="https://user-images.githubusercontent.com/35278719/126083484-d3301050-aab2-40a9-b536-74d193ae80a5.png">
 
 ### Viewing a Channel's VODs
-<img width="1260" alt="Screen Shot 2021-06-22 at 7 48 06 PM" src="https://user-images.githubusercontent.com/35278719/123027489-c47acc00-d392-11eb-8c38-5faa6c96755a.png">
+<img width="1275" alt="Screen Shot 2021-07-18 at 3 05 38 PM" src="https://user-images.githubusercontent.com/35278719/126083508-2ec7154a-0a84-4490-af98-2f9b93ad6dee.png">
 
 ### Processing a VOD
-<img width="1273" alt="Screen Shot 2021-06-22 at 7 48 44 PM" src="https://user-images.githubusercontent.com/35278719/123027548-dc525000-d392-11eb-82e8-6aa998452ff3.png">
+<img width="1274" alt="Screen Shot 2021-07-18 at 3 06 21 PM" src="https://user-images.githubusercontent.com/35278719/126083537-de6520e9-3920-4fa7-928f-10f54b33b728.png">
+<img width="1276" alt="Screen Shot 2021-07-18 at 3 06 30 PM" src="https://user-images.githubusercontent.com/35278719/126083542-c53bb6bf-3826-4438-bd58-45ed6c9b6ab0.png">
 
 ### Finishing VOD Processing
-<img width="1277" alt="Screen Shot 2021-06-22 at 7 50 32 PM" src="https://user-images.githubusercontent.com/35278719/123027675-1ae80a80-d393-11eb-8bac-86419ec4e81e.png">
+<img width="1275" alt="Screen Shot 2021-07-18 at 3 08 54 PM" src="https://user-images.githubusercontent.com/35278719/126083600-988e2f58-5105-4f24-9ce5-e760420311b5.png">
 
 ### Viewing VOD Results
-<img width="1258" alt="Screen Shot 2021-06-22 at 7 53 22 PM" src="https://user-images.githubusercontent.com/35278719/123027980-829e5580-d393-11eb-9ad0-e4e3c29659ad.png">
+<img width="1274" alt="Screen Shot 2021-07-18 at 3 09 22 PM" src="https://user-images.githubusercontent.com/35278719/126083618-aedc8fb9-4dc2-4a1f-9cdd-940f36396c03.png">
+<img width="1274" alt="Screen Shot 2021-07-18 at 3 09 41 PM" src="https://user-images.githubusercontent.com/35278719/126083630-b60dbe31-7d9a-4727-8b4f-a600866a17dd.png">
 
 ### Downloading a Clip
-<img width="1242" alt="Screen Shot 2021-06-22 at 7 54 30 PM" src="https://user-images.githubusercontent.com/35278719/123028057-a9f52280-d393-11eb-8776-7c86c973449c.png">
+<img width="1272" alt="Screen Shot 2021-07-18 at 3 10 11 PM" src="https://user-images.githubusercontent.com/35278719/126083643-0a9114b0-efd9-418f-8558-7cd9648409dc.png">
+<img width="1261" alt="Screen Shot 2021-07-18 at 3 10 25 PM" src="https://user-images.githubusercontent.com/35278719/126083649-e268b749-8232-4ff3-b5f5-eb04116716f5.png">
 
 
 ## Bug Reports & Contributions
