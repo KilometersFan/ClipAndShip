@@ -344,7 +344,7 @@ healthchecksdb
 *.pyo
 .DS_Store
 src/*.ini
-cns/
+clipandship/
 src/config/
 src/config/*
 data/
