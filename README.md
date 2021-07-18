@@ -11,11 +11,6 @@ Clip & Ship is a standalone application that enables content creators and Twitch
 to quickly find specific types of moments during their broadcast by analyzing
 emote usage within a VOD. 
 
-## Who benefits from Clip & Ship?
-The intended users are content creators and video editors who want to streamline their workflow pipelines by quickly finding, viewing, and downloading specific types of clips within a broadcast. 
-
-Additionally, there are some features for data scientists who may want to analyze the emotes used in broadcasts. However, everyone is welcomed to use Clip & Ship.
-
 ## Features
 
 With Clip & Ship you can: 
@@ -39,19 +34,21 @@ With Clip & Ship you can:
 2. [ffmpeg][4] a framework that, among other things, allows users to download video streams. 
 
 ### Instructions
-Clip & Ship currently is supported on macOS and Windows and can be downloaded as an app (macOS only, see [Tradeoffs](#tradeoffs)), as an executable with a console, and as a folder with an executable.
-The sizes for each bundle are 493.5 MB, 443.7 MB, and 169.8 MB respectively.
+Clip & Ship currently is supported on both macOS and Windows but can be downloaded as an app on macOS only, (see [Tradeoffs](#tradeoffs) for more info).
+For both Windows and macOS, Clip & Ship can be installed as an executable with a console, and as a folder with an executable.
 
-These bundles are available to download at this [link][1]. The `app.zip` file is the preferred method of install for macOS.
+These bundles are available to download at this Google Drive [link][1]. The `app.zip` file is the preferred method of install for macOS.
 
-You will also need [ffmpeg][4] in order to download clips/vods. Each bundle comes with an `ffmpeg` executable, but if you want to download it from the source click [here][3].
+You will also need [ffmpeg][4] in order to download clips/vods. Each bundle comes with an `ffmpeg` executable, but if you want to download it from the source visit the `ffmpeg` downloads page [here][3].
 
-If downloading it, make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the ***same*** folder as the Clip & Ship app/executable.
+If downloading `ffmpeg`, make sure to download the zip file under the "FFmpeg" section. Extract the zip file and copy or move the `ffmpeg` executable in the ***same*** folder as the Clip & Ship app/executable.
 
-If on macOS you then need to give permission to your `ffmpeg` executable before you can run it since it's from the internet. This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in the corresponding prompt.
+If on macOS you then need to give permission to your `ffmpeg` executable before you can run it since it's from the internet. 
+This can be done via the terminal using `sudo chmod +x /path/to/Clip & Ship folder/ffmpeg` or by clicking the exe and giving permission in the corresponding prompt.
 
 For local development, you need to install `ffmpeg` with [Homebrew][2] if on macOS or if on Windows, follow the instructions 
-[here](https://video.stackexchange.com/questions/20495/how-do-i-set-up-and-use-ffmpeg-in-windows) or install it through [Chocolatey](https://chocolatey.org/).
+[here](https://video.stackexchange.com/questions/20495/how-do-i-set-up-and-use-ffmpeg-in-windows) or install it through 
+[Chocolatey](https://chocolatey.org/).
 
 [1]:https://drive.google.com/drive/folders/1ezPO_5EmMOlqLagOl5KOLWunkLthpnDH?usp=sharing
 [2]:https://brew.sh/
@@ -129,9 +126,9 @@ the [twitch-python](https://github.com/PetterKraabol/Twitch-Python) package
 to grab information about and videos of a channel. If that breaks, so does 
 Clip & Ship. 
 
-### Windows App Bug
+### No Windows App Support
 Currently, Clip & Ship **cannot** be run as an app on Windows due to a bug during the build process. A solution is ongoing
-but feel free to use Clip & Ship in the other two bundle types.
+but feel free to use Clip & Ship in the other two bundle types (signified by the `_win` suffix).
 
 ## Example
 ### Setup
@@ -171,12 +168,14 @@ Create new issues for bugs and fork the repo and create a pull request for
 contributions.
 
 ## Local Development
+NOTE: These instructions are written for macOS, so if you are building on Windows, substitute the `.spec`
+files mentioned below for the Windows versions, suffixed with `_win`.
 
 Install the required libraries listed in `requirements.txt` (virtual environment recommended). 
 
-To build everything as a script change directory to `src` and run `python3 clipnship.py`. To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if you processed at least one video for the specified channel.
+To build everything as a script change directory to `src` and run `python3 clipnship.py` (or just `python clipnship.py` if you only have Python 3 installed). To run the data_exporter program, run `python3 data_exporter.py` in the same directory. The upsampler will only work if you processed at least one video for the specified channel.
 
-To build everything into one folder use the `clip&ship_folder.spec` file. I used a virtual environment called `cns`, and you will see that in the `pathex` array that there are several tuples with the first value referencing some package in `cns`. If you use a virtual environment, I'd recommend also naming it `cns` so you don't have to change anything. If you don't use one, or call yours something else, you will have to replace all the values that look at `cns` to wherever your packages are stored. When you are finished, run `pyinstaller clip&ship_folder.spec` in the src directory. 
+To build everything into one folder use the `clip&ship_folder.spec` file. I used a virtual environment called `clipandship`, and you will see that in the `pathex` array that there are several tuples with the first value referencing some package in `clipandship`. If you use a virtual environment, I'd recommend also naming it `clipandship` so you don't have to change anything. If you don't use one, or call yours something else, you will have to replace all the values that look at `clipandship` to wherever your packages are stored. When you are finished, run `pyinstaller clip&ship_folder.spec` in the src directory. 
 
 To build everything into an executable with a console (just the `clipnship` executable file), repeat the same steps above but with the `clip&ship_console.spec` file.
 
