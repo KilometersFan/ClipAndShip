@@ -7,8 +7,8 @@ let globalTwitchEmotes;
 let globalBTTVEmotes;
 let userCategories = [];
 let globalData;
-function hasWhiteSpace(s) {
-    return /\s/g.test(s);
+function convertWhiteSpaceToUnderscores(s) {
+    return s.replace(/\s/g, "_");
 }
 function populateChannelInfo(data) {
     $("#channelImg").attr("src", data["imgUrl"]);
@@ -452,20 +452,28 @@ $(document).ready(function () {
             });
         }
     });
+    $("#clearCategoryFormBtn").click(function () {
+        const emoteSources = ["twitch", "bttv", "ff", "globalTwitch", "globalBTTV"];
+        emoteSources.forEach((source) => {
+            let emoteModal = $(`#${source}EmotesModal`);
+            let children = emoteModal.children();
+            children.each(function(i) {
+                if ($(this).hasClass("emoteBoxChecked")) {
+                    $(this).click();
+                }
+            });
+        });
+    });
     $("#categoryForm").submit(function (event) {
         event.preventDefault()
         if (!$("#newCategory").val()) {
             $(".error").text("Please fill out all required fields.");
             $(".error").show();
         }
-        else if (hasWhiteSpace($("#newCategory").val())) {
-            $(".error").text("Whitespace characters are not allowed for category names.");
-            $(".error").show();
-        }
         else {
             $(".error").hide();
             let emotes = [];
-            let type = $("#newCategory").val();
+            let type = convertWhiteSpaceToUnderscores($("#newCategory").val());
             console.log(document.querySelectorAll('input[name="emotesToAdd"]:checked'));
             [...document.querySelectorAll('input[name="emotesToAdd"]:checked')]
                 .forEach((cb) => emotes.push(cb.value));
@@ -479,9 +487,7 @@ $(document).ready(function () {
                     otherEmotes[m] = otherEmotes[m].trim();
                 }
                 for (let m = 0; m < otherEmotes.length; m++) {
-                    if (!hasWhiteSpace(otherEmotes[m])) {
-                        emotes.push(otherEmotes[m]);
-                    }
+                    emotes.push(convertWhiteSpaceToUnderscores(otherEmotes[m]));
                 }
             }
             console.log(otherEmotes);
