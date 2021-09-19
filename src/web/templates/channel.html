@@ -82,6 +82,10 @@
                             <button type="button" id="bttvEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
                             <div class="row" id="bttvEmotesModal">
                             </div>
+                            <h3 class="mt-2 mb-2">7TV Emotes</h3>
+                            <button type="button" id="7tvEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+                            <div class="row" id="7tvEmotesModal">
+                            </div>
                             <h3 class="mt-2 mb-2">Global Twitch Emotes</h3>
                             <button type="button" id="globalTwitchEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
                             <div class="row" id="globalTwitchEmotesModal">
@@ -89,6 +93,10 @@
                             <h3 class="mt-2 mb-2">Global BTTV Emotes</h3>
                             <button type="button" id="globalBTTVEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
                             <div class="row" id="globalBTTVEmotesModal">
+                            </div>
+                            <h3 class="mt-2 mb-2">Global 7TV Emotes</h3>
+                            <button type="button" id="global7TVEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+                            <div class="row" id="global7TVEmotesModal">
                             </div>
                         </div>
                         <p style="display: none " class="error text-danger">Please enter all required information</p>
@@ -171,6 +179,22 @@
     <p id="BTTVEmpty" style="display:none">Unable to find BTTV Emotes</p>
 </div>
 <hr style="background-color: white"/>
+
+<div class="d-flex justify-content-between align-items-center">
+    <h5 style="display: inline-block">7TV Emotes</h5>
+    <button type="button" id="7tvEmotesBtn" class="btn toggle-btn mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+</div>
+<hr style="background-color: white"/>
+<div class="text-center loading col-12">
+    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="row ml-0 mr-0" id="7tvEmotes">
+    <p id="7TVEmpty" style="display:none">Unable to find 7TV Emotes</p>
+</div>
+<hr style="background-color: white"/>
+
 <div class="d-flex justify-content-between align-items-center">
     <h5 style="display: inline-block">Global Twitch Emotes</h5>
     <button type="button" id="globalTwitchEmotesBtn" class="btn toggle-btn mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
@@ -198,6 +222,22 @@
 <div class="row ml-0 mr-0" id="globalBTTVEmotes">
     <p id="GlobalBTTVEmpty" style="display:none">Unable to find Global BTTV Emotes</p>
 </div>
+
+<hr style="background-color: white"/>
+<div class="d-flex justify-content-between align-items-center">
+    <h5 style="display: inline-block">Global 7TV Emotes</h5>
+    <button type="button" id="global7TVEmotesBtn" class="btn toggle-btn mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
+</div>
+<hr style="background-color: white"/>
+<div class="text-center loading col-12">
+    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="row ml-0 mr-0" id="global7TVEmotes">
+    <p id="Global7TVEmpty" style="display:none">Unable to find Global 7TV Emotes</p>
+</div>
+
 {% endblock %}
 {% block body_scripts %}
 <script type="text/javascript" src="../scripts/channel.js"></script>
