@@ -10,6 +10,9 @@ let globalData;
 function convertWhiteSpaceToUnderscores(s) {
     return s.replace(/\s/g, "_");
 }
+function hasWhiteSpace(s) {
+    return /\s/g.test(s);
+}
 function populateChannelInfo(data) {
     $("#channelImg").attr("src", data["imgUrl"]);
     $("#channelName").text(data["name"]);
@@ -157,6 +160,8 @@ function populateCategoryEmotes(data) {
         let currentTitle = $("<h2>");
         currentTitle.text("Current Emotes");
         editFormGroup.append(currentTitle);
+        console.log(type);
+        console.log(data[i]["emotes"]);
         for (let j = 0; j < data[i]["emotes"].length; j++) {
             // for normal category display
             let name = data[i]["emotes"][j];
@@ -487,7 +492,9 @@ $(document).ready(function () {
                     otherEmotes[m] = otherEmotes[m].trim();
                 }
                 for (let m = 0; m < otherEmotes.length; m++) {
-                    emotes.push(convertWhiteSpaceToUnderscores(otherEmotes[m]));
+                    if (!hasWhiteSpace(otherEmotes[m])) {
+                        emotes.push(otherEmotes[m]);
+                    }
                 }
             }
             console.log(otherEmotes);
