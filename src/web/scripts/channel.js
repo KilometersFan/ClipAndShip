@@ -3,8 +3,10 @@ let emoteMap;
 let twitchEmotes;
 let bttvEmotes;
 let ffEmotes;
+let _7tvEmotes;
 let globalTwitchEmotes;
 let globalBTTVEmotes;
+let global7TVEmotes;
 let userCategories = [];
 let globalData;
 function hasWhiteSpace(s) {
@@ -75,6 +77,10 @@ function populateEmotes(type, data) {
         emotes = bttvEmotes;
         typeUpper = "BTTV";
     }
+    else if (type === "7tvEmotes") {
+        emotes = _7tvEmotes;
+        typeUpper = "7TV";
+    }
     else if (type === "ffEmotes") {
         emotes = ffEmotes;
         typeUpper = "FF";
@@ -91,11 +97,15 @@ function populateEmotes(type, data) {
         emotes = globalBTTVEmotes;
         typeUpper = "GlobalBTTV";
     }
+    else if (type == "global7TVEmotes") {
+        emotes = global7TVEmotes;
+        typeUpper = "Global7TV";
+    }
     for (let i = 0; i < emotes.length; i++) {
         //Create Emote Box from emotes
         let emoteBox = createEmoteBox(emotes[i]["imageUrl"], emotes[i]["name"]);
         row.append(emoteBox);
-        let emoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"].toLowerCase(), "emoteBox", "emoteBoxChecked", "Emote", "emotesToAdd");
+        let emoteBoxInput = createEmoteBoxInput(emotes[i]["imageUrl"], emotes[i]["name"], "emoteBox", "emoteBoxChecked", "Emote", "emotesToAdd");
         formContainer.append(emoteBoxInput);
         for (let j = 0; j < userCategories.length; j++) {
             if (!data[j].emotes.includes(emotes[i]["name"])) {
@@ -162,12 +172,17 @@ function populateCategoryEmotes(data) {
             let name = data[i]["emotes"][j];
             let result;
             let bttvRes = bttvEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
+            let _7tvRes = _7tvEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             let twitchRes = twitchEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             let ffRes = ffEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             let globalTwitchRes = globalTwitchEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             let globalBTTVRes = globalBTTVEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
+            let globalB7TVRes = global7TVEmotes.find(x => x.name.toLowerCase() === name.toLowerCase());
             if (bttvRes) {
                 result = bttvRes;
+            }
+            else if (_7tvRes) {
+                result = _7tvRes;
             }
             else if (twitchRes) {
                 result = twitchRes;
@@ -180,6 +195,9 @@ function populateCategoryEmotes(data) {
             }
             else if (globalBTTVRes) {
                 result = globalBTTVRes;
+            }
+            else if (globalB7TVRes) {
+                result = globalB7TVRes;
             }
             else {
                 result = { imageUrl: "../error-placeholder.png" };
@@ -252,7 +270,7 @@ function populateCategoryEmotes(data) {
         editFormGroup.append(emoteAddTitle);
         editFormGroup.append(editFormRecommendedContainer);
         //Create Twitch, FFZ, BTTV emote sections
-        let emoteTypes = ["Other", "Twitch", "FF", "BTTV", "GlobalTwitch", "GlobalBTTV"];
+        let emoteTypes = ["Other", "Twitch", "FF", "BTTV", "7TV", "GlobalTwitch", "GlobalBTTV", "Global7TV"];
         emoteTypes.forEach((emoteType) => {
             let emoteTitle = $("<h3>", { "class": "mt-2 mb-2" });
             emoteTitle.text(emoteType + " Emotes");
@@ -333,42 +351,57 @@ function populateCategoryEmotes(data) {
     populateEmotes("twitchEmotes", globalData);
     populateEmotes("ffEmotes", globalData);
     populateEmotes("bttvEmotes", globalData);
+    populateEmotes("7tvEmotes", globalData);
     populateEmotes("globalTwitchEmotes", globalData);
     populateEmotes("globalBTTVEmotes", globalData);
+    populateEmotes("global7TVEmotes", globalData);
 }
 function setEmotes(channel_emotes) {
     twitchEmotes = channel_emotes["twitchEmotes"];
     ffEmotes = channel_emotes["ffEmotes"];
     bttvEmotes = channel_emotes["bttvEmotes"];
+    _7tvEmotes = channel_emotes["7tvEmotes"]
     if (bttvEmotes.length == 0) {
-        $("#BTTVEmpty").show()
+        $("#BTTVEmpty").show();
     }
     else {
-        $("#BTTVEmpty").hide()
+        $("#BTTVEmpty").hide();
+    }
+    if (_7tvEmotes.length == 0) {
+        $("#7TVEmpty").show()
+    }
+    else {
+        $("#7TVEmpty").hide()
     }
     if (ffEmotes.length == 0) {
-        $("#FFEmpty").show()
+        $("#FFEmpty").show();
     }
     else {
-        $("#FFEmpty").hide()
+        $("#FFEmpty").hide();
     }
     if (twitchEmotes.length == 0) {
-        $("#TwitchEmpty").show()
+        $("#TwitchEmpty").show();
     }
     else {
-        $("#TwitchEmpty").hide()
+        $("#TwitchEmpty").hide();
     }
     if (globalTwitchEmotes.length == 0) {
-        $("#globalTwitchEmpty").show()
+        $("#globalTwitchEmpty").show();
     }
     else {
-        $("#globalTwitchEmpty").hide()
+        $("#globalTwitchEmpty").hide();
     }
     if (globalBTTVEmotes.length == 0) {
-        $("#globalBTTVEmpty").show()
+        $("#globalBTTVEmpty").show();
     }
     else {
-        $("#globalBTTVEmpty").hide()
+        $("#globalBTTVEmpty").hide();
+    }
+    if (global7TVEmotes.length == 0) {
+        $("#global7TVEmpty").show();
+    }
+    else {
+        $("#global7TVEmpty").hide();
     }
     eel.get_categories(channelId)(populateCategoryEmotes);
 }
@@ -378,14 +411,19 @@ function populateCategories(id) {
             globalTwitchEmotes = twitch_global_emotes["emotes"];
             eel.get_bttv_global_emotes()(function (bttv_global_emotes) {
                 globalBTTVEmotes = bttv_global_emotes["emotes"];
-                console.log(twitch_global_emotes["emoteMap"]);
-                console.log(bttv_global_emotes["emoteMap"]);
-                emoteMap = {
-                    ...emoteMap,
-                    ...twitch_global_emotes["emoteMap"],
-                    ...bttv_global_emotes["emoteMap"],
-                }
-                setEmotes(channel_emotes);
+                eel.get_bttv_global_emotes()(function (_7tv_global_emotes) {
+                    global7TVEmotes = _7tv_global_emotes["emotes"];
+                    console.log(twitch_global_emotes["emoteMap"]);
+                    console.log(bttv_global_emotes["emoteMap"]);
+                    console.log(_7tv_global_emotes["emotesMap"]);
+                    emoteMap = {
+                        ...emoteMap,
+                        ...twitch_global_emotes["emoteMap"],
+                        ...bttv_global_emotes["emoteMap"],
+                        ..._7tv_global_emotes["emoteMap"],
+                    }
+                    setEmotes(channel_emotes);
+                });
             });
         });
     });
@@ -505,6 +543,10 @@ $(document).ready(function () {
         populateEmotes("twitchEmotes", globalData);
         populateEmotes("ffEmotes", globalData);
         populateEmotes("bttvEmotes", globalData);
+        populateEmotes("7tvEmotes", globalData);
+        populateEmotes("globalBTTVEmotes", globalData);
+        populateEmotes("globalTwitchEmotes", globalData);
+        populateEmotes("global7TVEmotes", globalData);
         $("#categoryForm").trigger("reset");
         $(".error").hide();
     });
@@ -582,6 +624,17 @@ $(document).ready(function () {
             $(this).children('i').eq(0).addClass("fa-toggle-on");
         }
     });
+    $("#7tvEmotesBtn").click(function () {
+        $("#7tvEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
     $("#globalTwitchEmotesBtn").click(function () {
         $("#globalTwitchEmotes").slideToggle();
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
@@ -595,6 +648,17 @@ $(document).ready(function () {
     });
     $("#globalBTTVEmotesBtn").click(function () {
         $("#globalBTTVEmotes").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
+    $("#global7TTVEmotesBtn").click(function () {
+        $("#global7TVEmotes").slideToggle();
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
             $(this).children('i').eq(0).removeClass("fa-toggle-on");
             $(this).children('i').eq(0).addClass("fa-toggle-off");
@@ -637,6 +701,19 @@ $(document).ready(function () {
             $(this).children('i').eq(0).addClass("fa-toggle-on");
         }
     });
+
+    $("#7tvEmotesModalBtn").click(function () {
+        $("#7tvEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
+
     $("#globalTwitchEmotesModalBtn").click(function () {
         $("#globalTwitchEmotesModal").slideToggle();
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
@@ -650,6 +727,18 @@ $(document).ready(function () {
     });
     $("#globalBTTVEmotesModalBtn").click(function () {
         $("#globalBTTVEmotesModal").slideToggle();
+        if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
+            $(this).children('i').eq(0).removeClass("fa-toggle-on");
+            $(this).children('i').eq(0).addClass("fa-toggle-off");
+        }
+        else {
+            $(this).children('i').eq(0).removeClass("fa-toggle-off");
+            $(this).children('i').eq(0).addClass("fa-toggle-on");
+        }
+    });
+
+    $("#global7TVEmotesModalBtn").click(function () {
+        $("#global7TVEmotesModal").slideToggle();
         if ($(this).children('i').eq(0).hasClass("fa-toggle-on")) {
             $(this).children('i').eq(0).removeClass("fa-toggle-on");
             $(this).children('i').eq(0).addClass("fa-toggle-off");

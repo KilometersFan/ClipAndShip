@@ -296,6 +296,12 @@ def get_bttv_global_emotes():
     global_emotes = bot.get_global_emotes("bttv")
     return global_emotes
 
+@eel.expose
+def get_7tv_global_emotes():
+    global bot
+    global_emotes = bot.get_global_emotes("7tv")
+    return global_emotes
+
 
 """
     Handle a channel's videos or the user's processed/processing videos    

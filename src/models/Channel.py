@@ -23,11 +23,13 @@ class Channel(object):
         self._ffz_emotes = []
         self._bttv_emotes = []
         self._twitch_emotes = []
+        self._7tv_emotes = []
         self._name_to_emotes_map = {}
         self._bttv_url = "https://api.betterttv.net/3/cached/users/twitch/"
         self._bttv_img_url = "https://cdn.betterttv.net/emote/"
         self._twitch_sub_url = "https://api.twitch.tv/helix/chat/emotes?broadcaster_id="
         self._franker_face_z_url = "https://api.frankerfacez.com/v1/room/"
+        self._7tv_url = "https://api.7tv.app/v2/users/"
         self._clip_bot = clip_bot
         self._is_setup = False
         valid_helix = False
@@ -44,6 +46,7 @@ class Channel(object):
                     self._desc = helix.user(channel_id).description
                     self._img = helix.user(channel_id).profile_image_url
                     self._franker_face_z_url += self._name.lower()
+                    self._7tv_url += f"{self._id}/emotes"
                     valid_helix = True
                 else:
                     print("Helix doesn't exist")
@@ -71,7 +74,9 @@ class Channel(object):
         ff_emotes = sorted(list(self._ffz_emotes), key=lambda e: e['name'].lower())
         bttv_emotes = sorted(list(self._bttv_emotes), key=lambda e: e['name'].lower())
         twitch_emotes = sorted(list(self._twitch_emotes), key=lambda e: e['name'].lower())
-        return {"ffEmotes": ff_emotes, "bttvEmotes": bttv_emotes, "twitchEmotes": twitch_emotes}
+        _7tv_emotes = sorted(list(self._7tv_emotes), key=lambda e: e['name'].lower())
+        return {"ffEmotes": ff_emotes, "bttvEmotes": bttv_emotes,
+                "twitchEmotes": twitch_emotes, '7tvEmotes': _7tv_emotes}
 
     # get emotes as a dictionary { name: url }
     def get_emotes_map(self):
@@ -270,8 +275,8 @@ class Channel(object):
 
     # Grab Twitch SUb, BTTV, FrankerFaceZ emotes and add to channel object
     def populate_emotes(self):
-        bttv_success, twitch_success, ffz_success = False, False, False
-        bttv_retries, twitch_retries, ffz_retries = 0, 0, 0
+        bttv_success, twitch_success, ffz_success, _7tv_success = False, False, False, False
+        bttv_retries, twitch_retries, ffz_retries, _7tv_retries = 0, 0, 0, 0
         while not bttv_success:
             if bttv_retries >= self._clip_bot.MAX_RETRIES:
                 print("Unable to connect to BTTV API. Quitting...")
@@ -342,3 +347,24 @@ class Channel(object):
                 print("FFZ Emotes Request timed out")
                 print(e.args)
                 ffz_retries += 1
+        while not _7tv_success:
+            if _7tv_retries >= self._clip_bot.MAX_RETRIES:
+                print("Unable to connect to 7TV API. Quitting...")
+                break
+            try:
+                get_7tv_emotes = requests.get(self._7tv_url, timeout=1)
+                if get_7tv_emotes.status_code == requests.codes.ok:
+                    _7tv_emote_set = json.loads(get_7tv_emotes.text)
+                    for _7tv_emote in _7tv_emote_set:
+                        self._7tv_emotes.append({"name": _7tv_emote["name"],
+                                                 "imageUrl": _7tv_emote["urls"][0][1]})
+                        self._name_to_emotes_map[_7tv_emote["name"].lower()] = _7tv_emote["name"]
+                    _7tv_success = True
+                else:
+                    print("Unable to complete get request for 7TV Emotes")
+                    print("Error code:", get_franker_face_z_emotes.status_code)
+                    _7tv_retries += 1
+            except requests.exceptions.Timeout as e:
+                print("7TV Emotes Request timed out")
+                print(e.args)
+                _7tv_retries += 1

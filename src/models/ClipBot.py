@@ -197,6 +197,8 @@ class ClipBot:
             global_url = "https://api.twitch.tv/helix/chat/emotes/global"
         elif source == "bttv":
             global_url = "https://api.betterttv.net/3/cached/emotes/global"
+        elif source == "7tv":
+            global_url = "https://api.7tv.app/v2/emotes/global"
         num_retries = 0
         while not success:
             if num_retries >= self.MAX_RETRIES:
@@ -216,6 +218,11 @@ class ClipBot:
                             emotes.append({"name": bttv_global_emote["code"],
                                            "imageUrl": bttv_image_url + bttv_global_emote["id"] + "/1x"})
                             emotes_map[bttv_global_emote["code"].lower()] = bttv_global_emote["code"]
+                    elif source == "7tv":
+                        for _7tv_global_emote in global_emotes:
+                            emotes.append({"name": _7tv_global_emote["name"],
+                                           "imageUrl": _7tv_global_emote["urls"][0][1]})
+                            emotes_map[_7tv_global_emote["name"].lower()] = _7tv_global_emote["name"]
                     success = True
                 else:
                     print("Unable to complete get request for Twitch Sub Emotes")
