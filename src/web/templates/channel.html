@@ -60,7 +60,7 @@
                         <div id="categoryFormContainer" class="form-group">
                             <label for="newCategory">New Category</label>
                             <input class="form-control" type="text" id="newCategory" name="newCategory" required />
-                            <p>Spaces and other whitespace is not allowed</p>
+                            <p>Spaces and other whitespace will be converted to underscores (ex: Hello World -> Hello_World).</p>
                             <h2 class="mt-2 mb-2">Emotes to Add</h2>
                             <div id="categoryRecommendedContainer" class="form-group">
                                 <div id="recommendedRow" class="d-flex row ml-0 mr-0"></div>
@@ -68,7 +68,7 @@
                             </div>
 
                             <h3 class="mt-2 mb-2">Other Emotes</h3>
-                            <p>Add global twitch emotes, or other 1 word phrases, in a comma separated list. Text with spaces will not be added.</p>
+                            <p>Add other emotes in a comma separated list. Emotes with whitespace will not be added.</p>
                             <input type="text" id="addOtherEmotes" name="addOtherEmotes" placeholder="Kappa, LUL, PogChamp", class="form-control"/>
                             <h3 class="mt-2 mb-2">Twitch Emotes</h3>
                             <button type="button" id="twitchEmotesModalBtn" class="btn btn-info mt-1 mb-1">Show <i class="fa fa-toggle-on"></i></button>
@@ -100,7 +100,7 @@
                             </div>
                         </div>
                         <p style="display: none " class="error text-danger">Please enter all required information</p>
-                        <button type="reset" class="btn delete-btn">Clear</button>
+                        <button type="reset" id="clearCategoryFormBtn" class="btn delete-btn">Clear</button>
                         <button type="submit" class="btn action-btn">Save Category</button>
                     </form>
                 </div>

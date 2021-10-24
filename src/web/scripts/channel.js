@@ -9,6 +9,9 @@ let globalBTTVEmotes;
 let global7TVEmotes;
 let userCategories = [];
 let globalData;
+function convertWhiteSpaceToUnderscores(s) {
+    return s.replace(/\s/g, "_");
+}
 function hasWhiteSpace(s) {
     return /\s/g.test(s);
 }
@@ -167,6 +170,8 @@ function populateCategoryEmotes(data) {
         let currentTitle = $("<h2>");
         currentTitle.text("Current Emotes");
         editFormGroup.append(currentTitle);
+        console.log(type);
+        console.log(data[i]["emotes"]);
         for (let j = 0; j < data[i]["emotes"].length; j++) {
             // for normal category display
             let name = data[i]["emotes"][j];
@@ -490,20 +495,28 @@ $(document).ready(function () {
             });
         }
     });
+    $("#clearCategoryFormBtn").click(function () {
+        const emoteSources = ["twitch", "bttv", "ff", "globalTwitch", "globalBTTV"];
+        emoteSources.forEach((source) => {
+            let emoteModal = $(`#${source}EmotesModal`);
+            let children = emoteModal.children();
+            children.each(function(i) {
+                if ($(this).hasClass("emoteBoxChecked")) {
+                    $(this).click();
+                }
+            });
+        });
+    });
     $("#categoryForm").submit(function (event) {
         event.preventDefault()
         if (!$("#newCategory").val()) {
             $(".error").text("Please fill out all required fields.");
             $(".error").show();
         }
-        else if (hasWhiteSpace($("#newCategory").val())) {
-            $(".error").text("Whitespace characters are not allowed for category names.");
-            $(".error").show();
-        }
         else {
             $(".error").hide();
             let emotes = [];
-            let type = $("#newCategory").val();
+            let type = convertWhiteSpaceToUnderscores($("#newCategory").val());
             console.log(document.querySelectorAll('input[name="emotesToAdd"]:checked'));
             [...document.querySelectorAll('input[name="emotesToAdd"]:checked')]
                 .forEach((cb) => emotes.push(cb.value));

@@ -30,8 +30,7 @@ class Category(object):
     def get_emotes(self, is_list=False):
         if not is_list:
             return self._emotes
-        emotes = sorted(list(self._emotes), key=str.lower)
-        return emotes
+        return sorted(list(self._emotes), key=str.lower)
 
     # reset emotes and add the ones in emotes param
     def set_emotes(self, emotes):

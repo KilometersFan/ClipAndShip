@@ -100,7 +100,7 @@ class ClipBot:
                     channel = Channel(int(section), self._helix, self)
                     for option in cfg.options(section):
                         category = Category(option, section)
-                        emote_list = cfg[section][option].split(",")
+                        emote_list = cfg[section][option].split(",") if cfg[section][option].strip() else []
                         for emote in emote_list:
                             category.add_emote(emote)
                         channel.add_category(category)
